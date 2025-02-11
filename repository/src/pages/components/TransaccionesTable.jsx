@@ -55,19 +55,19 @@ const TransaccionesTable = ({
           <table className="w-full table-auto border-collapse hidden md:table">
             <thead>
               <tr className="text-left border-b border-gray-700">
-                <th className="py-2 cursor-pointer" onClick={() => handleSort("fecha")}>
+                <th className="py-2 cursor-pointer text-white" onClick={() => handleSort("fecha")}>
                   Fecha {sortConfig.key === "fecha" && (sortConfig.direction === "asc" ? "▲" : "▼")}
                 </th>
-                <th className="py-2 cursor-pointer" onClick={() => handleSort("motivo")}>
+                <th className="py-2 cursor-pointer text-white" onClick={() => handleSort("motivo")}>
                   Motivo {sortConfig.key === "motivo" && (sortConfig.direction === "asc" ? "▲" : "▼")}
                 </th>
-                <th className="py-2 cursor-pointer" onClick={() => handleSort("valor")}>
+                <th className="py-2 cursor-pointer text-white" onClick={() => handleSort("valor")}>
                   Valor {sortConfig.key === "valor" && (sortConfig.direction === "asc" ? "▲" : "▼")}
                 </th>
-                <th className="py-2">
+                <th className="py-2 text-white">
                   Categoria 
                 </th>
-                <th className="py-2">
+                <th className="py-2 text-white">
                   Medio de Pago
                 </th>
                 <th className="py-2"></th>

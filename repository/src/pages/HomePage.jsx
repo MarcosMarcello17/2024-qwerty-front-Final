@@ -73,7 +73,7 @@ function HomePage() {
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [pendTran, setPendTran] = useState(false);
   const [filtroMes, setFiltroMes] = useState(""); // Ej: "10" para octubre
-  const [filtroAno, setFiltroAno] = useState("2024"); //
+  const [filtroAno, setFiltroAno] = useState("2025"); //
   const [filterEmpty, setFilterEmpty] = useState(false);
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
@@ -712,7 +712,7 @@ function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   return (
-    <div className="container min-h-screen min-w-full max-w-full bg-black">
+    <div className="container min-h-screen min-w-full max-w-full bg-[#000814]">
       <Header
         payCategories={payCategories}
         setPayCategories={setPayCategories}
@@ -723,7 +723,7 @@ function HomePage() {
       <div className="flex justify-end w-full p-4">
         <button
           onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-          className="btn btn-warning btn-sm w-full focus:bg-yellow-600"
+          className="btn btn-warning btn-sm w-full focus:bg-[#ffc300]"
         >
           {isFiltersOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
         </button>
@@ -797,9 +797,9 @@ function HomePage() {
       )}
       <>
         {isLoading && (
-          <div className="fixed inset-0 bg-black bg-opacity-500 flex justify-center items-center z-50">
+          <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
             <div className="flex items-center justify-center">
-              <div className="animate-spin border-t-4 border-blue-500 border-solid w-16 h-16 rounded-full"></div>
+              <div className="animate-spin border-t-4 border-[#0001d3d]-500 border-solid w-16 h-16 rounded-full"></div>
             </div>
           </div>
         )}
@@ -844,7 +844,7 @@ function HomePage() {
         {isLoadingFilter ? (
           <div className="flex justify-center items-center">
             <svg
-              className="animate-spin h-8 w-8 md:h-10 md:w-10 text-yellow-500"
+              className="animate-spin h-8 w-8 md:h-10 md:w-10 text-[#ffd60a]"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -863,7 +863,7 @@ function HomePage() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.965 7.965 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            <span className="text-yellow-500 font-bold ml-2">Cargando...</span>
+            <span className="text-[#ffd60a] font-bold ml-2">Cargando...</span>
           </div>
         ) : (
           <>
@@ -887,7 +887,7 @@ function HomePage() {
                   </p>
                 )}
                 <button
-                  className="bg-yellow-500 text-gray-950 font-extrabold py-4 px-8 rounded-lg hover:bg-yellow-700"
+                  className="bg-[#ffd60a] text-gray-950 font-extrabold py-4 px-8 rounded-lg hover:bg-[#ffc300]"
                   onClick={openModal}
                 >
                   Ingrese una transacción
