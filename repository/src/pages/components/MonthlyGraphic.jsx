@@ -149,7 +149,7 @@ function MonthlyGraphic({
   };
 
   return (
-    <div className="flex flex-col justify-center items-center py-4 bg-gray-950 h-full w-full">
+    <div className="flex flex-col justify-center items-center py-4 bg-[#000814] h-full w-full">
       {loadingg ? (
         <LoadingSpinner />
       ) : (

@@ -45,14 +45,14 @@ const TransaccionesTable = ({
   } else {
     onTransactions();
     return (
-      <div className="w-full p-4 bg-gray-900 text-white rounded-md">
+      <div className="w-full p-4 border-4 border-[#001d3d] bg-[#000814] text-white rounded-lg">
         <h2 className="text-xl md:text-2xl py-2 font-bold text-gray-100">
           Historial de Transacciones
         </h2>
 
         {/* Contenedor de la tabla */}
         <div className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse hidden md:table">
+          <table className="w-full table-auto hidden md:table">
             <thead>
               <tr className="text-left border-b border-gray-700">
                 <th className="py-2 cursor-pointer text-white" onClick={() => handleSort("fecha")}>
@@ -77,7 +77,7 @@ const TransaccionesTable = ({
               {sortedTransactions.map((transaction, index) => (
                 <tr
                   key={index}
-                  className="border-b border-gray-700 hover:bg-gray-800"
+                  className="border-b border-gray-700 hover:bg-gray-800 bg-[#001d3d]"
                 >
                   <td className="py-2">{transaction.fecha}</td>
                   <td className="py-2">{transaction.motivo}</td>
@@ -117,7 +117,7 @@ const TransaccionesTable = ({
         {transactions.map((transaction, index) => (
           <div
             key={index}
-            className="p-4 bg-gray-800 rounded-md shadow-md border border-gray-700"
+            className="p-4 bg-[#001d3d] rounded-md shadow-md"
           >
             <div className="flex justify-between mb-2">
               <span className="font-semibold text-sm">Date:</span>

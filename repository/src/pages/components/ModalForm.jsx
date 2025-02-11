@@ -175,7 +175,7 @@ function ModalForm({
       onRequestClose={closeModal}
       contentLabel="Agregar Transacción"
       style={customStyles}
-      className="bg-gray-950 shadow-lg p-4 rounded-lg"
+      className="bg-[#000814] shadow-lg p-4 rounded-lg"
     >
       <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">
         {edit ? "Editar Transacción" : "Agregar Nueva Transacción"}
@@ -187,7 +187,7 @@ function ModalForm({
             type="text"
             value={motivo}
             onChange={handleMotivoChange}
-            className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             required
           />
         </div>

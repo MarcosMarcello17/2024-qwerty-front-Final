@@ -701,7 +701,7 @@ function HomePage() {
   };
   const resetFilters = () => {
     setCategoriaSeleccionada("Todas");
-    setFiltroAno("2024");
+    setFiltroAno("2025");
     setFiltroMes("");
   };
   const refershTransacciones = (transaccionNueva) => {
@@ -723,7 +723,7 @@ function HomePage() {
       <div className="flex justify-end w-full p-4">
         <button
           onClick={() => setIsFiltersOpen(!isFiltersOpen)}
-          className="btn btn-warning btn-sm w-full focus:bg-[#ffc300]"
+          className="btn bg-[#ffd60a] border-[#ffd60a] btn-sm w-full focus:bg-[#ffc300] hover:bg-[#ffc300] border-none"
         >
           {isFiltersOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
         </button>
@@ -788,7 +788,7 @@ function HomePage() {
 
             <button
               onClick={() => resetFilters()}
-              className="btn btn-warning w-full md:w-auto mt-2 md:mt-0"
+              className="btn bg-[#ffd60a] hover:bg-[#ffc300] focus:bg-[#ffc300] w-full md:w-auto mt-2 md:mt-0 border-none"
             >
               Borrar filtros
             </button>

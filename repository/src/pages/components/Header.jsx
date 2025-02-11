@@ -25,7 +25,7 @@ function Header({
 
 
   return (
-    <nav className="bg-black text-white px-2 py-2 md:px-8 shadow-md">
+    <nav className="bg-[#000814] text-white px-2 py-2 md:px-8 shadow-md">
       <div className="container mx-auto flex justify-between items-center relative">
         {/* Logo */}
         <div
@@ -35,33 +35,33 @@ function Header({
           <img
             src={logo}
             alt="logo"
-            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full border-4 border-yellow-600 shadow-md"
+            className="w-12 h-12 md:w-16 md:h-16 lg:w-20 lg:h-20 rounded-full border-4 border-[#ffc300] shadow-md"
           />
         </div>
 
         {/* Desktop Menu */}
         <div className="hidden md:flex space-x-4">
           <button
-            className="px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+            className="px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
             onClick={() => navigate("/profile")}
           >
             Mi Cuenta
           </button>
           <button
-            className="px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+            className="px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
             onClick={openModalCategoria}
           >
             Categorías
           </button>
           {/* Grouped menu for the last 5 buttons */}
           <details className="group relative z-50">
-            <summary className="px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out cursor-pointer list-none">
+            <summary className="px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out cursor-pointer list-none">
               Más Opciones
             </summary>
             <ul className="absolute left-0 mt-2 w-48 bg-gray-800 text-white rounded-lg shadow-lg p-2 space-y-2 z-50">
               <li>
                 <button
-                  className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                  className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                   onClick={() => openModal()}
                 >
                   Agregar Transacción
@@ -69,7 +69,7 @@ function Header({
               </li>
               <li>
                 <button
-                  className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                  className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                   onClick={() =>
                     document.getElementById("sendPayModal").showModal()
                   }
@@ -79,7 +79,7 @@ function Header({
               </li>
               <li>
                 <button
-                  className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                  className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                   onClick={() =>
                     document.getElementById("generatePayModal").showModal()
                   }
@@ -89,7 +89,7 @@ function Header({
               </li>
               <li>
                 <button
-                  className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                  className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                   onClick={() => navigate("/presupuestos")}
                 >
                   Presupuesto
@@ -97,7 +97,7 @@ function Header({
               </li>
               <li>
                 <button
-                  className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                  className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                   onClick={openModalGastos}
                 >
                   Gastos Compartidos
@@ -111,7 +111,7 @@ function Header({
         <div className="md:hidden">
           <button
             onClick={toggleMobileMenu}
-            className="block cursor-pointer text-yellow-500 text-3xl"
+            className="block cursor-pointer text-[#ffd60a] text-3xl"
           >
             {isMobileMenuOpen ? "X" : "☰"}
           </button>
@@ -120,7 +120,7 @@ function Header({
               <ul className="flex flex-col p-4 space-y-3">
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       navigate("/profile");
                       setIsMobileMenuOpen(false);
@@ -131,7 +131,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       openModalCategoria();
                       setIsMobileMenuOpen(false);
@@ -142,7 +142,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       openModal();
                       setIsMobileMenuOpen(false);
@@ -153,7 +153,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       document.getElementById("sendPayModal").showModal();
                       setIsMobileMenuOpen(false);
@@ -164,7 +164,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       document.getElementById("generatePayModal").showModal();
                       setIsMobileMenuOpen(false);
@@ -175,7 +175,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       navigate("/presupuestos");
                       setIsMobileMenuOpen(false);
@@ -186,7 +186,7 @@ function Header({
                 </li>
                 <li>
                   <button
-                    className="w-full px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg hover:bg-yellow-600 transition duration-300 ease-in-out"
+                    className="w-full px-4 py-2 bg-[#ffd60a] text-gray-900 rounded-lg hover:bg-[#ffc300] transition duration-300 ease-in-out"
                     onClick={() => {
                       openModalGastos();
                       setIsMobileMenuOpen(false);
