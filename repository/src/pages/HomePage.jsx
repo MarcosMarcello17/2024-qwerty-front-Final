@@ -926,7 +926,7 @@ function HomePage() {
           refreshTransacciones={refershTransacciones}
         />
         <AlertPending
-          isOpen={pendTran}
+          isOpen={true}
           pendingTransaction={tranPendiente}
           isAccepted={isAccepted}
           isRejected={isRejected}

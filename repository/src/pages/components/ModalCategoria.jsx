@@ -36,7 +36,7 @@ const ModalCategoria = ({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#1a1a1a", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };
@@ -126,7 +126,7 @@ const ModalCategoria = ({
       onRequestClose={onRequestClose}
       contentLabel={edit ? "Editar Categoría" : "Crear Categoría"}
       style={customStyles}
-      className="bg-gray-900 text-white p-4 sm:p-2 rounded-lg shadow-lg"
+      className="bg-[#000814] text-white p-4 sm:p-2 rounded-lg shadow-lg"
     >
       <h2 className="text-xl sm:text-lg font-bold mb-4">
         {edit ? "Editar Categoría" : "Crear Nueva Categoría"}
@@ -136,26 +136,25 @@ const ModalCategoria = ({
         placeholder="Nombre de la categoría"
         value={categoriaNombre}
         onChange={(e) => setCategoriaNombre(e.target.value)}
-        className="mt-1 block w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+        className="mt-1 block w-full p-2 border border-[#003566] bg-[#001d3d] text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
       <label className="mt-4 block">Selecciona un icono:</label>
-      <div className="grid grid-cols-3 gap-0 sm:grid-cols-4">
+      <div className="grid grid-cols-3 gap-0 sm:grid-cols-3">
         {iconos.map((icono) => (
           <div
             key={icono.alt}
-            className={`p-1 border rounded-md cursor-pointer transition duration-200 ease-in-out 
+            className={`p-1 border rounded-md cursor-pointer transition duration-200 ease-in-out flex items-center justify-center
                         ${
                           iconoSeleccionado === icono.faIcon
-                            ? "border-yellow-500"
+                            ? "border-[#ffc300]"
                             : "border-transparent"
                         } 
-                        hover:border-yellow-500`}
+                        hover:border-[#ffc300]`}
             onClick={() => setIconoSeleccionado(icono.faIcon)}
           >
-            <FontAwesomeIcon icon={icono.faIcon} className="fa-2x sm:fa-2xs" />{" "}
-            {/* Tamaño del icono */}
+            <FontAwesomeIcon icon={icono.faIcon} className="fa-2x sm:fa-2xs" />
           </div>
         ))}
       </div>
@@ -163,7 +162,7 @@ const ModalCategoria = ({
       <button
         onClick={handleSubmit}
         disabled={isLoading}
-        className="mt-4 mr-2 w-full sm:w-auto bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-green-600 transition duration-300"
+        className="mt-4 mr-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
       >
         {isLoading ? (
           <div>

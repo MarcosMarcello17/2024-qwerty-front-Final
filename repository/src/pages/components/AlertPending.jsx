@@ -91,7 +91,7 @@ function AlertPending({
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
         overlayClassName="flex items-center justify-center"
       >
-        <div className="relative w-11/12 max-w-lg bg-gray-900 text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+        <div className="relative w-11/12 max-w-lg bg-[#000814] text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
           <h2 className="text-xl font-bold mb-4">CONFIRMAR TRANSACCION</h2>
           <label className="block mb-2">
             Confirme o rechace la transaccion
@@ -121,7 +121,7 @@ function AlertPending({
             <select
               value={categoria}
               onChange={handleCategoryChange}
-              className="select select-warning w-full mt-1 block text-white bg-gray-900"
+              className="select select-warning w-full mt-1 block text-white bg-[#000814]"
             >
               <option value="">Selecciona una categoría</option>
               {payCategories.map((cat) => (
@@ -137,7 +137,7 @@ function AlertPending({
             <select
               value={payOption}
               onChange={(e) => setPayOption(e.target.value)}
-              className="select select-warning w-full mt-1 block text-white bg-gray-900"
+              className="select select-warning w-full mt-1 block text-white bg-[#000814]"
             >
               <option value="">Selecciona una Tipo de Gasto</option>
               {payOptions.map((cat) => (
@@ -199,7 +199,7 @@ function AlertPending({
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
         overlayClassName="flex items-center justify-center"
       >
-        <div className="relative w-11/12 max-w-lg bg-gray-900 text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+        <div className="relative w-11/12 max-w-lg bg-[#000814] text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
           <h2 className="text-xl font-bold mb-4">ATENCION</h2>
           <label className="block mb-2">Usted ha recibido un pago!</label>
           <label className="block mb-2">
@@ -261,7 +261,7 @@ function AlertPending({
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
         overlayClassName="flex items-center justify-center"
       >
-        <div className="relative w-11/12 max-w-lg bg-gray-900 text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+        <div className="relative w-11/12 max-w-lg bg-[#000814] text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
           <h2 className="text-xl font-bold mb-4">ATENCION</h2>
           <label className="block mb-2">Se lo a invitado al grupo:</label>
           <label className="block mb-2">
@@ -323,7 +323,7 @@ function AlertPending({
         className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50"
         overlayClassName="flex items-center justify-center"
       >
-        <div className="relative w-11/12 max-w-lg bg-gray-900 text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
+        <div className="relative w-11/12 max-w-lg bg-[#000814] text-white p-6 rounded-lg shadow-lg overflow-y-auto max-h-[90vh]">
           <h2 className="text-xl font-bold mb-4">CONFIRMAR TRANSACCION</h2>
           <label className="block mb-2">
             Confirme o rechace la transaccion

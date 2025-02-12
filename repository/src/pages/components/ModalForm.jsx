@@ -56,16 +56,16 @@ function ModalForm({
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
-      backgroundColor: "#111827",
+      backgroundColor: "#001d3d",
       color: "white",
     }),
     menu: (provided) => ({
       ...provided,
-      backgroundColor: "#111827",
+      backgroundColor: "#001d3d",
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? "#eab308" : "#111827",
+      backgroundColor: state.isSelected ? "#ffc300" : "#001d3d",
       color: state.isSelected ? "black" : "white",
     }),
     singleValue: (provided) => ({
@@ -187,7 +187,7 @@ function ModalForm({
             type="text"
             value={motivo}
             onChange={handleMotivoChange}
-            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             required
           />
         </div>
@@ -197,7 +197,7 @@ function ModalForm({
             type="number"
             value={valor}
             onChange={(e) => setValor(e.target.value)}
-            className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             required
           />
         </div>
@@ -210,7 +210,7 @@ function ModalForm({
             onChange={handlePayChange}
             onCreateOption={handleCreateTP}
             value={selectedPayMethod}
-            className="custom-select mt-1 block w-full border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm border-transparent"
+            className="custom-select mt-1 block w-full border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm border-transparent"
             styles={customSelectStyles}
             required
           />
@@ -231,7 +231,7 @@ function ModalForm({
               <button
                 type="button"
                 onClick={() => openModalCategoria()}
-                className="ml-2 bg-blue-500 text-white py-1 px-2 rounded"
+                className="ml-2 bg-[#003566] text-white py-1 px-2 rounded"
               >
                 +
               </button>
@@ -246,7 +246,7 @@ function ModalForm({
                   : "Ningún grupo seleccionado"
               }
               readOnly
-              className="mt-1 block w-full border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm border-transparent text-center"
+              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             />
           )}
         </div>
@@ -256,7 +256,7 @@ function ModalForm({
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
-            className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             required
           />
         </div>
@@ -297,7 +297,7 @@ function ModalForm({
                   : "Ningún grupo seleccionado"
               }
               readOnly
-              className="mt-1 block w-full border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm border-transparent text-center"
+              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             />
           )}
         </div>
@@ -309,7 +309,7 @@ function ModalForm({
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 bg-yellow-500 bg-opacity-80 font-bold text-gray-950 py-2 px-4 rounded-lg hover:bg-yellow-700"
+            className="flex-1 bg-[#ffd60a] bg-opacity-90 font-bold text-gray-950 py-2 px-4 rounded-lg hover:bg-[#ffc300]"
           >
             {isLoading ? (
               <div className="flex items-center justify-center">
