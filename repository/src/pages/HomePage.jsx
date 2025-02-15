@@ -10,6 +10,11 @@ import ModalAskPayment from "./components/ModalAskPayment";
 import ModalSendPayment from "./components/ModalSendPayment";
 import PresupuestosWidget from "./components/PresupuestosWidget";
 import AchievementNotification from "./components/AchievementNotification";
+import ModalNewSuscription from "./components/ModalNewSuscription";
+import { getApiTransacciones } from "../functions/getApiTransacciones";
+import { createCatAPI } from "../functions/createCatAPI";
+import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
+import { deletePendingTransaction } from "../functions/deletePendingTransaction";
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -78,6 +83,7 @@ function HomePage() {
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
+  const [posibleSub, setPosibleSub] = useState([]);
   const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
     []
   );
@@ -104,8 +110,14 @@ function HomePage() {
     setIsLoading(false);
   }, [payCategories]);
   useEffect(() => {
+    
     fetchPersonalTipoGastos();
     fetchGrupos();
+    setPosibleSub(detectRecurringTransactions(transacciones));
+    if(posibleSub[0] != null){
+      document.getElementById("newSubModal").showModal();
+    }
+
   }, []);
 
   const fetchGrupos = async () => {
@@ -225,29 +237,10 @@ function HomePage() {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
     if (await checkIfValidToken(token)) {
-      let url = `http://localhost:8080/api/transacciones/user/filter`;
-      if (filtrado !== "Todas" || filtroMes || filtroAno) {
-        url += `?categoria=${filtrado}`;
-        if (filtroMes) url += `&mes=${filtroMes}`;
-        if (filtroAno) url += `&anio=${filtroAno}`;
-      }
-      try {
-        const response = await fetch(url, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setTransacciones(data.transaccionesFiltradas);
-        if (filtrado !== "Todas") {
-          setTransaccionesSinFiltroCat(data.transaccionesSinFiltrarCat);
-        }
+      try{
+        const apiTransacciones = await getApiTransacciones(filtrado, filtroMes, filtroAno);
+        setTransacciones(apiTransacciones.transacciones);
+        setTransaccionesSinFiltroCat(apiTransacciones.transaccionesSinFiltroCat);
       } catch (err) {
         console.error("Error fetching transactions:", err);
       } finally {
@@ -560,6 +553,7 @@ function HomePage() {
       });
   };
 
+  {/* Me quede aca */}
   const deleteRow = async (id) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
@@ -586,26 +580,8 @@ function HomePage() {
     }
   };
   const eliminarTransaccionPendiente = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/transaccionesPendientes/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        showTransactionsPendientes();
-      } else {
-        //poner algun error?
-      }
-    } catch (err) {
-      //poner algun error?
-      //setError("Ocurrió un error. Intenta nuevamente.");
-    }
+    const tranEliminada = await deletePendingTransaction(id);
+    tranEliminada ? showTransactionsPendientes() : console.log("Error");
   };
   const handleMotivoChange = (e) => {
     setMotivo(e.target.value);
@@ -619,79 +595,19 @@ function HomePage() {
     setSelectedPayMethod(value);
   };
   const handleCreateTP = async (inputValue) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/personal-tipo-gasto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
-
-      if (response.ok) {
-        const newTipoGasto = await response.json();
-        const newOption = {
-          label: newTipoGasto.nombre,
-          value: newTipoGasto.nombre,
-        };
-        setPayOptions((prevOptions) => [...prevOptions, newOption]);
-        setSelectedPayMethod(newOption);
-        setTipoGasto(newTipoGasto.nombre);
-      }
-    } catch (error) {
-      console.error("Error al agregar el tipo de gasto personalizado:", error);
-    }
+    const newOption = createPaymentMethodAPI(inputValue);
+    setPayOptions((prevOptions) => [...prevOptions, newOption]);
+    setSelectedPayMethod(newOption);
+    setTipoGasto(newOption.label);
   };
   const handleCreateCat = async (nombre, icono) => {
-    console.log("entre      ");
-    const token = localStorage.getItem("token");
-    if (!nombre || !icono) {
-      console.error("Nombre y icono son obligatorios");
-      return;
+    const ret = await createCatAPI(nombre,icono);
+    if(ret.newCat != null) {
+      setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
+      setSelectedCategory(ret.newCat);
+      setCategoria(ret.newCat.value);
     }
-    try {
-      const inputValue = {
-        nombre: nombre,
-        iconPath: icono,
-      };
-      const response = await fetch(
-        "http://localhost:8080/api/personal-categoria",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
-      if (response.ok) {
-        const newCategoria = await response.json();
-        const newOption = {
-          label: newCategoria.nombre,
-          value: newCategoria.nombre,
-          iconPath: newCategoria.iconPath,
-        };
-        setPayCategories((prevOptions) => [...prevOptions, newOption]);
-        console.log(payCategories);
-        setSelectedCategory(newOption);
-        setCategoria(newCategoria.nombre);
-      } else {
-        const errorMessage = await response.text();
-        console.error("Error al agregar categoria:", errorMessage);
-        console.log("la categoria existeeeeeeeeeee");
-        return "La categoria ya existe";
-      }
-    } catch (error) {
-      console.error("Error al agregar categoria personalizada:", error);
-      return "";
-    }
-    return "";
+    return ret.error;
   };
   const handleChange = (event) => {
     setIsLoadingFilter(true);
@@ -711,6 +627,53 @@ function HomePage() {
   };
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const detectRecurringTransactions = (transacciones) => {
+    const today = new Date();
+    const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1); // Inicio de hace 3 meses
+  
+    const monthlyTransactions = transacciones.reduce((acc, transaction) => {
+      const transactionDate = new Date(transaction.fecha);
+      if (transactionDate >= threeMonthsAgo) {
+        const monthKey = `${transactionDate.getUTCFullYear()}-${transactionDate.getUTCMonth()}`;
+        if (!acc[transaction.motivo]) {
+          acc[transaction.motivo] = {};
+        }
+        if (!acc[transaction.motivo][monthKey]) {
+          acc[transaction.motivo][monthKey] = [];
+        }
+        acc[transaction.motivo][monthKey].push(transaction);
+      }
+      return acc;
+    }, {});
+  
+    return Object.entries(monthlyTransactions)
+      .map(([descripcion, months]) => {
+        const monthKeys = Object.keys(months).sort(); // Aseguramos que los meses estén ordenados
+        const lastThreeMonths = Array.from({ length: 3 }, (_, index) => {
+          const date = new Date(today.getFullYear(), today.getMonth() - index, 1);
+          return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+        });
+  
+        const hasTransactionsInEachMonth = lastThreeMonths.every((monthKey) =>
+          monthKeys.includes(monthKey)
+        );
+  
+        if (hasTransactionsInEachMonth) {
+          return {
+            descripcion,
+            meses: lastThreeMonths,
+            transacciones: lastThreeMonths.flatMap(
+              (monthKey) => months[monthKey] || []
+            ),
+          };
+        }
+        return null;
+      })
+      .filter((result) => result !== null);
+  };
+  
+
   return (
     <div className="container min-h-screen min-w-full max-w-full bg-[#000814]">
       <Header
@@ -897,6 +860,7 @@ function HomePage() {
           </>
         )}
 
+        <ModalNewSuscription newSubs={posibleSub}/>
         <ModalForm
           isModalOpen={isModalOpen}
           closeModal={closeModal}
