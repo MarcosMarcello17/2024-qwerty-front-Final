@@ -150,7 +150,7 @@ function AlertPending({
 
           <div className="flex justify-end mt-2">
             <button
-              className="bg-yellow-500 hover:bg-yellow-800 text-black font-bold py-2 px-4 rounded mr-2"
+              className="bg-[#FFD60A] hover:bg-[#FFC300] text-black font-bold py-2 px-4 rounded mr-2"
               onClick={handleAccept}
               disabled={isLoading}
             >
@@ -218,7 +218,7 @@ function AlertPending({
           )}
           <div className="flex justify-end mt-2">
             <button
-              className="bg-yellow-500 hover:bg-yellow-800 text-black font-bold py-2 px-4 rounded mr-2"
+              className="bg-[#FFD60A] hover:bg-[#FFC300] text-black font-bold py-2 px-4 rounded mr-2"
               onClick={handleAccept}
               disabled={isLoading}
             >
@@ -274,7 +274,7 @@ function AlertPending({
           )}
           <div className="flex justify-end mt-2">
             <button
-              className="bg-yellow-500 hover:bg-yellow-800 text-black font-bold py-2 px-4 rounded mr-2"
+              className="bg-[#FFD60A] hover:bg-[#FFC300] text-black font-bold py-2 px-4 rounded mr-2"
               onClick={handleAccept}
               disabled={isLoading}
             >
@@ -339,7 +339,7 @@ function AlertPending({
           </label>
           <div className="flex justify-end">
             <button
-              className="bg-yellow-500 hover:bg-yellow-800 text-black font-bold py-2 px-4 rounded mr-2"
+              className="bg-[#FFD60A] hover:bg-[#FFC300] text-black font-bold py-2 px-4 rounded mr-2"
               onClick={handleAccept}
               disabled={isLoading}
             >

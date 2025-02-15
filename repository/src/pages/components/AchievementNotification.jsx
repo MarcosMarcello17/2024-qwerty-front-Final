@@ -40,7 +40,7 @@ const AchievementNotification = ({ achievement, onClose }) => {
 
   return (
     <dialog ref={dialogRef} className="modal">
-      <div className="modal-box bg-gray-900">
+      <div className="modal-box bg-[#000814]">
         <button
           className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
           onClick={() => {
@@ -58,7 +58,7 @@ const AchievementNotification = ({ achievement, onClose }) => {
         <img
           src="https://cdn-icons-png.flaticon.com/512/1875/1875506.png"
           alt={`Achievement`}
-          className={`w-28 h-28 object-contain mx-auto border-4 rounded-full border-yellow-500`}
+          className={`w-28 h-28 object-contain mx-auto border-4 rounded-full border-[#FFC300]`}
         />
         <p className="py-4 text-white">{achievementDesc}</p>
       </div>
