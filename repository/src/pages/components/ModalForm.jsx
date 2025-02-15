@@ -100,7 +100,6 @@ function ModalForm({
       grupos = [selectedGroup];
     }
     setActiveGroups(grupos.filter((grupo) => grupo.estado === true));
-    console.log(selectedGroup);
   }, [grupos]);
   useEffect(() => {
     if (selectedCategory && selectedCategory.value === "Gasto Grupal") {

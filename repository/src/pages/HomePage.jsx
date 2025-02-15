@@ -78,7 +78,7 @@ function HomePage() {
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [pendTran, setPendTran] = useState(false);
   const [filtroMes, setFiltroMes] = useState(""); // Ej: "10" para octubre
-  const [filtroAno, setFiltroAno] = useState("2025"); //
+  const [filtroAno, setFiltroAno] = useState(""); //
   const [filterEmpty, setFilterEmpty] = useState(false);
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
@@ -110,15 +110,19 @@ function HomePage() {
     setIsLoading(false);
   }, [payCategories]);
   useEffect(() => {
-    
     fetchPersonalTipoGastos();
     fetchGrupos();
-    setPosibleSub(detectRecurringTransactions(transacciones));
-    if(posibleSub[0] != null){
-      document.getElementById("newSubModal").showModal();
-    }
-
   }, []);
+
+  useEffect(() => {
+    if (transacciones.length > 0) {
+      const recurringTransactions = detectRecurringTransactions(transacciones);
+      setPosibleSub(recurringTransactions);
+      if (recurringTransactions[0] != null) {
+        document.getElementById("newSubModal").showModal();
+      }
+    }
+  }, [transacciones]); // Se ejecuta cuando transacciones cambia
 
   const fetchGrupos = async () => {
     setIsLoading(true);
@@ -149,7 +153,6 @@ function HomePage() {
 
   const showTransactionsPendientes = async () => {
     const token = localStorage.getItem("token");
-    console.log("buscando pendientes");
     try {
       const response = await fetch(
         "http://localhost:8080/api/transaccionesPendientes/user",
@@ -168,8 +171,6 @@ function HomePage() {
       const data = await response.json();
       if (data[0] != null) {
         setTranPendiente(data[0]);
-        console.log(data[0]);
-        console.log("hay data");
         setPendTran(true);
       }
     } catch (err) {
@@ -237,10 +238,16 @@ function HomePage() {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
     if (await checkIfValidToken(token)) {
-      try{
-        const apiTransacciones = await getApiTransacciones(filtrado, filtroMes, filtroAno);
+      try {
+        const apiTransacciones = await getApiTransacciones(
+          filtrado,
+          filtroMes,
+          filtroAno
+        );
         setTransacciones(apiTransacciones.transacciones);
-        setTransaccionesSinFiltroCat(apiTransacciones.transaccionesSinFiltroCat);
+        setTransaccionesSinFiltroCat(
+          apiTransacciones.transaccionesSinFiltroCat
+        );
       } catch (err) {
         console.error("Error fetching transactions:", err);
       } finally {
@@ -250,7 +257,6 @@ function HomePage() {
       fetchPersonalCategorias();
       showTransactionsPendientes();
     } else {
-      console.log("deberia redirec");
       navigate("/");
     }
     setIsLoading(false);
@@ -413,7 +419,6 @@ function HomePage() {
       url = "http://localhost:8080/api/grupos/agregar-usuario";
       const grupoId = transaccion.grupoId;
       console.log("este es el id " + grupoId);
-      console.log(transaccion);
       try {
         const response = await fetch(url, {
           method: "POST",
@@ -501,7 +506,6 @@ function HomePage() {
         body: bodyJson,
       });
       if (response.ok) {
-        console.log("la respuesta fue ok");
         const data = await response.json();
         if (selectedGroup == null) {
           if (edit) {
@@ -523,7 +527,6 @@ function HomePage() {
         console.log("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log("la respuesta fue error");
       console.log(err);
     } finally {
       setTransaccionesCargadas(true);
@@ -553,7 +556,6 @@ function HomePage() {
       });
   };
 
-  {/* Me quede aca */}
   const deleteRow = async (id) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
@@ -601,8 +603,8 @@ function HomePage() {
     setTipoGasto(newOption.label);
   };
   const handleCreateCat = async (nombre, icono) => {
-    const ret = await createCatAPI(nombre,icono);
-    if(ret.newCat != null) {
+    const ret = await createCatAPI(nombre, icono);
+    if (ret.newCat != null) {
       setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
       setSelectedCategory(ret.newCat);
       setCategoria(ret.newCat.value);
@@ -630,8 +632,12 @@ function HomePage() {
 
   const detectRecurringTransactions = (transacciones) => {
     const today = new Date();
-    const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1); // Inicio de hace 3 meses
-  
+    const threeMonthsAgo = new Date(
+      today.getFullYear(),
+      today.getMonth() - 2,
+      1
+    ); // Inicio de hace 3 meses
+
     const monthlyTransactions = transacciones.reduce((acc, transaction) => {
       const transactionDate = new Date(transaction.fecha);
       if (transactionDate >= threeMonthsAgo) {
@@ -646,19 +652,22 @@ function HomePage() {
       }
       return acc;
     }, {});
-  
     return Object.entries(monthlyTransactions)
       .map(([descripcion, months]) => {
         const monthKeys = Object.keys(months).sort(); // Aseguramos que los meses estén ordenados
         const lastThreeMonths = Array.from({ length: 3 }, (_, index) => {
-          const date = new Date(today.getFullYear(), today.getMonth() - index, 1);
+          const date = new Date(
+            today.getFullYear(),
+            today.getMonth() - index,
+            1
+          );
           return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
         });
-  
+
         const hasTransactionsInEachMonth = lastThreeMonths.every((monthKey) =>
           monthKeys.includes(monthKey)
         );
-  
+
         if (hasTransactionsInEachMonth) {
           return {
             descripcion,
@@ -672,7 +681,6 @@ function HomePage() {
       })
       .filter((result) => result !== null);
   };
-  
 
   return (
     <div className="container min-h-screen min-w-full max-w-full bg-[#000814]">
@@ -860,7 +868,10 @@ function HomePage() {
           </>
         )}
 
-        <ModalNewSuscription newSubs={posibleSub}/>
+        <ModalNewSuscription
+          handleSubmit={() => console.log("SUBMIT")}
+          newSubs={posibleSub}
+        />
         <ModalForm
           isModalOpen={isModalOpen}
           closeModal={closeModal}

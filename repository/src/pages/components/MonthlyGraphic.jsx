@@ -35,15 +35,44 @@ function MonthlyGraphic({
   const [transaccionesRestantes, setTransaccionesRestantes] = useState([]);
 
   useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    const transaccionesDelAnio = transacciones.filter(
+      (transaccion) => new Date(transaccion.fecha).getFullYear() === currentYear
+    );
+
     const gastos =
       filtroCategoria !== "Ingreso de Dinero"
-        ? transacciones.filter(
+        ? transaccionesDelAnio.filter(
             (transaccion) => transaccion.categoria !== "Ingreso de Dinero"
           )
-        : transacciones;
-  
+        : transaccionesDelAnio;
+
+    // También filtrar transaccionesSinFiltroCat por año
+    const transaccionesSinFiltroCatDelAnio =
+      transaccionesSinFiltroCat?.filter(
+        (transaccion) =>
+          new Date(transaccion.fecha).getFullYear() === currentYear
+      ) || [];
+
     let transaccionesConOtros = gastos;
-  
+
+    if (
+      filtroCategoria &&
+      filtroCategoria !== "Todas" &&
+      filtroCategoria !== "Ingreso de Dinero"
+    ) {
+      const transaccionesFiltradas = transaccionesSinFiltroCatDelAnio
+        .filter(
+          (transaccion) =>
+            transaccion.categoria !== "Ingreso de Dinero" &&
+            transaccion.categoria !== filtroCategoria
+        )
+        .map((transaccion) => ({
+          ...transaccion,
+          categoria: "Otros",
+        }));
+      transaccionesConOtros = [...gastos, ...transaccionesFiltradas];
+    }
     if (
       filtroCategoria &&
       filtroCategoria !== "Todas" &&
@@ -61,36 +90,39 @@ function MonthlyGraphic({
         }));
       transaccionesConOtros = [...gastos, ...transaccionesFiltradas];
     }
-  
+
     // Agrupar las transacciones por categoría (incluyendo "Otros")
-    const sumaPorCategoria = transaccionesConOtros.reduce((acc, transaccion) => {
-      const categoria = transaccion.categoria;
-      acc[categoria] = (acc[categoria] || 0) + transaccion.valor;
-      return acc;
-    }, {});
-  
+    const sumaPorCategoria = transaccionesConOtros.reduce(
+      (acc, transaccion) => {
+        const categoria = transaccion.categoria;
+        acc[categoria] = (acc[categoria] || 0) + transaccion.valor;
+        return acc;
+      },
+      {}
+    );
+
     // Agrupar las transacciones por tipo de gasto
     const sumaPorTipoGasto = gastos.reduce((acc, transaccion) => {
       const tipoGasto = transaccion.tipoGasto;
       acc[tipoGasto] = (acc[tipoGasto] || 0) + transaccion.valor;
       return acc;
     }, {});
-  
+
     const allMonths = Array.from({ length: 12 }, (_, index) =>
       new Date(2024, index).toLocaleString("default", { month: "short" })
     );
-  
+
     const allDays = (month) => {
       const daysInMonth = new Date(2024, month + 1, 0).getDate();
       return Array.from({ length: daysInMonth }, (_, index) => index + 1);
     };
-  
+
     let newDataLine;
-  
+
     if (filtroMes) {
       const selectedMonth = parseInt(filtroMes, 10) - 1;
       const days = allDays(selectedMonth);
-  
+
       const gastosPorDia = gastos.reduce((acc, transaccion) => {
         const fecha = new Date(transaccion.fecha);
         const mes = fecha.getUTCMonth(); // Usar UTC para evitar errores de zona horaria
@@ -100,7 +132,7 @@ function MonthlyGraphic({
         }
         return acc;
       }, {});
-  
+
       newDataLine = days.map((day) => ({
         label: day.toString(),
         total: gastosPorDia[day] || 0,
@@ -111,13 +143,13 @@ function MonthlyGraphic({
         acc[mes] = (acc[mes] || 0) + transaccion.valor;
         return acc;
       }, {});
-  
+
       newDataLine = allMonths.map((month, index) => ({
         label: month,
         total: gastosPorMes[index] || 0,
       }));
     }
-  
+
     // Actualizar estados
     setData(
       Object.entries(sumaPorCategoria).map(([categoria, monto]) => ({
@@ -125,18 +157,17 @@ function MonthlyGraphic({
         value: monto,
       }))
     );
-  
+
     setDataPay(
       Object.entries(sumaPorTipoGasto).map(([tipoGasto, monto]) => ({
         name: tipoGasto,
         value: monto,
       }))
     );
-  
+
     setDataLine(newDataLine);
     setLoadingg(false);
   }, [payCategories, transacciones, filtroMes, filtroCategoria]);
-  
 
   const COLORS = [
     "#0088FE",
@@ -145,7 +176,7 @@ function MonthlyGraphic({
     "#FF8042",
     "#fe1900",
     "#a500fe",
-    "#784315"
+    "#784315",
   ];
 
   const getCategoryIcon = (categoryName) => {
@@ -225,10 +256,32 @@ function MonthlyGraphic({
           <div className="w-full md:w-5/12 md:h-2/6 flex justify-center items-center mt-4 md:mt-0">
             <ResponsiveContainer width="100%" aspect={1.5}>
               <BarChart data={dataLine}>
-                <XAxis dataKey="label" stroke="#ffffff" />
-                <YAxis stroke="#ffffff" />
-                <Tooltip />
-                <Bar type="monotone" dataKey="total" fill="#FFD700" />
+                <XAxis
+                  dataKey="label"
+                  stroke="#ffffff"
+                  height={40}
+                  tick={{ fill: "#ffffff" }}
+                  tickLine={{ stroke: "#ffffff" }}
+                />
+                <YAxis
+                  stroke="#ffffff"
+                  tick={{ fill: "#ffffff" }}
+                  tickLine={{ stroke: "#ffffff" }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "#000814",
+                    border: "none",
+                    borderRadius: "4px",
+                    color: "#ffffff",
+                  }}
+                />
+                <Bar
+                  type="monotone"
+                  dataKey="total"
+                  fill="#FFC300"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
