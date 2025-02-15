@@ -75,8 +75,8 @@ function ChangePasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-6">
-      <div className="bg-gray-950 shadow-md rounded-lg p-8 max-w-md w-full">
+    <div className="min-h-screen flex items-center justify-center bg-[#000000] p-6">
+      <div className="bg-[#000814] shadow-md rounded-lg p-8 max-w-md w-full">
         <h1 className="text-2xl font-bold mb-6 text-gray-100">
           Cambiar Contraseña
         </h1>
@@ -88,7 +88,7 @@ function ChangePasswordForm() {
             <div className="relative">
               <input
                 type={showCurrentPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
                 value={currentPassword}
                 placeholder="Contraseña Actual"
                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -97,10 +97,10 @@ function ChangePasswordForm() {
               <button
                 type="button"
                 onClick={toggleCurrentPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-yellow-700"
+                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
               >
                 <FontAwesomeIcon
-                  color="#F8C104"
+                  color="#FFD60A"
                   icon={showCurrentPassword ? faEyeSlash : faEye}
                 />
               </button>
@@ -113,7 +113,7 @@ function ChangePasswordForm() {
             <div className="relative">
               <input
                 type={showNewPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
                 value={newPassword}
                 placeholder="Nueva Contraseña"
                 onChange={(e) => setNewPassword(e.target.value)}
@@ -123,7 +123,7 @@ function ChangePasswordForm() {
               <button
                 type="button"
                 onClick={toggleNewPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-yellow-700"
+                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
               >
                 <FontAwesomeIcon
                   color="#F8C104"
@@ -139,7 +139,7 @@ function ChangePasswordForm() {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
                 value={confirmPassword}
                 placeholder="Repetir Contraseña"
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -148,7 +148,7 @@ function ChangePasswordForm() {
               <button
                 type="button"
                 onClick={toggleConfirmPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-yellow-700"
+                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
               >
                 <FontAwesomeIcon
                   color="#F8C104"
@@ -169,7 +169,7 @@ function ChangePasswordForm() {
           </ul>
           <button
             type="submit"
-            className="w-full bg-yellow-500 bg-opacity-80 text-gray-950 py-2 px-4 rounded-lg hover:bg-yellow-700 flex justify-center items-center"
+            className="w-full bg-[#ffd60a] bg-opacity-85 text-gray-950 py-2 px-4 rounded-lg hover:bg-[#ffc300] flex justify-center items-center"
             disabled={loading}
           >
             {loading ? (
@@ -186,7 +186,7 @@ function ChangePasswordForm() {
         <div className="flex justify-center pt-3">
           <a
             href="/"
-            className="text-yellow-500 hover:underline"
+            className="text-[#ffd60a] hover:underline"
             onClick={() => navigate("/")}
           >
             Volver

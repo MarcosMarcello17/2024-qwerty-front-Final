@@ -28,7 +28,7 @@ const ModalCrearGrupo = ({
       padding: "20px",
       margin: "auto",
       borderRadius: "10px",
-      backgroundColor: "#1a1a1a",
+      backgroundColor: "#000814",
       overflowY: "auto",
     },
   };
@@ -206,7 +206,7 @@ const ModalCrearGrupo = ({
             placeholder="Nombre del Grupo"
             value={grupoNombre}
             onChange={(e) => setGrupoNombre(e.target.value.slice(0, 16))}
-            className="mt-1 block w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 bg-[#001d3d] text-white rounded-md shadow-sm"
           />
           <p className="text-gray-500 text-sm mt-1">
             {grupoNombre.length}/16 Largo maximo 16 caracteres
@@ -233,12 +233,12 @@ const ModalCrearGrupo = ({
         placeholder="Correo del Usuario"
         value={correoUsuario}
         onChange={(e) => setCorreoUsuario(e.target.value)}
-        className="mt-1 block w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+        className="mt-1 block w-full p-2 bg-[#001d3d] text-white rounded-md shadow-sm"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <button
         onClick={handleAddUsuario}
-        className="mt-2 w-full sm:w-auto bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600 transition duration-300"
+        className="mt-2 w-full sm:w-auto bg-[#003566] text-white font-bold py-2 px-4 rounded hover:bg-[#001d3d] transition duration-300"
       >
         Agregar Usuario
       </button>
@@ -246,7 +246,7 @@ const ModalCrearGrupo = ({
       <button
         onClick={handleSubmit}
         disabled={isLoading}
-        className="mt-4 mr-2 w-full sm:w-auto bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-green-600 transition duration-300"
+        className="mt-4 mx-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
       >
         {isLoading ? (
           <div>

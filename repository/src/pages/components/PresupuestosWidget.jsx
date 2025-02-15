@@ -41,7 +41,7 @@ function PresupuestosWidget({ transacciones = [], filtroMes, filtroAno }) {
     <div className="m-4">
       {presupuestos[0] != null && (
         <button
-          className="btn bg-black text-xl border-none md:text-2xl py-2 font-bold text-gray-100 hover:underline"
+          className="btn bg-[#000814] hover:bg-[#001d3d] text-xl border-none md:text-2xl py-2 font-bold text-gray-100 hover:underline"
           onClick={() => navigate("/presupuestos")}
         >
           Presupuestos Actuales

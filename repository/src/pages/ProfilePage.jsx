@@ -17,14 +17,14 @@ function ProfilePage() {
     {
       value: "Tarjeta de credito",
       label: "Tarjeta de credito",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#FFC300]",
     },
     {
       value: "Tarjeta de Debito",
       label: "Tarjeta de debito",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#FFC300]",
     },
-    { value: "Efectivo", label: "Efectivo", textColor: "mr-2 text-yellow-500" },
+    { value: "Efectivo", label: "Efectivo", textColor: "mr-2 text-[#FFC300]" },
   ];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -232,13 +232,13 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-black py-10">
+    <div className="min-h-screen flex flex-col bg-[#000814] py-10">
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         Mi Cuenta
       </div>
 
       <div className="flex justify-center mb-4">
-        <div className="w-24 h-24 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-yellow-600">
+        <div className="w-24 h-24 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-[#FFC300]">
           <img src={logo} alt="logo" className="w-full h-full object-cover" />
         </div>
       </div>
@@ -249,24 +249,24 @@ function ProfilePage() {
         </div>
         <>
           {isLoading && (
-            <div className="fixed inset-0 bg-black bg-opacity-500 flex justify-center items-center z-50">
+            <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
               <div className="flex items-center justify-center">
-                <div className="animate-spin border-t-4 border-blue-500 border-solid w-16 h-16 rounded-full"></div>
+                <div className="animate-spin border-t-4 border-[#003566] border-solid w-16 h-16 rounded-full"></div>
               </div>
             </div>
           )}
           {loadingGraphic ? ( // Muestra el spinner si está cargando
             <LoadingSpinner />
           ) : (
-            <div className="bg-gray-800 p-4 rounded-lg shadow-lg text-white">
-              <div className="font-bold text-yellow-500 text-xl text-center mb-4">
+            <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
+              <div className="font-bold text-[#ffd60a] text-xl text-center mb-4">
                 Mis Medios De Pago
               </div>
               <ul>
                 {defaultMediosDePago.map((medioDePago) => (
                   <li
                     key={medioDePago.value}
-                    className="bg-gray-700 p-3 rounded-md shadow mb-3"
+                    className="bg-[#003566] p-3 rounded-md shadow mb-3"
                   >
                     <div className="flex items-center">
                       <div className={medioDePago.textColor}>
@@ -280,7 +280,7 @@ function ProfilePage() {
                 {payOptions.slice(3).map((medioDePago) => (
                   <li
                     key={medioDePago.value}
-                    className="bg-gray-700 p-3 rounded-md shadow mb-3 flex justify-between"
+                    className="bg-[#003566] p-3 rounded-md shadow mb-3 flex justify-between"
                   >
                     <div className="flex items-center">
                       <div className={medioDePago.textColor}>
@@ -289,7 +289,7 @@ function ProfilePage() {
                     </div>
                     <div className="flex items-center">
                       <button
-                        className="text-blue-500 hover:text-blue-700 mr-2"
+                        className="text-white hover:bg-[#001d3d] mr-2"
                         onClick={() => {
                           setEditPayOption(medioDePago);
                           setIsEditMode(true);
@@ -299,7 +299,7 @@ function ProfilePage() {
                         Editar
                       </button>
                       <button
-                        className="text-red-500 hover:text-red-700"
+                        className="text-red-500 hover:text-red-700 hover:bg-[#001d3d]"
                         onClick={() => confirmDelete(medioDePago.value)}
                       >
                         X
@@ -310,14 +310,14 @@ function ProfilePage() {
               </ul>
 
               <button
-                className="mt-4 px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-700"
+                className="mt-4 px-4 py-2 bg-[#ffd60a] text-[#000814] rounded-md hover:bg-[#ffc300]"
                 onClick={() => {
                   setEditPayOption({});
                   setIsEditMode(false);
                   setIsModalOpen(true);
                 }}
               >
-                Agregar Medio de Pago
+                + Agregar Medio de Pago
               </button>
             </div>
           )}

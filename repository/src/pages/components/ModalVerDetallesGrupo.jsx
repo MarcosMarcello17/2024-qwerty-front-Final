@@ -1,13 +1,9 @@
+/**
+ * No funciona la tabla de gastos grupales
+ */
 import Modal from "react-modal";
-import Select from "react-select";
 import "./styles/ModalForm.css";
-import ModalCategoria from "./ModalCategoria";
 import React, { useEffect, useState } from "react";
-import ActionButtons from "./ActionButtons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { fas } from "@fortawesome/free-solid-svg-icons";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import ConfirmDeleteCategory from "./ConfirmDeleteCategory";
 import TransaccionesTable from "./TransaccionesTable";
 import ModalForm from "./ModalForm";
 
@@ -448,13 +444,13 @@ function ModalVerDetallesGrupo({
       onRequestClose={closeModalDetallesGrupo}
       contentLabel="Detalle"
       style={customStyles}
-      className="bg-gray-950 shadow-lg p-4 rounded-lg"
+      className="bg-[#000814] shadow-lg p-4 rounded-lg"
     >
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         {grupo.nombre}
       </div>
       <div className="flex flex-col flex-grow px-4">
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg text-white">
+        <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
           <h3 className="text-lg font-semibold mb-2">Transacciones</h3>
           {isLoading ? (
             <p>Cargando transacciones...</p>
@@ -473,7 +469,7 @@ function ModalVerDetallesGrupo({
             {grupo.estado && (
               <button
                 onClick={cerrarGrupo}
-                className="flex-1 bg-blue-500 text-white font-bold py-3 px-4 rounded hover:bg-blue-600 transition-colors duration-300 mt-4"
+                className="flex-1 bg-[#ffd60a] text-black font-bold py-3 px-4 rounded hover:bg-[#ffc300] transition-colors duration-300 mt-4"
               >
                 Finalizar Evento
               </button>

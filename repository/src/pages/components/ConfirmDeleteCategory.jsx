@@ -32,7 +32,7 @@ function ConfirmDeleteCategory({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#1a1a1a", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };
@@ -60,7 +60,7 @@ function ConfirmDeleteCategory({
         </button>
         <button
           onClick={() => handleClose()}
-          className="mt-2 w-full sm:w-auto bg-yellow-500 ml-2 text-black font-bold py-2 px-4 rounded hover:bg-yellow-600 transition duration-300"
+          className="mt-2 w-full sm:w-auto bg-[#ffd60a] ml-2 text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
         >
           Cancelar
         </button>

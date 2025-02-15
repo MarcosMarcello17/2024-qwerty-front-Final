@@ -11,8 +11,8 @@
 /* Botón principal */
 .primary-button {
   padding: 0.75rem 1.5rem;
-  background-color: #fbbf24; /* Color amarillo */
-  color: #1f2937; /* Texto gris oscuro */
+  background-color: #FFD60A; /* Color amarillo */
+  color: #000000; /* Texto gris oscuro */
   border: none;
   border-radius: 8px;
   font-weight: 600;
@@ -21,7 +21,7 @@
 }
 
 .primary-button:hover {
-  background-color: #f59e0b; /* Color amarillo más oscuro */
+  background-color: #ffc300; /* Color amarillo más oscuro */
 }
 
 /* Contenedor del dropdown */
@@ -37,7 +37,7 @@
   top: 100%;
   width: 200px;
   margin-top: 0.5rem;
-  background-color: #1f2937; /* Fondo gris oscuro */
+  background-color: #000814; /* Fondo gris oscuro */
   border-radius: 8px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
   z-index: 10;
@@ -54,7 +54,7 @@
 .dropdown-item {
   width: 100%;
   padding: 0.5rem;
-  background-color: #fbbf24;
+  background-color: #FFD60A;
   color: #1f2937;
   border-radius: 6px;
   text-align: center;
@@ -68,7 +68,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: #d97706; /* Fondo más oscuro */
+  background-color: #ffc300; /* Fondo más oscuro */
 }
 
 /* Estilo específico para el botón de eliminar */

@@ -106,7 +106,7 @@ function BudgetCard({
 
   if (widget) {
     return (
-      <div className="card shadow-lg rounded-lg bg-[#1E2126] p-4 text-white mb-4">
+      <div className="card shadow-lg rounded-lg bg-[#001d3d] p-4 text-white mb-4">
         <div className="flex items-center gap-4 mb-2">
           <img src={icon} alt={budget.nameBudget} className="w-10 h-10" />
           <div className="flex-1">
@@ -116,7 +116,7 @@ function BudgetCard({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-full bg-gray-200 rounded-full h-4 relative">
+          <div className="w-full bg-gray-100 rounded-full h-4 relative">
             <div
               style={{ width: `${porcentaje > 100 ? 100 : porcentaje}%` }}
               className={`absolute top-0 left-0 h-full rounded-full transition-all ${
@@ -140,7 +140,7 @@ function BudgetCard({
     );
   } else {
     return (
-      <div className="card shadow-lg rounded-lg bg-[#1E2126] p-4 text-white">
+      <div className="card shadow-lg rounded-lg bg-[#001d3d] p-4 text-white">
         <div className="flex items-center gap-4 mb-2">
           <img src={icon} alt={budget.nameBudget} className="w-10 h-10" />
           <div className="flex-1">
@@ -151,7 +151,7 @@ function BudgetCard({
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="w-full bg-gray-200 rounded-full h-4 relative">
+          <div className="w-full bg-gray-100 rounded-full h-4 relative">
             <div
               style={{ width: `${porcentaje > 100 ? 100 : porcentaje}%` }}
               className={`absolute top-0 left-0 h-full rounded-full transition-all ${
@@ -200,7 +200,7 @@ function BudgetCard({
                       : totalCatBudget - remaining}{" "}
                     / ${totalCatBudget} ({percentageCatSpent.toFixed(1)}%)
                   </span>
-                  <div className="w-1/3 bg-gray-200 rounded-full h-2 relative ml-2">
+                  <div className="w-1/3 bg-gray-100 rounded-full h-2 relative ml-2">
                     <div
                       style={{
                         width: `${
@@ -225,7 +225,7 @@ function BudgetCard({
         {isFutureBudget && (
           <div className="flex gap-2 mt-4">
             <button
-              className="btn btn-sm btn-outline btn-info"
+              className="btn btn-sm border-[#ffc300] hover:border-[#ffc300] bg-[#001d3d] text-[#ffc300] hover:bg-[#ffc300] hover:text-[#001d3d]"
               onClick={handleEdit}
             >
               Edit

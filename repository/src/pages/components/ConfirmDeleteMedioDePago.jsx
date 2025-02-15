@@ -32,7 +32,7 @@ function ConfirmDeleteMedioDePago({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#1a1a1a", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };

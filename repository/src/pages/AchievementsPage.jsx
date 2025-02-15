@@ -36,12 +36,12 @@ const AchievementsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white py-6 px-4 sm:px-8">
+    <div className="min-h-screen flex flex-col bg-[#000814] text-white py-6 px-4 sm:px-8">
       {/* Botón de regreso */}
       <div className="mb-4">
         <button
           onClick={() => navigate("/profile")}
-          className="w-full sm:w-auto px-4 py-2 bg-yellow-500 text-black rounded-md hover:bg-yellow-600 transition"
+          className="w-full sm:w-auto px-4 py-2 bg-[#ffd60a] text-black rounded-md hover:bg-[#ffc300] transition"
         >
           Volver al Perfil
         </button>

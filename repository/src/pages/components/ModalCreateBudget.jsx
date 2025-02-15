@@ -198,7 +198,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   };
 
   return (
-    <div className="modal-box w-full max-w-lg p-6 bg-[#1E2126] rounded-lg shadow-lg mx-4 md:mx-auto lg:w-1/2">
+    <div className="modal-box w-full max-w-lg p-6 bg-[#000814] rounded-lg shadow-lg mx-4 md:mx-auto lg:w-1/2">
       <h3 className="text-xl font-bold mb-4 text-white">
         {initialBudget ? "Editar Presupuesto" : "Agregar Nuevo Presupuesto"}
       </h3>
@@ -211,7 +211,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           <input
             type="text"
             placeholder="Nombre del Presupuesto"
-            className="input input-bordered w-full bg-[#1D232A]"
+            className="input input-bordered w-full bg-[#001d3d]"
             value={budgetName}
             onChange={(e) => setBudgetName(e.target.value)}
             required
@@ -224,7 +224,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           </label>
           <input
             type="month"
-            className="input input-bordered w-full bg-[#1D232A]"
+            className="input input-bordered w-full bg-[#001d3d]"
             value={budgetDate}
             onChange={(e) => setBudgetDate(e.target.value)}
             required
@@ -243,7 +243,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           <input
             type="number"
             placeholder="Monto Total"
-            className="input input-bordered w-full bg-[#1D232A]"
+            className="input input-bordered w-full bg-[#001d3d]"
             value={totalBudget}
             onChange={(e) => setTotalBudget(parseFloat(e.target.value))}
             required
@@ -258,7 +258,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
             Agregar Categoría
           </label>
           <select
-            className="input input-bordered w-full bg-[#1D232A]"
+            className="input input-bordered w-full bg-[#001d3d]"
             onChange={(e) => {
               const selectedCategory = payCategories.find(
                 (cat) => cat.value === e.target.value
@@ -292,7 +292,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
               type="number"
               id={`amount-${index}`}
               placeholder={`Monto para ${category}`}
-              className="input input-bordered w-full bg-[#1D232A]"
+              className="input input-bordered w-full bg-[#001d3d]"
               value={budgetValues[category] || ""}
               onChange={(e) => handleInputChange(e.target.value, category)}
             />
@@ -314,7 +314,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           </button>
           <button
             type="submit"
-            className="btn bg-yellow-500 text-black"
+            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black"
             disabled={isLoading}
           >
             {!isLoading ? (

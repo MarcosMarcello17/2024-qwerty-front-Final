@@ -166,13 +166,13 @@ function ModalGastosCompartidos({
       onRequestClose={closeModalGastos}
       contentLabel="Mis Gastos Compartidos"
       style={customStyles}
-      className="bg-gray-950 shadow-lg p-4 rounded-lg"
+      className="bg-[#000814] shadow-lg p-4 rounded-lg"
     >
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         Mis Gastos Compartidos
       </div>
       <div className="flex flex-col flex-grow px-4">
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg text-white">
+        <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
           {/* Display user groups */}
           <div className="mb-4">
             <h3 className="text-lg font-semibold">
@@ -223,7 +223,7 @@ function ModalGastosCompartidos({
           {/* Botones Crear Grupo y Cerrar */}
           <div className="flex space-x-4">
             <button
-              className="flex-1  bg-yellow-500 text-black font-bold py-3 px-4 rounded hover:bg-yellow-700 transition-colors duration-300 mt-4"
+              className="flex-1  bg-[#ffd60a] text-black font-bold py-3 px-4 rounded hover:bg-[#ffc300] transition-colors duration-300 mt-4"
               onClick={() => setIsModalOpen(true)}
             >
               Crear Grupo

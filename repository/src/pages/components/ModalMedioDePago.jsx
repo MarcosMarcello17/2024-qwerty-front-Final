@@ -36,7 +36,7 @@ const ModalMedioDePago = ({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#1a1a1a", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };
@@ -91,12 +91,12 @@ const ModalMedioDePago = ({
         placeholder="Medio de Pago"
         value={medioDePagoNombre}
         onChange={(e) => setMedioDePagoNombre(e.target.value)}
-        className="mt-1 block w-full p-2 border border-gray-600 bg-gray-800 text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+        className="mt-1 block w-full p-2 border border-[#ffc300] bg-[#001d3d] text-white rounded-md shadow-sm"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <button
         onClick={handleSubmit}
-        className="mt-4 mr-2 w-full sm:w-auto bg-yellow-500 text-black font-bold py-2 px-4 rounded hover:bg-green-600 transition duration-300"
+        className="mt-4 mr-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
       >
         {edit ? "Editar Medio De Pago" : "Crear Medio de Pago"}
       </button>

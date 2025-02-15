@@ -34,7 +34,7 @@ function ModalVerCategorias({
       borderRadius: "0.75rem",
       width: "90vw",
       maxWidth: "500px",
-      maxHeight: "80vh", // Limita la altura del modal
+      maxHeight: "90vh", // Limita la altura del modal
       margin: "auto",
       display: "flex",
       flexDirection: "column",
@@ -42,42 +42,6 @@ function ModalVerCategorias({
       overflowY: "auto", // Habilita scroll si el contenido excede el tamaño
       zIndex: 1001,
     },
-  };
-  const customSelectStyles = {
-    control: (provided) => ({
-      ...provided,
-      backgroundColor: "#111827",
-      color: "white",
-    }),
-    menu: (provided) => ({
-      ...provided,
-      backgroundColor: "#111827",
-    }),
-    option: (provided, state) => ({
-      ...provided,
-      backgroundColor: state.isSelected ? "#eab308" : "#111827",
-      color: state.isSelected ? "black" : "white",
-    }),
-    singleValue: (provided) => ({
-      ...provided,
-      color: "white",
-    }),
-    placeholder: (provided) => ({
-      ...provided,
-      color: "white",
-    }),
-    input: (provided) => ({
-      ...provided,
-      color: "white",
-    }),
-    indicatorSeparator: (provided) => ({
-      ...provided,
-      backgroundColor: "transparent",
-    }),
-    dropdownIndicator: (provided) => ({
-      ...provided,
-      color: "white",
-    }),
   };
   const [modalError, setModalError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -91,43 +55,43 @@ function ModalVerCategorias({
       value: "Impuestos y Servicios",
       label: "Impuestos y Servicios",
       iconPath: "fa-solid fa-file-invoice-dollar",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Entretenimiento y Ocio",
       label: "Entretenimiento y Ocio",
       iconPath: "fa-solid fa-ticket",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Hogar y Mercado",
       label: "Hogar y Mercado",
       iconPath: "fa-solid fa-house",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Antojos",
       label: "Antojos",
       iconPath: "fa-solid fa-candy-cane",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Electrodomesticos",
       label: "Electrodomesticos",
       iconPath: "fa-solid fa-blender",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Clase",
       label: "Clase",
       iconPath: "fa-solid fa-chalkboard-user",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
     {
       value: "Ingreso de Dinero",
       label: "Ingreso de Dinero",
       iconPath: "fa-solid fa-money-bill",
-      textColor: "mr-2 text-yellow-500",
+      textColor: "mr-2 text-[#ffd60a]",
     },
   ];
   const closeWindow = () => {
@@ -254,18 +218,18 @@ function ModalVerCategorias({
       onRequestClose={closeModalCategoria}
       contentLabel="Mis Categorias"
       style={customStyles}
-      className="bg-gray-950 shadow-lg p-4 rounded-lg"
+      className="bg-[#000814] shadow-lg p-4 rounded-lg"
     >
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         Mis Categorias
       </div>
       <div className="flex flex-col flex-grow px-4">
-        <div className="bg-gray-800 p-4 rounded-lg shadow-lg text-white">
+        <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
           <ul>
             {defaultCategories.map((category) => (
               <li
                 key={category.value}
-                className="bg-gray-700 p-3 rounded-md shadow mb-3"
+                className="bg-[#003566] p-3 rounded-md shadow mb-3"
               >
                 <div className="flex items-center">
                   <FontAwesomeIcon
@@ -282,7 +246,7 @@ function ModalVerCategorias({
             {payCategories.slice(9).map((category) => (
               <li
                 key={category.value}
-                className="bg-gray-700 p-3 rounded-md shadow mb-3 flex justify-between"
+                className="bg-[#003566] p-3 rounded-md shadow mb-3 flex justify-between"
               >
                 <div className="flex items-center">
                   <FontAwesomeIcon icon={category.iconPath} />
@@ -290,7 +254,7 @@ function ModalVerCategorias({
                 </div>
                 <div className="flex items-center">
                   <button
-                    className="text-blue-500 hover:text-blue-700 mr-2"
+                    className="text-white hover:bg-[#001d3d] mr-2"
                     onClick={() => {
                       setEditCategory(category);
                       setIsEditMode(true);
@@ -300,7 +264,7 @@ function ModalVerCategorias({
                     Editar
                   </button>
                   <button
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500 hover:text-red-700 hover:bg-[#001d3d]"
                     onClick={() => confirmDelete(category.value)}
                   >
                     X
@@ -310,7 +274,7 @@ function ModalVerCategorias({
             ))}
           </ul>
           <button
-            className="mt-4 px-4 py-3 bg-yellow-500 text-black rounded-md hover:bg-yellow-700 mr-2"
+            className="mt-4 px-4 py-3 bg-[#ffd60a] text-black rounded-md hover:bg-[#ffc300] mr-2"
             onClick={() => {
               setEditCategory({});
               setIsEditMode(false);

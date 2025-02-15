@@ -187,11 +187,11 @@ function BudgetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#000814] text-white">
       <div className="container mx-auto p-4">
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
           <button
-            className="btn bg-yellow-400 text-black mb-4 mr-2 sm:mb-0 sm:order-1"
+            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black mb-4 mr-2 sm:mb-0 sm:order-1"
             onClick={() => navigate("/")}
           >
             HomePage
@@ -201,7 +201,7 @@ function BudgetPage() {
           </div>
           <div className="mt-4 sm:mt-0 sm:order-2">
             <select
-              className="select select-bordered w-full max-w-xs bg-yellow-400 text-black"
+              className="select select-bordered w-full max-w-xs bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffd60a] hover:border-[#ffd60a] text-black"
               value={filtro}
               onChange={(e) => setFiltro(e.target.value)}
             >
@@ -215,7 +215,7 @@ function BudgetPage() {
 
         <div className="flex flex-col items-center justify-center my-5">
           <button
-            className="btn bg-yellow-400 text-black w-64 h-10"
+            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black w-64 h-10"
             onClick={() => setShowSuggestions(!showSuggestions)}
           >
             Mostrar sugerencias de Ahorro
@@ -234,6 +234,7 @@ function BudgetPage() {
                   currentSlide * itemsPerPage,
                   currentSlide * itemsPerPage + itemsPerPage
                 );
+                if(suggestions.length !== 0) {
                 return (
                   <div className="w-full">
                     <div className="flex justify-between items-center">
@@ -266,8 +267,13 @@ function BudgetPage() {
                       </button>
                     </div>
                   </div>
-                );
-                
+                )}else{
+                  return (<div className="w-full">
+                    <div className="flex justify-between items-center text-center">
+                      No hay sugerencias disponibles
+                      </div>
+                      </div>)
+                };
               })()}
             </div>
           </div>
@@ -282,12 +288,12 @@ function BudgetPage() {
         ) : presupuestos.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-64">
             <button
-              className="btn bg-yellow-400 text-black text-xl w-64 h-10"
+              className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black text-xl w-64 h-10"
               onClick={openModal}
             >
               Agregar Presupuesto
             </button>
-            <p className="text-lg mt-4">No tienes presupuestos aún.</p>
+            <p className="text-lg mt-4 text-red-600 font-bold">No tienes presupuestos aún.</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6 mt-5">
@@ -304,7 +310,7 @@ function BudgetPage() {
         )}
 
         <div className="fixed bottom-6 right-6">
-          <button className="btn bg-yellow-400 text-black" onClick={openModal}>
+          <button className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black" onClick={openModal}>
             Agregar Presupuesto
           </button>
         </div>
