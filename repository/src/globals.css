@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 216 100% 4%; /* #000814 Dark Blue */
+    --foreground: 0 0% 98%; /* Light text for dark background */
+
+    --card: 210 100% 12%; /* #001D3D Medium Blue (Secondary Color) */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 100% 12%; /* #001D3D */
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 45 100% 50%; /* #FFC300 Vibrant Yellow */
+    --primary-foreground: 216 100% 4%; /* Dark text on yellow */
+
+    --secondary: 210 100% 20%; /* #003566 Light Blue (Tertiary Color) */
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 210 100% 15%; /* Slightly lighter/muted blue */
+    --muted-foreground: 0 0% 60%; /* Lighter gray for muted text */
+
+    --accent: 50 100% 52%; /* #FFD60A Light Yellow */
+    --accent-foreground: 216 100% 4%; /* Dark text on accent */
+
+    --destructive: 0 72% 51%; /* A vibrant red for destructive actions */
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 210 100% 10%; /* Darker shade for borders */
+    --input: 210 100% 10%; /* Similar to border for input background */
+    --ring: 45 100% 50%; /* Primary color for focus rings */
+
+    --radius: 0.5rem;
+
+    /* Chart colors - can be customized further if needed */
+    --chart-1: 45 100% 50%; /* Primary */
+    --chart-2: 50 100% 52%; /* Accent */
+    --chart-3: 210 100% 60%; /* A lighter blue */
+    --chart-4: 30 80% 60%; /* An orange/coral */
+    --chart-5: 150 60% 50%; /* A green */
+
+    /* Sidebar specific colors - ensure consistency with the theme */
+    --sidebar-background: 210 100% 8%; /* Slightly darker or distinct from card, e.g. #001429 */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 100% 50%; /* #FFC300 */
+    --sidebar-primary-foreground: 216 100% 4%;
+    --sidebar-accent: 50 100% 52%; /* #FFD60A */
+    --sidebar-accent-foreground: 216 100% 4%;
+    --sidebar-border: 210 100% 10%;
+    --sidebar-ring: 45 100% 50%;
+  }
+
+  .dark {
+    /* Dark theme variables can be the same as :root if default is dark */
+    --background: 216 100% 4%;
+    --foreground: 0 0% 98%;
+    --card: 210 100% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 210 100% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 216 100% 4%;
+    --secondary: 210 100% 20%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 210 100% 15%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 50 100% 52%;
+    --accent-foreground: 216 100% 4%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 210 100% 10%;
+    --input: 210 100% 10%;
+    --ring: 45 100% 50%;
+
+    --chart-1: 45 100% 50%;
+    --chart-2: 50 100% 52%;
+    --chart-3: 210 100% 60%;
+    --chart-4: 30 80% 60%;
+    --chart-5: 150 60% 50%;
+
+    --sidebar-background: 210 100% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 216 100% 4%;
+    --sidebar-accent: 50 100% 52%;
+    --sidebar-accent-foreground: 216 100% 4%;
+    --sidebar-border: 210 100% 10%;
+    --sidebar-ring: 45 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Apply dark theme by default if the background is dark */
+    /* If you want to support light/dark mode toggle, you'd set these in .dark selector */
+  }
+}
+
+/* Animations from styled-jsx */
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes slide-in-left {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes slide-in-center {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-fade-in-down {
+  animation: fade-in-down 0.5s ease-out forwards;
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out 0.2s forwards;
+}
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out 0.4s forwards;
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.6s ease-out 0.5s forwards;
+  opacity: 0;
+}
+.animate-slide-in-center {
+  animation: slide-in-center 0.6s ease-out 0.7s forwards;
+  opacity: 0;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.6s ease-out 0.9s forwards;
+  opacity: 0;
+}

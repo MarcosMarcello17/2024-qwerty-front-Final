@@ -1,8 +1,17 @@
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { faEye, faEyeSlash, faSignIn } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo-removebg-preview.png";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -60,100 +69,117 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-6">
-      <div className="bg-[#000814] shadow-md rounded-lg p-8 max-w-md w-full">
-        <div className="flex justify-center mb-6">
-          <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#ffc300]">
-            <img src={logo} alt="logo" className="w-full h-full object-cover" />
-          </div>
-        </div>
-        <p className="text-center text-gray-100 mb-6">
-          Ingrese su email y contraseña
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onClick();
-          }}
-          className="space-y-4"
-        >
-          <div>
-            <label className="block text-sm font-medium text-gray-100">
-              Email:
-            </label>
-            <input
-              type="email"
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffd60a] rounded-md shadow-sm"
-              value={email}
-              placeholder="Email"
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-100">
-              Contraseña:
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffd60a] rounded-md shadow-sm"
-                value={password}
-                placeholder="Contraseña"
-                onChange={(e) => setPassword(e.target.value)}
-                required
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="flex justify-center">
+            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#ffc300] text-4xl font-bold text-primary font-headline">
+              <img
+                src={logo}
+                alt="logo"
+                className="w-full h-full object-cover"
               />
-              <button
-                type="button"
-                onClick={togglePasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
-              >
-                <FontAwesomeIcon
-                  color="#FFD60A"
-                  icon={showPassword ? faEyeSlash : faEye}
-                />
-              </button>
             </div>
           </div>
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
-          <div className="flex justify-between items-center">
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-[#ffd60a] bg-opacity-85 text-gray-950 py-2 px-4 rounded-lg hover:bg-[#ffc300] flex justify-center items-center"
-            >
-              {isLoading ? (
-                <>
-                  <div className="loading-circle border-4 border-t-yellow-600 border-gray-200 rounded-full w-6 h-6 animate-spin mr-2"></div>
-                  Cargando...
-                </>
-              ) : (
-                "Iniciar Sesión"
+          <p className="text-muted-foreground mt-2">
+            Bienvenido! Inicia sesion para acceder.
+          </p>
+        </div>
+        <Card className="w-full bg-card shadow-xl">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onClick();
+            }}
+            className="space-y-4"
+          >
+            <CardHeader>
+              <CardTitle className="text-2xl font-headline text-center">
+                Ingrese su email y contraseña
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-100">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  className="mt-1 block w-full p-3 bg-background text-white rounded-md shadow-sm"
+                  value={email}
+                  placeholder="Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-100">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    className="mt-1 block w-full p-3 bg-background text-white rounded-md shadow-sm"
+                    value={password}
+                    placeholder="Contraseña"
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-primary"
+                  >
+                    <FontAwesomeIcon
+                      color="#FFFFFF"
+                      icon={showPassword ? faEyeSlash : faEye}
+                    />
+                  </button>
+                </div>
+              </div>
+              {error && (
+                <div className="text-red-500 text-sm text-center">{error}</div>
               )}
-            </button>
-          </div>
-        </form>
-        <div className="mt-4 text-center text-gray-400">
+            </CardContent>
+            <CardFooter className="flex flex-col gap-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="loading-circle border-4 border-t-yellow-600 border-gray-200 rounded-full w-6 h-6 animate-spin mr-2"></div>
+                    Cargando...
+                  </>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faSignIn} />
+                    Iniciar Sesión
+                  </>
+                )}
+              </Button>
+              <div className="text-sm text-muted-foreground text-center">
+                <a
+                  href="#"
+                  className="text-sm text-muted-foreground hover:text-primary text-center"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  Olvidaste tu contraseña?
+                </a>
+              </div>
+            </CardFooter>
+          </form>
+        </Card>
+        <p className="mt-8 text-center text-sm text-muted-foreground">
           En caso de no estar registrado,{" "}
           <a
-            href="#"
-            className="text-[#ffd60a] hover:underline"
-            onClick={() => navigate("/register")}
+            href="/register"
+            className="font-medium text-primary hover:underline"
           >
             Cree una cuenta
           </a>
-          <br />
-          Olvidaste tu contraseña?{" "}
-          <a
-            href="#"
-            className="text-[#ffd60a] hover:underline"
-            onClick={() => navigate("/forgot-password")}
-          >
-            Recuperar Contraseña
-          </a>
-        </div>
+        </p>
       </div>
     </div>
   );
