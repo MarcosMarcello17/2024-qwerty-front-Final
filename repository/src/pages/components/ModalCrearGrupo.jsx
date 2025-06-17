@@ -58,7 +58,7 @@ const ModalCrearGrupo = ({
       try {
         // Realiza la llamada al backend para verificar el usuario
         const response = await fetch(
-          `http://localhost:8080/api/grupos/${grupoAAgregar}/verificar-usuario?email=${correoUsuario}`,
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupoAAgregar}/verificar-usuario?email=${correoUsuario}`,
           {
             method: "GET",
             headers: {
@@ -92,7 +92,9 @@ const ModalCrearGrupo = ({
     }
   };
   const userExists = async (mail) => {
-    let url = "http://localhost:8080/api/public/exists/" + mail;
+    let url =
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/public/exists/" +
+      mail;
     const response = await fetch(url);
     if (response.ok) {
       const exists = await response.json();
@@ -115,18 +117,21 @@ const ModalCrearGrupo = ({
       }
       try {
         // Aquí iría la lógica para crear el grupo usando `grupoNombre` y `usuarios`
-        const response = await fetch("http://localhost:8080/api/grupos/crear", {
-          // Ajusta la URL según tu endpoint
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            nombre: grupoNombre,
-            usuarios: usuarios,
-          }),
-        });
+        const response = await fetch(
+          "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/crear",
+          {
+            // Ajusta la URL según tu endpoint
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              nombre: grupoNombre,
+              usuarios: usuarios,
+            }),
+          }
+        );
 
         if (!response.ok) {
           throw new Error("Error al crear el grupo.");
@@ -151,7 +156,7 @@ const ModalCrearGrupo = ({
       try {
         // Aquí iría la lógica para crear el grupo usando `grupoNombre` y `usuarios`
         const response = await fetch(
-          `http://localhost:8080/api/grupos/${grupoAAgregar}/agregar-usuario`,
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupoAAgregar}/agregar-usuario`,
           {
             // Ajusta la URL según tu endpoint
             method: "POST",

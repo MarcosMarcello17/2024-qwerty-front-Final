@@ -1,20 +1,20 @@
 export const deletePendingTransaction = async (id) => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `http://localhost:8080/api/transaccionesPendientes/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        return true;
+  const token = localStorage.getItem("token");
+  try {
+    const response = await fetch(
+      `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    } catch (err) {
-      console.error("Error al eliminar la transaccion: ", err);
+    );
+    if (response.ok) {
+      return true;
     }
-    return false;
-  };
+  } catch (err) {
+    console.error("Error al eliminar la transaccion: ", err);
+  }
+  return false;
+};

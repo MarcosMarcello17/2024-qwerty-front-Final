@@ -44,7 +44,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
       const token = localStorage.getItem("token");
       try {
         const response = await fetch(
-          "http://localhost:8080/api/personal-categoria",
+          "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -158,8 +158,8 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     const token = localStorage.getItem("token");
     setIsLoading(true);
     const url = initialBudget
-      ? "http://localhost:8080/api/presupuesto/editPresupuesto"
-      : "http://localhost:8080/api/presupuesto";
+      ? "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto/editPresupuesto"
+      : "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto";
     const method = initialBudget ? "PUT" : "POST";
 
     try {

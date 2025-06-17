@@ -6,13 +6,16 @@ const Achievement = ({ achievement }) => {
 
   const checkIfCompleted = async () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/users/userTransaction", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    fetch(
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         if (data >= achievement.goal) {

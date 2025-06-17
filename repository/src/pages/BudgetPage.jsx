@@ -22,12 +22,15 @@ function BudgetPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/transacciones/user", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    fetch(
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user",
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         setTransacciones(data);
@@ -44,8 +47,7 @@ function BudgetPage() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
 
-    const previousMonth =
-      currentMonth === 0 ? 11 : currentMonth - 1; // Manejar cambio de año
+    const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1; // Manejar cambio de año
     const previousYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
     const currentMonthTransactions = transacciones.filter((transaction) => {
@@ -116,7 +118,7 @@ function BudgetPage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/presupuesto/${budget.id}`,
+        `https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto/${budget.id}`,
         {
           method: "DELETE",
           headers: {
@@ -147,11 +149,14 @@ function BudgetPage() {
   const getPersonalPresupuestos = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:8080/api/presupuesto", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
         const data = await response.json();
@@ -234,51 +239,55 @@ function BudgetPage() {
                   currentSlide * itemsPerPage,
                   currentSlide * itemsPerPage + itemsPerPage
                 );
-                if(suggestions.length !== 0) {
-                return (
-                  <div className="w-full">
-                    <div className="flex justify-between items-center">
-                      {/* Flecha Izquierda */}
-                      <button
-                        className="btn btn-circle bg-yellow-400 text-black"
-                        onClick={() => handlePrevSlide(totalPages)}
-                      >
-                        ❮
-                      </button>
-                
-                      {/* Contenedor de Sugerencias */}
-                      <div className="flex justify-center flex-1 space-x-6">
-                        {currentSuggestions.map((suggestion, index) => (
-                          <div
-                            key={index}
-                            className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
-                          >
-                            <p className="text-lg font-semibold">{suggestion.message}</p>
-                          </div>
-                        ))}
+                if (suggestions.length !== 0) {
+                  return (
+                    <div className="w-full">
+                      <div className="flex justify-between items-center">
+                        {/* Flecha Izquierda */}
+                        <button
+                          className="btn btn-circle bg-yellow-400 text-black"
+                          onClick={() => handlePrevSlide(totalPages)}
+                        >
+                          ❮
+                        </button>
+
+                        {/* Contenedor de Sugerencias */}
+                        <div className="flex justify-center flex-1 space-x-6">
+                          {currentSuggestions.map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
+                            >
+                              <p className="text-lg font-semibold">
+                                {suggestion.message}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Flecha Derecha */}
+                        <button
+                          className="btn btn-circle bg-yellow-400 text-black"
+                          onClick={() => handleNextSlide(totalPages)}
+                        >
+                          ❯
+                        </button>
                       </div>
-                
-                      {/* Flecha Derecha */}
-                      <button
-                        className="btn btn-circle bg-yellow-400 text-black"
-                        onClick={() => handleNextSlide(totalPages)}
-                      >
-                        ❯
-                      </button>
                     </div>
-                  </div>
-                )}else{
-                  return (<div className="w-full">
-                    <div className="flex justify-between items-center text-center">
-                      No hay sugerencias disponibles
+                  );
+                } else {
+                  return (
+                    <div className="w-full">
+                      <div className="flex justify-between items-center text-center">
+                        No hay sugerencias disponibles
                       </div>
-                      </div>)
-                };
+                    </div>
+                  );
+                }
               })()}
             </div>
           </div>
         )}
-
 
         {loading ? (
           <div className="text-center mt-5">
@@ -293,7 +302,9 @@ function BudgetPage() {
             >
               Agregar Presupuesto
             </button>
-            <p className="text-lg mt-4 text-red-600 font-bold">No tienes presupuestos aún.</p>
+            <p className="text-lg mt-4 text-red-600 font-bold">
+              No tienes presupuestos aún.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6 mt-5">
@@ -310,7 +321,10 @@ function BudgetPage() {
         )}
 
         <div className="fixed bottom-6 right-6">
-          <button className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black" onClick={openModal}>
+          <button
+            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black"
+            onClick={openModal}
+          >
             Agregar Presupuesto
           </button>
         </div>

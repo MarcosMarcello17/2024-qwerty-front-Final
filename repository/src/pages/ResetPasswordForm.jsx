@@ -39,12 +39,12 @@ function ResetPasswordForm() {
       setLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:8080/api/auth/reset-password?token=${token}&newPassword=${newPassword}`,
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/auth/reset-password?token=${token}&newPassword=${newPassword}`,
           {
             method: "POST",
           }
         );
-        /*const response = await fetch(`http://localhost:8080/api/auth/reset-password?token=${token}&newPassword=${newPassword}`, {
+        /*const response = await fetch(`https://two024-qwerty-back-final-marcello.onrender.com/api/auth/reset-password?token=${token}&newPassword=${newPassword}`, {
           method: "POST"
         });*/
 

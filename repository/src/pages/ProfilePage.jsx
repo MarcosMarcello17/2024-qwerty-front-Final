@@ -46,7 +46,7 @@ function ProfilePage() {
     setLoadingGraphic(true);
     const token = localStorage.getItem("token");
     if (await checkIfValidToken(token)) {
-      let url = `http://localhost:8080/api/transacciones/user/filter`;
+      let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user/filter`;
       try {
         const response = await fetch(url, {
           method: "GET",
@@ -74,7 +74,7 @@ function ProfilePage() {
   const checkIfValidToken = async (token) => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/transacciones/userTest",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -100,7 +100,7 @@ function ProfilePage() {
     if (await checkIfValidToken(token)) {
       try {
         const response = await fetch(
-          "http://localhost:8080/api/personal-tipo-gasto",
+          "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -142,7 +142,7 @@ function ProfilePage() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/personal-tipo-gasto/editar",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto/editar",
         {
           method: "POST", // Cambiado a POST
           headers: {
@@ -169,7 +169,7 @@ function ProfilePage() {
     setLoadingGraphic(true);
     try {
       const response = await fetch(
-        "http://localhost:8080/api/personal-tipo-gasto/eliminar",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto/eliminar",
         {
           method: "POST",
           headers: {
@@ -201,7 +201,7 @@ function ProfilePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `http://localhost:8080/api/personal-tipo-gasto`,
+        `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto`,
         {
           method: "POST",
           headers: {

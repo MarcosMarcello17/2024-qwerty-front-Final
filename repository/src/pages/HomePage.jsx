@@ -129,7 +129,7 @@ function HomePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/grupos/mis-grupos",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/mis-grupos",
         {
           method: "GET",
           headers: {
@@ -155,7 +155,7 @@ function HomePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/transaccionesPendientes/user",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/user",
         {
           method: "GET",
           headers: {
@@ -185,7 +185,7 @@ function HomePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/personal-tipo-gasto",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -213,7 +213,7 @@ function HomePage() {
   const checkIfValidToken = async (token) => {
     try {
       const response = await fetch(
-        "http://localhost:8080/api/transacciones/userTest",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -267,7 +267,7 @@ function HomePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "http://localhost:8080/api/personal-categoria",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -361,7 +361,7 @@ function HomePage() {
   const enviarRespuesta = async (resp, id_reserva) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
-    const url = `http://localhost:8080/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
+    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
     const method = "POST";
     try {
       //hacer chequeos de que pase bien las cosas en el back!
@@ -385,7 +385,8 @@ function HomePage() {
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
-    let url = "http://localhost:8080/api/transacciones";
+    let url =
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
     if (transaccion.id_reserva == "Cobro") {
       url += "/crearPago/" + transaccion.sentByEmail;
       const motivo = transaccion.motivo;
@@ -416,7 +417,8 @@ function HomePage() {
     } else if (transaccion.id_reserva == "Pago") {
       console.log("Transaccion Aprobada");
     } else if (transaccion.id_reserva == "Grupo") {
-      url = "http://localhost:8080/api/grupos/agregar-usuario";
+      url =
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
       const grupoId = transaccion.grupoId;
       console.log("este es el id " + grupoId);
       try {
@@ -479,8 +481,8 @@ function HomePage() {
     if (selectedGroup == null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
       url = edit
-        ? `http://localhost:8080/api/transacciones/${transaccionId}`
-        : "http://localhost:8080/api/transacciones";
+        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
+        : "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
     } else {
       const grupo = selectedGroup.value;
       bodyJson = JSON.stringify({
@@ -492,8 +494,8 @@ function HomePage() {
         grupo,
       });
       url = edit
-        ? `http://localhost:8080/api/grupos/transaccion/${transaccionId}`
-        : "http://localhost:8080/api/grupos/transaccion";
+        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`
+        : "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion";
     }
     const method = edit ? "PUT" : "POST";
     try {
@@ -538,13 +540,16 @@ function HomePage() {
 
   const checkTransaccionAchievment = async () => {
     const token = localStorage.getItem("token");
-    fetch("http://localhost:8080/api/users/userTransaction", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    fetch(
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         if (data == 1 || data == 5 || data == 10) {
@@ -561,7 +566,7 @@ function HomePage() {
     setTransaccionesCargadas(false);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/transacciones/${id}`,
+        `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${id}`,
         {
           method: "DELETE",
           headers: {

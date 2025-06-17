@@ -36,7 +36,7 @@ function ChangePasswordForm() {
 
     try {
       const response = await fetch(
-        "http://localhost:8080/api/users/change-password",
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/users/change-password",
         {
           method: "PUT",
           headers: {
@@ -49,7 +49,7 @@ function ChangePasswordForm() {
           }),
         }
       );
-      /*const response = await fetch("http://localhost:8080/api/users/change-password", {
+      /*const response = await fetch("https://two024-qwerty-back-final-marcello.onrender.com/api/users/change-password", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
