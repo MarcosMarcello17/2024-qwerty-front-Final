@@ -15,23 +15,6 @@ import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
 import { deletePendingTransaction } from "../functions/deletePendingTransaction";
-import {
-  DollarSign,
-  LayoutDashboard,
-  PlusCircle,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -705,61 +688,237 @@ function HomePage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-2">
-          <LayoutDashboard className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Select defaultValue="monthly">
-            <SelectTrigger className="w-[180px] bg-card">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">This Month</SelectItem>
-              <SelectItem value="quarterly">This Quarter</SelectItem>
-              <SelectItem value="yearly">This Year</SelectItem>
-              <SelectItem value="all_time">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            asChild
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <a
-              href="#"
-              className="text-sm text-muted-foreground hover:text-primary text-center"
-              onClick={() => navigate("/")}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
-            </a>
-          </Button>
-        </div>
+    <div className="container min-h-screen min-w-full max-w-full bg-[#000814]">
+      <Header
+        payCategories={payCategories}
+        setPayCategories={setPayCategories}
+        fetchPersonalCategorias={fetchPersonalCategorias}
+        getTransacciones={getTransacciones}
+        openModal={openModal}
+      />
+      <div className="flex justify-end w-full p-4">
+        <button
+          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+          className="btn bg-[#ffd60a] border-[#ffd60a] btn-sm w-full focus:bg-[#ffc300] hover:bg-[#ffc300] border-none"
+        >
+          {isFiltersOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
+        </button>
       </div>
 
-      <div>
-        {!loadGraphic && transacciones[0] && (
-          <MonthlyGraphic
-            type="categorias"
-            transacciones={transacciones}
-            payCategories={payCategories}
+      {isFiltersOpen && (
+        <div className="flex flex-col md:flex-row items-start md:items-center md:gap-6 mb-1">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                id="categorias"
+                value={categoriaSeleccionada}
+                onChange={handleChange}
+                className="block select select-bordered w-full max-w-full"
+              >
+                {categoriasConTodas.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Select de Mes */}
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                value={filtroMes}
+                onChange={(e) => setFiltroMes(e.target.value)}
+                className="select select-bordered w-full max-w-full"
+              >
+                <option value="">Mes</option>
+                <option value="01">Enero</option>
+                <option value="02">Febrero</option>
+                <option value="03">Marzo</option>
+                <option value="04">Abril</option>
+                <option value="05">Mayo</option>
+                <option value="06">Junio</option>
+                <option value="07">Julio</option>
+                <option value="08">Agosto</option>
+                <option value="09">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                value={filtroAno}
+                onChange={(e) => setFiltroAno(e.target.value)}
+                className="select select-bordered w-full max-w-full"
+              >
+                <option value="">Todos los años</option>{" "}
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => resetFilters()}
+              className="btn bg-[#ffd60a] hover:bg-[#ffc300] focus:bg-[#ffc300] w-full md:w-auto mt-2 md:mt-0 border-none"
+            >
+              Borrar filtros
+            </button>
+          </div>
+        </div>
+      )}
+      <>
+        {isLoading && (
+          <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin border-t-4 border-[#0001d3d]-500 border-solid w-16 h-16 rounded-full"></div>
+            </div>
+          </div>
+        )}
+        {transaccionesCargadas && (
+          <PresupuestosWidget
+            transacciones={
+              categoriaSeleccionada != "Todas"
+                ? transaccionesSinFiltroCat
+                : transacciones
+            }
             filtroMes={filtroMes}
-            filtroCategoria={categoriaSeleccionada}
-            loading={loadGraphic}
-            transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+            filtroAno={filtroAno}
           />
         )}
-      </div>
 
-      {!loadGraphic && transacciones[0] != null && (
-        <PaymentMethodGraphic
-          type="tipoGasto"
-          transacciones={transacciones}
-          payCategories={payOptions}
-          loading={loadGraphic}
+        {!showNoTransactions && (
+          <>
+            <div className="flex items-center">
+              <h2 className="text-xl md:text-2xl py-2 font-bold text-gray-100">
+                Monto por Categoria
+              </h2>
+            </div>
+
+            {!loadGraphic && (
+              <MonthlyGraphic
+                type="categorias"
+                transacciones={transacciones}
+                payCategories={payCategories}
+                filtroMes={filtroMes}
+                filtroCategoria={categoriaSeleccionada}
+                loading={loadGraphic}
+                transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+              />
+            )}
+          </>
+        )}
+
+        {transaccionesCargadas && (
+          <PresupuestosWidget transacciones={transacciones} />
+        )}
+        {/* Cargando Spinner */}
+        {isLoadingFilter ? (
+          <div className="flex justify-center items-center">
+            <svg
+              className="animate-spin h-8 w-8 md:h-10 md:w-10 text-[#ffd60a]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.965 7.965 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-[#ffd60a] font-bold ml-2">Cargando...</span>
+          </div>
+        ) : (
+          <>
+            <TransaccionesTable
+              transactions={transacciones}
+              payCategories={payCategories}
+              editRow={editRow}
+              deleteRow={deleteRow}
+              onTableEmpty={() => setShowNoTransactions(true)}
+              onTransactions={() => setShowNoTransactions(false)}
+            />
+
+            {/* Si no hay transacciones */}
+            {showNoTransactions && (
+              <div className="flex flex-col justify-center items-center mb-0">
+                {(categoriaSeleccionada !== "Todas" ||
+                  filtroAno !== "2024" ||
+                  filtroMes !== "") && (
+                  <p className="text-red-500 font-bold mb-4">
+                    Su filtro no coincide con ninguna transacción
+                  </p>
+                )}
+                <button
+                  className="bg-[#ffd60a] text-gray-950 font-extrabold py-4 px-8 rounded-lg hover:bg-[#ffc300]"
+                  onClick={openModal}
+                >
+                  Ingrese una transacción
+                </button>
+              </div>
+            )}
+          </>
+        )}
+
+        <ModalNewSuscription
+          handleSubmit={() => console.log("SUBMIT")}
+          newSubs={posibleSub}
         />
-      )}
+        <ModalForm
+          isModalOpen={isModalOpen}
+          closeModal={closeModal}
+          agregarTransaccion={agregarTransaccion}
+          edit={edit}
+          motivo={motivo}
+          valor={valor}
+          fecha={fecha}
+          handleMotivoChange={handleMotivoChange}
+          setValor={setValor}
+          selectedCategory={selectedCategory}
+          payCategories={payCategories}
+          handleCategoryChange={handleCategoryChange}
+          handleCreateCat={handleCreateCat}
+          setFecha={setFecha}
+          handlePayChange={handlePayChange}
+          selectedPayMethod={selectedPayMethod}
+          payOptions={payOptions}
+          handleCreateTP={handleCreateTP}
+          handleGroupChange={handleGroupChange}
+          selectedGroup={selectedGroup}
+          grupos={grupos}
+        />
+        <ModalAskPayment payCategories={payCategories} />
+        <ModalSendPayment
+          payCategories={payCategories}
+          refreshTransacciones={refershTransacciones}
+        />
+        <AlertPending
+          isOpen={pendTran}
+          pendingTransaction={tranPendiente}
+          isAccepted={isAccepted}
+          isRejected={isRejected}
+          payCategories={payCategories}
+        />
+        {showNotification && (
+          <AchievementNotification
+            achievement={achievementData}
+            onClose={() => setShowNotification(false)}
+          />
+        )}
+      </>
     </div>
   );
 }

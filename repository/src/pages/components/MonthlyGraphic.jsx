@@ -14,6 +14,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import LoadingSpinner from "./LoadingSpinner";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 function MonthlyGraphic({
   transacciones = [],
@@ -185,106 +192,141 @@ function MonthlyGraphic({
   };
 
   return (
-    <div className="flex flex-col justify-center items-center py-4 bg-[#000814] h-full w-full">
+    <div className="flex flex-col items-center py-4 h-full w-full">
       {loadingg ? (
         <LoadingSpinner />
       ) : (
-        <div className="flex flex-col md:flex-row justify-center items-center w-full">
-          <div className="w-full md:w-7/12 md:h-2/6 flex justify-center items-center">
-            <ResponsiveContainer width="50%" aspect={1}>
-              <PieChart>
-                <Pie
-                  data={type === "categorias" ? data : dataPay}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius="80%"
-                  fill="#8884d8"
-                  dataKey="value"
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader>
+              <CardTitle className="font-headline">
+                Gasto por categoria
+              </CardTitle>
+              <CardDescription>
+                Vista de los gastos por categoria en el periodo seleccionado.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="flex flex-row items-center"
+                style={{ width: "100%", height: 300 }}
+              >
+                <div style={{ width: "65%", height: "100%" }}>
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={type === "categorias" ? data : dataPay}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={renderCustomizedLabel}
+                        outerRadius="80%"
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {(type === "categorias" ? data : dataPay).map(
+                          (entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          )
+                        )}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div
+                  className="legend flex flex-col ml-6"
+                  style={{ minWidth: 120 }}
                 >
-                  {(type === "categorias" ? data : dataPay).map(
-                    (entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    )
-                  )}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="legend flex flex-col mt-4">
-              {type === "categorias" &&
-                data.map((entry, index) => {
-                  const iconPath = getCategoryIcon(entry.name);
-                  return (
-                    <div
-                      key={`legend-item-${index}`}
-                      className="flex items-center mb-2 text-white"
-                    >
-                      {iconPath && (
-                        <FontAwesomeIcon
-                          icon={iconPath}
-                          className="mr-2"
-                          style={{ color: COLORS[index % COLORS.length] }}
-                        />
-                      )}
-                      <span>{entry.name}</span>
-                    </div>
-                  );
-                })}
-              {type === "tipoGasto" &&
-                dataPay.map((entry, index) => (
-                  <div
-                    key={`legend-item-${index}`}
-                    className="flex items-center mb-2 text-white"
-                  >
-                    <div
-                      style={{
-                        width: "12px",
-                        height: "12px",
-                        backgroundColor: COLORS[index % COLORS.length],
-                        marginRight: "8px",
+                  {type === "categorias" &&
+                    data.map((entry, index) => {
+                      const iconPath = getCategoryIcon(entry.name);
+                      return (
+                        <div
+                          key={`legend-item-${index}`}
+                          className="flex items-center mb-2 text-white"
+                        >
+                          {iconPath && (
+                            <FontAwesomeIcon
+                              icon={iconPath}
+                              className="mr-2"
+                              style={{ color: COLORS[index % COLORS.length] }}
+                            />
+                          )}
+                          <span>{entry.name}</span>
+                        </div>
+                      );
+                    })}
+                  {type === "tipoGasto" &&
+                    dataPay.map((entry, index) => (
+                      <div
+                        key={`legend-item-${index}`}
+                        className="flex items-center mb-2 text-white"
+                      >
+                        <div
+                          style={{
+                            width: "12px",
+                            height: "12px",
+                            backgroundColor: COLORS[index % COLORS.length],
+                            marginRight: "8px",
+                          }}
+                        ></div>
+                        <span>{entry.name}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle className="font-headline">
+                  Evolucion Mensual
+                </CardTitle>
+                <CardDescription>
+                  Evolucion de los gastos en los ultimos meses
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div style={{ width: "100%", height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={dataLine}>
+                    <XAxis
+                      dataKey="label"
+                      stroke="#ffffff"
+                      height={40}
+                      tick={{ fill: "#ffffff" }}
+                      tickLine={{ stroke: "#ffffff" }}
+                    />
+                    <YAxis
+                      stroke="#ffffff"
+                      tick={{ fill: "#ffffff" }}
+                      tickLine={{ stroke: "#ffffff" }}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#000814",
+                        border: "none",
+                        borderRadius: "4px",
+                        color: "#ffffff",
                       }}
-                    ></div>
-                    <span>{entry.name}</span>
-                  </div>
-                ))}
-            </div>
-          </div>
-          <div className="w-full md:w-5/12 md:h-2/6 flex justify-center items-center mt-4 md:mt-0">
-            <ResponsiveContainer width="100%" aspect={1.5}>
-              <BarChart data={dataLine}>
-                <XAxis
-                  dataKey="label"
-                  stroke="#ffffff"
-                  height={40}
-                  tick={{ fill: "#ffffff" }}
-                  tickLine={{ stroke: "#ffffff" }}
-                />
-                <YAxis
-                  stroke="#ffffff"
-                  tick={{ fill: "#ffffff" }}
-                  tickLine={{ stroke: "#ffffff" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#000814",
-                    border: "none",
-                    borderRadius: "4px",
-                    color: "#ffffff",
-                  }}
-                />
-                <Bar
-                  type="monotone"
-                  dataKey="total"
-                  fill="#FFC300"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                      formatter={(value) => `$${value.toFixed(2)}`}
+                    />
+                    <Bar
+                      type="monotone"
+                      dataKey="total"
+                      fill="#FFC300"
+                      radius={[4, 4, 0, 0]}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>
