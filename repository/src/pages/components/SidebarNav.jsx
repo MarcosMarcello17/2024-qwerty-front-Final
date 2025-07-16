@@ -8,26 +8,19 @@ import {
   SidebarFooter,
   SidebarMenuSkeleton,
   SidebarGroup,
-  SidebarGroupLabel,
 } from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
 import {
   LogOut,
-  ChevronDown,
-  Settings,
   UserCircle,
-  Users,
-  CreditCard,
-  ListChecks,
   Target,
   LayoutDashboard,
   Award,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import logo from "../../assets/logo-removebg-preview.png";
 import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const mainNavItems = [
   {
@@ -55,15 +48,15 @@ const userNavItems = [
   },
   {
     title: "Cerrar Sesion",
-    href: "/",
+    href: "logout",
     icon: LogOut,
   },
 ];
 
 export function SidebarNav() {
-  //const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   const navigate = useNavigate();
-  const pathname = "";
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -83,9 +76,20 @@ export function SidebarNav() {
     .join("")
     .toUpperCase();
 
+  const signOff = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
+  const moveToPage = (href) => {
+    if (href == "logout") {
+      signOff();
+    } else navigate(href);
+  };
+
   const renderNavItem = (item) => (
     <SidebarMenuItem key={item.href}>
-      <a onClick={() => navigate(item.href)} className="cursor-pointer">
+      <a onClick={() => moveToPage(item.href)} className="cursor-pointer">
         <SidebarMenuButton
           asChild
           isActive={

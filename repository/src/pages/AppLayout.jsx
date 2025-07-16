@@ -83,7 +83,7 @@ export default function AppLayout({ children }) {
   };
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-full min-w-full flex-col">
         <SidebarNav />
         <div className="flex flex-1 flex-col md:pl-[var(--sidebar-width)] group-data-[collapsible=icon]/sidebar-wrapper:md:pl-[var(--sidebar-width-icon)] transition-[padding-left] duration-200 ease-linear">
           <Header

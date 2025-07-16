@@ -114,6 +114,39 @@ function HomePage() {
     }
   };
 
+  const getTransaccionesFiltradas = () => {
+    const hoy = new Date();
+    let desde;
+    let filtradas = [];
+
+    switch (periodoSeleccionado) {
+      case "monthly":
+        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
+        break;
+      case "quarterly":
+        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
+        break;
+      case "yearly":
+        desde = new Date(hoy.getFullYear(), 0, 1);
+        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
+        break;
+      case "all_time":
+      default:
+        filtradas = transacciones;
+    }
+
+    // Filtrar por categoría si no es "Todas"
+    if (categoriaSeleccionada && categoriaSeleccionada !== "Todas") {
+      filtradas = filtradas.filter(
+        (t) => t.categoria === categoriaSeleccionada
+      );
+    }
+
+    return filtradas;
+  };
+
   useEffect(() => {
     getTransacciones(categoriaSeleccionada); //aplicar un filtro local
     setLoadGraphic(false);
@@ -634,11 +667,9 @@ function HomePage() {
     }
     return ret.error;
   };
-  const handleChange = (event) => {
+  const handleChange = (value) => {
+    setPeriodoSeleccionado(value);
     setIsLoadingFilter(true);
-    let cat = event.target.value;
-    setCategoriaSeleccionada(cat);
-    getTransacciones(cat);
   };
   const resetFilters = () => {
     setCategoriaSeleccionada("Todas");
@@ -652,6 +683,7 @@ function HomePage() {
   };
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("monthly");
 
   const detectRecurringTransactions = (transacciones) => {
     const today = new Date();
@@ -705,9 +737,11 @@ function HomePage() {
       .filter((result) => result !== null);
   };
 
+  const transaccionesFiltradas = getTransaccionesFiltradas();
+
   return (
     <AppLayout>
-      <div className="space-y-8">
+      <div className="space-y-8 min-h-full min-w-full">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <div className="flex items-center space-x-2">
             <LayoutDashboard className="h-8 w-8 text-primary" />
@@ -716,15 +750,31 @@ function HomePage() {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
-            <Select defaultValue="monthly">
+            <Select defaultValue="monthly" onValueChange={handleChange}>
               <SelectTrigger className="w-[180px] bg-card hover:bg-background">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">This Month</SelectItem>
-                <SelectItem value="quarterly">This Quarter</SelectItem>
-                <SelectItem value="yearly">This Year</SelectItem>
-                <SelectItem value="all_time">All Time</SelectItem>
+                <SelectItem value="monthly">Ultimo Mes</SelectItem>
+                <SelectItem value="quarterly">Ultimos 3 Meses</SelectItem>
+                <SelectItem value="yearly">Este ano</SelectItem>
+                <SelectItem value="all_time">Todos</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={categoriaSeleccionada}
+              onValueChange={(value) => setCategoriaSeleccionada(value)}
+            >
+              <SelectTrigger className="w-[180px] bg-card hover:bg-background">
+                <SelectValue placeholder="Filtrar por categoría" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Todas">Todas las Categorías</SelectItem>
+                {payCategories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button
@@ -741,28 +791,51 @@ function HomePage() {
             </Button>
           </div>
         </div>
+        {transaccionesFiltradas.length > 0 ? (
+          <>
+            <div>
+              {!loadGraphic && transacciones[0] && (
+                <MonthlyGraphic
+                  type="categorias"
+                  transacciones={transaccionesFiltradas}
+                  payCategories={payCategories}
+                  filtroMes={filtroMes}
+                  filtroCategoria={categoriaSeleccionada}
+                  loading={loadGraphic}
+                  transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+                />
+              )}
+            </div>
 
-        <div>
-          {!loadGraphic && transacciones[0] && (
-            <MonthlyGraphic
-              type="categorias"
-              transacciones={transacciones}
-              payCategories={payCategories}
-              filtroMes={filtroMes}
-              filtroCategoria={categoriaSeleccionada}
-              loading={loadGraphic}
-              transaccionesSinFiltroCat={transaccionesSinFiltroCat}
-            />
-          )}
-        </div>
-
-        {!loadGraphic && transacciones[0] != null && (
-          <PaymentMethodGraphic
-            type="tipoGasto"
-            transacciones={transacciones}
-            payCategories={payOptions}
-            loading={loadGraphic}
-          />
+            {!loadGraphic && transacciones[0] != null && (
+              <PaymentMethodGraphic
+                type="tipoGasto"
+                transacciones={transaccionesFiltradas}
+                payCategories={payOptions}
+                loading={loadGraphic}
+              />
+            )}
+          </>
+        ) : (
+          <div>
+            <div className="text-center text-muted-foreground mt-8 text-red-500 font-extrabold">
+              No hay transacciones en el periodo seleccionado.
+            </div>
+            <div className="flex justify-center mt-4">
+              <Button
+                asChild
+                className="bg-primary text-center hover:bg-primary/90 text-primary-foreground"
+              >
+                <a
+                  href="#"
+                  className="text-sm text-muted-foreground text-center hover:text-black"
+                  onClick={() => openModal()}
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+                </a>
+              </Button>
+            </div>
+          </div>
         )}
         <ModalForm
           isModalOpen={isModalOpen}

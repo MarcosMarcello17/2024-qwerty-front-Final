@@ -191,6 +191,14 @@ function PaymentMethodGraphic({
     return category ? category.iconPath : null;
   };
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
@@ -200,40 +208,61 @@ function PaymentMethodGraphic({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div style={{ width: "100%", height: 300 }}>
-          <ResponsiveContainer>
-            <PieChart>
-              <Pie
-                data={dataPay}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} ${(percent * 100).toFixed(0)}%`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                stroke="hsl(var(--background))"
-                strokeWidth={2}
+        <div
+          className="flex flex-row items-center"
+          style={{ width: "100%", height: 300 }}
+        >
+          <div style={{ width: "65%", height: "100%" }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie
+                  data={dataPay}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius="80%"
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {(type === "categorias" ? data : dataPay).map(
+                    (entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    )
+                  )}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                  }}
+                  formatter={(value) => [`${value}%`, "Usage"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="legend flex flex-col ml-6" style={{ minWidth: 120 }}>
+            {dataPay.map((entry, index) => (
+              <div
+                key={`legend-item-${index}`}
+                className="flex items-center mb-2 text-white"
               >
-                {data.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.fill || COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  borderColor: "hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                }}
-                formatter={(value) => [`${value}%`, "Usage"]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: COLORS[index % COLORS.length],
+                    marginRight: "8px",
+                  }}
+                ></div>
+                <span>{entry.name}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </CardContent>
     </Card>
@@ -241,3 +270,32 @@ function PaymentMethodGraphic({
 }
 
 export default PaymentMethodGraphic;
+
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+  index,
+}) => {
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const displayText = percent < 0.01 ? "<1%" : `${(percent * 100).toFixed(0)}%`;
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="white"
+      textAnchor={x > cx ? "start" : "end"}
+      dominantBaseline="central"
+    >
+      {displayText}
+    </text>
+  );
+};

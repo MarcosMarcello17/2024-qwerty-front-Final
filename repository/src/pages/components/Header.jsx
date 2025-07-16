@@ -28,6 +28,11 @@ export default function Header() {
     .join("")
     .toUpperCase();
 
+  const signOff = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-sidebar shadow-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -69,22 +74,22 @@ export default function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuItem asChild>
-                <a
-                  href="/profile"
-                  onClick={() => navigate("/profile")}
-                  className="cursor-pointer"
-                >
+                <a href="/profile" className="cursor-pointer">
                   <UserCircle className="mr-2 h-4 w-4" />
                   Perfil
                 </a>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <a href="/login">
+                <a
+                  href="#"
+                  onClick={() => signOff()}
+                  className="cursor-pointer"
+                >
                   {" "}
                   {/* Replace with actual logout logic */}
                   <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                  Cerrar Sesion
                 </a>
               </DropdownMenuItem>
             </DropdownMenuContent>
