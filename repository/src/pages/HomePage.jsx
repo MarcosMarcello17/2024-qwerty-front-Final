@@ -32,6 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
+import AppLayout from "./AppLayout";
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -705,62 +706,95 @@ function HomePage() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className="flex items-center space-x-2">
-          <LayoutDashboard className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold font-headline">Dashboard</h1>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Select defaultValue="monthly">
-            <SelectTrigger className="w-[180px] bg-card">
-              <SelectValue placeholder="Select period" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">This Month</SelectItem>
-              <SelectItem value="quarterly">This Quarter</SelectItem>
-              <SelectItem value="yearly">This Year</SelectItem>
-              <SelectItem value="all_time">All Time</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            asChild
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <a
-              href="#"
-              className="text-sm text-muted-foreground hover:text-primary text-center"
-              onClick={() => navigate("/")}
+    <AppLayout>
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-2">
+            <LayoutDashboard className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold font-headline text-white">
+              Dashboard
+            </h1>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Select defaultValue="monthly">
+              <SelectTrigger className="w-[180px] bg-card hover:bg-background">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="monthly">This Month</SelectItem>
+                <SelectItem value="quarterly">This Quarter</SelectItem>
+                <SelectItem value="yearly">This Year</SelectItem>
+                <SelectItem value="all_time">All Time</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              asChild
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
-            </a>
-          </Button>
+              <a
+                href="#"
+                className="text-sm text-muted-foreground hover:text-primary text-center hover:text-black"
+                onClick={() => openModal()}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+              </a>
+            </Button>
+          </div>
         </div>
-      </div>
 
-      <div>
-        {!loadGraphic && transacciones[0] && (
-          <MonthlyGraphic
-            type="categorias"
+        <div>
+          {!loadGraphic && transacciones[0] && (
+            <MonthlyGraphic
+              type="categorias"
+              transacciones={transacciones}
+              payCategories={payCategories}
+              filtroMes={filtroMes}
+              filtroCategoria={categoriaSeleccionada}
+              loading={loadGraphic}
+              transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+            />
+          )}
+        </div>
+
+        {!loadGraphic && transacciones[0] != null && (
+          <PaymentMethodGraphic
+            type="tipoGasto"
             transacciones={transacciones}
-            payCategories={payCategories}
-            filtroMes={filtroMes}
-            filtroCategoria={categoriaSeleccionada}
+            payCategories={payOptions}
             loading={loadGraphic}
-            transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+          />
+        )}
+        <ModalForm
+          isModalOpen={isModalOpen}
+          closeModal={closeModal}
+          agregarTransaccion={agregarTransaccion}
+          edit={edit}
+          motivo={motivo}
+          valor={valor}
+          fecha={fecha}
+          handleMotivoChange={handleMotivoChange}
+          setValor={setValor}
+          selectedCategory={selectedCategory}
+          payCategories={payCategories}
+          handleCategoryChange={handleCategoryChange}
+          handleCreateCat={handleCreateCat}
+          setFecha={setFecha}
+          handlePayChange={handlePayChange}
+          selectedPayMethod={selectedPayMethod}
+          payOptions={payOptions}
+          handleCreateTP={handleCreateTP}
+          handleGroupChange={handleGroupChange}
+          selectedGroup={selectedGroup}
+          grupos={grupos}
+        />
+        {showNotification && (
+          <AchievementNotification
+            achievement={achievementData}
+            onClose={() => setShowNotification(false)}
           />
         )}
       </div>
-
-      {!loadGraphic && transacciones[0] != null && (
-        <PaymentMethodGraphic
-          type="tipoGasto"
-          transacciones={transacciones}
-          payCategories={payOptions}
-          loading={loadGraphic}
-        />
-      )}
-    </div>
+    </AppLayout>
   );
 }
 

@@ -36,7 +36,7 @@ const ModalCategoria = ({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#001d3d", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };
@@ -136,7 +136,7 @@ const ModalCategoria = ({
         placeholder="Nombre de la categoría"
         value={categoriaNombre}
         onChange={(e) => setCategoriaNombre(e.target.value)}
-        className="mt-1 block w-full p-2 border border-[#003566] bg-[#001d3d] text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+        className="mt-1 block w-full p-2 px-3 border bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 

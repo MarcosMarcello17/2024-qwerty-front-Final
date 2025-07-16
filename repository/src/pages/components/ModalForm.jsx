@@ -56,16 +56,18 @@ function ModalForm({
   const customSelectStyles = {
     control: (provided) => ({
       ...provided,
-      backgroundColor: "#001d3d",
+      backgroundColor: "#000814",
       color: "white",
+      borderColor: "#000814",
+      borderRadius: "calc(0.5rem - 2px)",
     }),
     menu: (provided) => ({
       ...provided,
-      backgroundColor: "#001d3d",
+      backgroundColor: "#000814",
     }),
     option: (provided, state) => ({
       ...provided,
-      backgroundColor: state.isSelected ? "#ffc300" : "#001d3d",
+      backgroundColor: state.isSelected ? "#ffc300" : "#000814",
       color: state.isSelected ? "black" : "white",
     }),
     singleValue: (provided) => ({
@@ -174,7 +176,7 @@ function ModalForm({
       onRequestClose={closeModal}
       contentLabel="Agregar Transacción"
       style={customStyles}
-      className="bg-[#000814] shadow-lg p-4 rounded-lg"
+      className="bg-card shadow-lg p-4 rounded-lg"
     >
       <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">
         {edit ? "Editar Transacción" : "Agregar Nueva Transacción"}
@@ -186,7 +188,7 @@ function ModalForm({
             type="text"
             value={motivo}
             onChange={handleMotivoChange}
-            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm"
             required
           />
         </div>
@@ -196,7 +198,7 @@ function ModalForm({
             type="number"
             value={valor}
             onChange={(e) => setValor(e.target.value)}
-            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm"
             required
           />
         </div>
@@ -209,7 +211,7 @@ function ModalForm({
             onChange={handlePayChange}
             onCreateOption={handleCreateTP}
             value={selectedPayMethod}
-            className="custom-select mt-1 block w-full border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm border-transparent"
+            className="custom-select mt-1 block w-full text-white rounded-md shadow-sm border-transparent"
             styles={customSelectStyles}
             required
           />
@@ -223,14 +225,14 @@ function ModalForm({
                 onChange={handleCategorySelect}
                 value={selectedCategory}
                 isDisabled={isCategoryDisabled} // Desactivar si ya hay un grupo seleccionado
-                className="custom-select mt-1 block w-full border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm border-transparent"
+                className="custom-select mt-1 block w-full text-white rounded-md shadow-sm border-transparent"
                 styles={customSelectStyles}
                 required
               />
               <button
                 type="button"
                 onClick={() => openModalCategoria()}
-                className="ml-2 bg-[#003566] text-white py-1 px-2 rounded"
+                className="ml-2 bg-[#ffd60a] py-1 px-2 rounded text-black hover:bg-[#ffc300]"
               >
                 +
               </button>
@@ -245,7 +247,7 @@ function ModalForm({
                   : "Ningún grupo seleccionado"
               }
               readOnly
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white rounded-md shadow-sm"
             />
           )}
         </div>
@@ -255,7 +257,7 @@ function ModalForm({
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
-            className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            className="mt-1 block w-full p-2 border bg-background text-white rounded-md shadow-sm "
             required
           />
         </div>
@@ -283,7 +285,7 @@ function ModalForm({
               onChange={handleGroupSelect}
               value={selectedGroup}
               isDisabled={isGroupDisabled} // Desactivar si la categoría no es "Gasto Grupal"
-              className="custom-select mt-1 block w-full border bg-gray-900 text-white border-yellow-600 rounded-md shadow-sm border-transparent"
+              className="custom-select mt-1 block w-full border bg-gray-900 text-white rounded-md shadow-sm border-transparent"
               styles={customSelectStyles}
             />
           ) : (
