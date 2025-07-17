@@ -202,9 +202,9 @@ function PaymentMethodGraphic({
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
       <CardHeader>
-        <CardTitle className="font-headline">Payment Method Usage</CardTitle>
+        <CardTitle className="font-headline">Gasto por Medio de Pago</CardTitle>
         <CardDescription>
-          Distribution of transactions by payment method.
+          Vista de los gastos por medio de pago en el periodo seleccionado
         </CardDescription>
       </CardHeader>
       <CardContent>

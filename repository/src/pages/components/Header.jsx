@@ -49,7 +49,8 @@ export default function Header() {
             </Button>
           )}
           <a
-            href="/dashboard"
+            href="/index"
+            onClick={() => navigate("/index")}
             className="text-2xl font-bold text-primary font-headline"
           >
             CashFlowPro

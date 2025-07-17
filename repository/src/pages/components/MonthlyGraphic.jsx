@@ -116,7 +116,7 @@ function MonthlyGraphic({
     }, {});
 
     const allMonths = Array.from({ length: 12 }, (_, index) =>
-      new Date(2024, index).toLocaleString("default", { month: "short" })
+      new Date(2024, index).toLocaleString("es-ES", { month: "short" })
     );
 
     const allDays = (month) => {
@@ -192,7 +192,8 @@ function MonthlyGraphic({
   };
 
   return (
-    <div className="flex flex-col items-center py-4 h-full w-full">
+    // ...en MonthlyGraphic.jsx y PaymentMethodGraphic.jsx...
+    <div>
       {loadingg ? (
         <LoadingSpinner />
       ) : (

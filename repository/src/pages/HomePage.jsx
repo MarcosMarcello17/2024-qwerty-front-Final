@@ -7,7 +7,7 @@ import AchievementNotification from "./components/AchievementNotification";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
-import { LayoutDashboard, PlusCircle } from "lucide-react";
+import { LayoutDashboard, Loader2, PlusCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
 import AppLayout from "./AppLayout";
+import AlertPending from "./components/AlertPending";
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -536,6 +537,144 @@ function HomePage() {
 
   const transaccionesFiltradas = getTransaccionesFiltradas();
 
+  const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
+    const token = localStorage.getItem("token");
+    setTransaccionesCargadas(false);
+    let url =
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+    if (transaccion.id_reserva == "Cobro") {
+      url += "/crearPago/" + transaccion.sentByEmail;
+      const motivo = transaccion.motivo;
+      const valor = transaccion.valor;
+      const fecha = transaccion.fecha;
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const updatedTransacciones = [...transacciones, data];
+          updatedTransacciones.sort(
+            (a, b) => new Date(b.fecha) - new Date(a.fecha)
+          );
+          setTransacciones(updatedTransacciones);
+        }
+      } catch (err) {
+        console.log(err);
+      } finally {
+        setTransaccionesCargadas(true);
+      }
+    } else if (transaccion.id_reserva == "Pago") {
+      console.log("Transaccion Aprobada");
+    } else if (transaccion.id_reserva == "Grupo") {
+      url =
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
+      const grupoId = transaccion.grupoId;
+      console.log("este es el id " + grupoId);
+      try {
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ grupo_id: grupoId }),
+        });
+        if (response.ok) {
+          console.log("Usuario agregado al grupo exitosamente.");
+        } else {
+          console.log("Hubo un problema al agregar el usuario al grupo.");
+        }
+      } catch (err) {
+        console.log("Error en la solicitud de agregar usuario al grupo:", err);
+      } finally {
+        setTransaccionesCargadas(true);
+      }
+    } else {
+      const method = "POST";
+      let motivo = transaccion.motivo;
+      let valor = transaccion.valor;
+      let fecha = transaccion.fecha;
+      categoria = "Clase";
+      try {
+        //hacer chequeos de que pase bien las cosas en el back!
+        const response = await fetch(url, {
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ motivo, valor, fecha, categoria }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const updatedTransacciones = [...transacciones, data];
+          updatedTransacciones.sort(
+            (a, b) => new Date(b.fecha) - new Date(a.fecha)
+          );
+          setTransacciones(updatedTransacciones);
+        }
+      } catch (err) {
+        // habria que avisar que hubo un error en aceptar la transaccion o algo
+      } finally {
+        setTransaccionesCargadas(true);
+      }
+    }
+  };
+
+  const isAccepted = async (transaction, categoria, tipoGasto) => {
+    await aceptarTransaccion(transaction, categoria, tipoGasto);
+    eliminarTransaccionPendiente(transaction.id);
+    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+      enviarRespuesta("aceptada", transaction.id_reserva);
+    }
+    setPendTran(false);
+  };
+
+  const isRejected = (transaction) => {
+    eliminarTransaccionPendiente(transaction.id);
+    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+      enviarRespuesta("rechazada", transaction.id_reserva);
+    }
+    setPendTran(false);
+  };
+
+  const enviarRespuesta = async (resp, id_reserva) => {
+    const token = localStorage.getItem("token");
+    setTransaccionesCargadas(false);
+    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
+    const method = "POST";
+    try {
+      //hacer chequeos de que pase bien las cosas en el back!
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        //
+      }
+    } catch (err) {
+      // habria que avisar que hubo un error en aceptar la transaccion o algo
+    } finally {
+      setTransaccionesCargadas(true);
+    }
+  };
+
+  const eliminarTransaccionPendiente = async (id) => {
+    const tranEliminada = await deletePendingTransaction(id);
+    tranEliminada ? showTransactionsPendientes() : console.log("Error");
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8 min-h-full min-w-full">
@@ -546,15 +685,15 @@ function HomePage() {
               Dashboard
             </h1>
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-col gap-2 justify-end w-full sm:flex-row sm:items-center sm:space-x-2 sm:gap-0">
             <Select defaultValue="all_time" onValueChange={handleChange}>
-              <SelectTrigger className="w-[180px] bg-card hover:bg-background">
+              <SelectTrigger className="w-full sm:w-[180px] bg-card hover:bg-background">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="monthly">Ultimo Mes</SelectItem>
                 <SelectItem value="quarterly">Ultimos 3 Meses</SelectItem>
-                <SelectItem value="yearly">Este ano</SelectItem>
+                <SelectItem value="yearly">Este año</SelectItem>
                 <SelectItem value="all_time">Todos</SelectItem>
               </SelectContent>
             </Select>
@@ -562,7 +701,7 @@ function HomePage() {
               value={categoriaSeleccionada}
               onValueChange={(value) => setCategoriaSeleccionada(value)}
             >
-              <SelectTrigger className="w-[180px] bg-card hover:bg-background">
+              <SelectTrigger className="w-full sm:w-[180px] bg-card hover:bg-background">
                 <SelectValue placeholder="Filtrar por categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -576,43 +715,50 @@ function HomePage() {
             </Select>
             <Button
               asChild
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <a
                 href="#"
                 className="text-sm text-muted-foreground hover:text-primary text-center hover:text-black"
                 onClick={() => openModal()}
               >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+                <PlusCircle className="mr-1 h-4 w-4" /> Agregar Transaccion
               </a>
             </Button>
           </div>
         </div>
-        {transaccionesFiltradas.length > 0 ? (
-          <>
-            <div>
-              {!loadGraphic && transacciones[0] && (
-                <MonthlyGraphic
-                  type="categorias"
-                  transacciones={transaccionesFiltradas}
-                  payCategories={payCategories}
-                  filtroMes={filtroMes}
-                  filtroCategoria={categoriaSeleccionada}
-                  loading={loadGraphic}
-                  transaccionesSinFiltroCat={transaccionesSinFiltroCat}
-                />
-              )}
-            </div>
-
-            {!loadGraphic && transacciones[0] != null && (
-              <PaymentMethodGraphic
-                type="tipoGasto"
+        {isLoadingFilter ? (
+          <div className="flex flex-col items-center justify-center py-12 text-white">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
+            <span className="text-lg text-white font-semibold">
+              Cargando...
+            </span>
+          </div>
+        ) : transaccionesFiltradas.length > 0 ? (
+          <div className="flex flex-col gap-6 w-full  mx-auto">
+            {transaccionesCargadas && !loadGraphic && transacciones[0] && (
+              <MonthlyGraphic
+                type="categorias"
                 transacciones={transaccionesFiltradas}
-                payCategories={payOptions}
+                payCategories={payCategories}
+                filtroMes={filtroMes}
+                filtroCategoria={categoriaSeleccionada}
                 loading={loadGraphic}
+                transaccionesSinFiltroCat={transaccionesSinFiltroCat}
               />
             )}
-          </>
+
+            {transaccionesCargadas &&
+              !loadGraphic &&
+              transacciones[0] != null && (
+                <PaymentMethodGraphic
+                  type="tipoGasto"
+                  transacciones={transaccionesFiltradas}
+                  payCategories={payOptions}
+                  loading={loadGraphic}
+                />
+              )}
+          </div>
         ) : (
           <div>
             <div className="text-center text-muted-foreground mt-8 text-red-500 font-extrabold">
@@ -656,6 +802,13 @@ function HomePage() {
           handleGroupChange={handleGroupChange}
           selectedGroup={selectedGroup}
           grupos={grupos}
+        />
+        <AlertPending
+          isOpen={pendTran}
+          pendingTransaction={tranPendiente}
+          isAccepted={isAccepted}
+          isRejected={isRejected}
+          payCategories={payCategories}
         />
         {showNotification && (
           <AchievementNotification
