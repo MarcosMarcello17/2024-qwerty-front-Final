@@ -196,7 +196,7 @@ function MonthlyGraphic({
       {loadingg ? (
         <LoadingSpinner />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 min-h-full">
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
               <CardTitle className="font-headline">

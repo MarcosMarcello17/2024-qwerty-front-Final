@@ -1,7 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import { Input } from "@/components/ui/input";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+const CustomInput = forwardRef(({ value, onClick, placeholder }, ref) => (
+  <Input
+    className="input input-bordered min-w-full bg-[#001d3d]"
+    onClick={onClick}
+    value={value}
+    placeholder={placeholder}
+    readOnly
+    ref={ref}
+  />
+));
 
 function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   library.add(fas);
@@ -37,7 +51,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   const [totalBudget, setTotalBudget] = useState("");
   const [errors, setErrors] = useState({});
   const [budgetName, setBudgetName] = useState("");
-  const [budgetDate, setBudgetDate] = useState("");
+  const [budgetDate, setBudgetDate] = useState(null);
 
   useEffect(() => {
     const fetchPersonalCategorias = async () => {
@@ -71,7 +85,12 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   useEffect(() => {
     if (initialBudget) {
       setBudgetName(initialBudget.nameBudget || "");
-      setBudgetDate(initialBudget.budgetMonth || "");
+      let date = null;
+      if (initialBudget.budgetMonth) {
+        const tempDate = new Date(initialBudget.budgetMonth + "-01");
+        date = isNaN(tempDate.getTime()) ? null : tempDate;
+      }
+      setBudgetDate(date);
       setTotalBudget(initialBudget.totalBudget || "");
       setBudgetValues(initialBudget.categoryBudgets || {});
     }
@@ -218,15 +237,16 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 w-full">
           <label className="block text-sm font-semibold mb-1 text-white">
             Fecha (Mes y Año)
           </label>
-          <input
-            type="month"
-            className="input input-bordered w-full bg-[#001d3d]"
-            value={budgetDate}
-            onChange={(e) => setBudgetDate(e.target.value)}
+          <DatePicker
+            selected={budgetDate}
+            onChange={(date) => setBudgetDate(date)}
+            dateFormat="yyyy-MM"
+            showMonthYearPicker
+            customInput={<CustomInput placeholder="Selecciona mes y año" />}
             required
           />
         </div>
@@ -276,32 +296,34 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           </select>
         </div>
 
-        {Object.keys(budgetValues).map((category, index) => (
-          <div className="mb-4" key={index}>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              <FontAwesomeIcon
-                className="mr-2"
-                color="#FFFFFF"
-                icon={
-                  payCategories.find((cat) => cat.value === category)?.iconPath
-                }
+        {Object.keys(budgetValues).map((category, index) => {
+          const iconPath =
+            payCategories.find((cat) => cat.value === category)?.iconPath ||
+            "fa-solid fa-question";
+          return (
+            <div className="mb-4" key={index}>
+              <label className="block text-sm font-semibold mb-1 text-white">
+                <FontAwesomeIcon
+                  className="mr-2"
+                  color="#FFFFFF"
+                  icon={iconPath}
+                />
+                {category}
+              </label>
+              <input
+                type="number"
+                id={`amount-${index}`}
+                placeholder={`Monto para ${category}`}
+                className="input input-bordered w-full bg-[#001d3d]"
+                value={budgetValues[category] || ""}
+                onChange={(e) => handleInputChange(e.target.value, category)}
               />
-              {category}
-            </label>
-            <input
-              type="number"
-              id={`amount-${index}`}
-              placeholder={`Monto para ${category}`}
-              className="input input-bordered w-full bg-[#001d3d]"
-              value={budgetValues[category] || ""}
-              onChange={(e) => handleInputChange(e.target.value, category)}
-            />
-            {errors[category] && (
-              <p className="text-red-500 text-sm">{errors[category]}</p>
-            )}
-          </div>
-        ))}
-
+              {errors[category] && (
+                <p className="text-red-500 text-sm">{errors[category]}</p>
+              )}
+            </div>
+          );
+        })}
         {formMessage && <p className="text-green-500 text-sm">{formMessage}</p>}
 
         <div className="flex flex-wrap justify-end gap-4 mt-6">

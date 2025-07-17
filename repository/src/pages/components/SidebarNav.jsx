@@ -15,6 +15,7 @@ import {
   Target,
   LayoutDashboard,
   Award,
+  ListChecks,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
@@ -32,6 +33,11 @@ const mainNavItems = [
     title: "Presupuestos",
     href: "/presupuestos",
     icon: Target,
+  },
+  {
+    title: "Transacciones",
+    href: "/transacciones",
+    icon: ListChecks,
   },
   {
     title: "Logros",
