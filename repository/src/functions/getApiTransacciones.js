@@ -1,8 +1,6 @@
-export const getApiTransacciones = async (
-  filtrado = "Todas",
-  filtroMes,
-  filtroAno
-) => {
+export const getApiTransacciones = async (filtrado = "Todas", mes, ano) => {
+  const filtroMes = mes == "00" ? "" : mes;
+  const filtroAno = ano == "00" ? "" : ano;
   let transacciones = [];
   let transaccionesSinFiltroCat = [];
   const token = localStorage.getItem("token");

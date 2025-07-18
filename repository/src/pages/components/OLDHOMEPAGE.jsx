@@ -1,61 +1,20 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import TransaccionesTable from "./components/TransaccionesTable";
 import ModalForm from "./components/ModalForm";
 import "./styles/HomePage.css";
+import AlertPending from "./components/AlertPending";
 import MonthlyGraphic from "./components/MonthlyGraphic";
+import Header from "./components/Header";
+import ModalAskPayment from "./components/ModalAskPayment";
+import ModalSendPayment from "./components/ModalSendPayment";
+import PresupuestosWidget from "./components/PresupuestosWidget";
 import AchievementNotification from "./components/AchievementNotification";
+import ModalNewSuscription from "./components/ModalNewSuscription";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
-import {
-  Filter,
-  LayoutDashboard,
-  Loader2,
-  PlusCircle,
-  XCircle,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
-import AppLayout from "./AppLayout";
-import AlertPending from "./components/AlertPending";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-
-const months = [
-  { value: "00", label: "Todos" },
-  { value: "01", label: "Enero" },
-  { value: "02", label: "Febrero" },
-  { value: "03", label: "Marzo" },
-  { value: "04", label: "Abril" },
-  { value: "05", label: "Mayo" },
-  { value: "06", label: "Junio" },
-  { value: "07", label: "Julio" },
-  { value: "08", label: "Agosto" },
-  { value: "09", label: "Septiembre" },
-  { value: "10", label: "Octubre" },
-  { value: "11", label: "Noviembre" },
-  { value: "12", label: "Diciembre" },
-];
-
-const years = [
-  { value: "00", label: "Todos los años" },
-  { value: "2021", label: "2021" },
-  { value: "2022", label: "2022" },
-  { value: "2023", label: "2023" },
-  { value: "2024", label: "2024" },
-  { value: "2025", label: "2025" },
-  { value: "2026", label: "2026" },
-];
+import { deletePendingTransaction } from "../functions/deletePendingTransaction";
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -135,39 +94,6 @@ function HomePage() {
     } else {
       setSelectedGroup(selectedOption); // Asignar el grupo seleccionado
     }
-  };
-
-  const getTransaccionesFiltradas = () => {
-    const hoy = new Date();
-    let desde;
-    let filtradas = [];
-
-    switch (periodoSeleccionado) {
-      case "monthly":
-        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "quarterly":
-        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "yearly":
-        desde = new Date(hoy.getFullYear(), 0, 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "all_time":
-      default:
-        filtradas = transacciones;
-    }
-
-    // Filtrar por categoría si no es "Todas"
-    if (categoriaSeleccionada && categoriaSeleccionada !== "Todas") {
-      filtradas = filtradas.filter(
-        (t) => t.categoria === categoriaSeleccionada
-      );
-    }
-
-    return filtradas;
   };
 
   useEffect(() => {
@@ -387,12 +313,6 @@ function HomePage() {
     setEdit(false);
   };
 
-  const resetFilters = () => {
-    setCategoriaSeleccionada("Todas");
-    setFiltroAno("2025");
-    setFiltroMes("");
-  };
-
   const clearForm = () => {
     setMotivo("");
     setValor("");
@@ -405,181 +325,63 @@ function HomePage() {
     });
   };
 
-  const agregarTransaccion = async (e, categoria) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    let bodyJson = "";
-    let url = "";
-    setTransaccionesCargadas(false);
-    if (selectedGroup == null) {
-      bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
-      url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
-    } else {
-      const grupo = selectedGroup.value;
-      bodyJson = JSON.stringify({
-        motivo,
-        valor,
-        fecha,
-        categoria,
-        tipoGasto,
-        grupo,
-      });
-      url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion";
+  const editRow = (row) => {
+    setEdit(true);
+    setMotivo(row.motivo);
+    setValor(row.valor);
+    const selectedOption = payOptions.find(
+      (option) => option.value === row.tipoGasto
+    );
+    setSelectedPayMethod(selectedOption || null);
+    const selectedPayCategory = payCategories.find(
+      (option) => option.value == row.categoria
+    );
+    setSelectedCategory(selectedPayCategory || null);
+    setFecha(row.fecha);
+    setTransaccionId(row.id);
+    openModal();
+  };
+
+  const isAccepted = async (transaction, categoria, tipoGasto) => {
+    await aceptarTransaccion(transaction, categoria, tipoGasto);
+    eliminarTransaccionPendiente(transaction.id);
+    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+      enviarRespuesta("aceptada", transaction.id_reserva);
     }
-    const method = edit ? "PUT" : "POST";
+    setPendTran(false);
+  };
+
+  const isRejected = (transaction) => {
+    eliminarTransaccionPendiente(transaction.id);
+    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+      enviarRespuesta("rechazada", transaction.id_reserva);
+    }
+    setPendTran(false);
+  };
+  const enviarRespuesta = async (resp, id_reserva) => {
+    const token = localStorage.getItem("token");
+    setTransaccionesCargadas(false);
+    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
+    const method = "POST";
     try {
+      //hacer chequeos de que pase bien las cosas en el back!
       const response = await fetch(url, {
         method: method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: bodyJson,
       });
+
       if (response.ok) {
-        const data = await response.json();
-        if (selectedGroup == null) {
-          if (edit) {
-            const updatedTransacciones = transacciones.map((t) =>
-              t.id === data.id ? data : t
-            );
-            setTransacciones(updatedTransacciones);
-          } else {
-            const updatedTransacciones = [...transacciones, data];
-            updatedTransacciones.sort(
-              (a, b) => new Date(b.fecha) - new Date(a.fecha)
-            );
-            setTransacciones(updatedTransacciones);
-          }
-        }
-        closeModal();
-        setSelectedGroup(null);
-      } else {
-        console.log("la respuesta no fue ok");
+        //
       }
     } catch (err) {
-      console.log(err);
+      // habria que avisar que hubo un error en aceptar la transaccion o algo
     } finally {
       setTransaccionesCargadas(true);
-      if (!edit) {
-        checkTransaccionAchievment();
-      }
     }
   };
-
-  const checkTransaccionAchievment = async () => {
-    const token = localStorage.getItem("token");
-    fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data == 1 || data == 5 || data == 10) {
-          setAchievementData(data);
-          setShowNotification(true);
-        } else {
-          console.log(data);
-        }
-      });
-  };
-
-  const handleMotivoChange = (e) => {
-    setMotivo(e.target.value);
-  };
-  const handleCategoryChange = (value) => {
-    setCategoria(value ? value.value : "");
-    setSelectedCategory(value);
-  };
-  const handlePayChange = (value) => {
-    setTipoGasto(value ? value.value : "");
-    setSelectedPayMethod(value);
-  };
-  const handleCreateTP = async (inputValue) => {
-    const newOption = createPaymentMethodAPI(inputValue);
-    setPayOptions((prevOptions) => [...prevOptions, newOption]);
-    setSelectedPayMethod(newOption);
-    setTipoGasto(newOption.label);
-  };
-  const handleCreateCat = async (nombre, icono) => {
-    const ret = await createCatAPI(nombre, icono);
-    if (ret.newCat != null) {
-      setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
-      setSelectedCategory(ret.newCat);
-      setCategoria(ret.newCat.value);
-    }
-    return ret.error;
-  };
-  const handleChange = (value) => {
-    setPeriodoSeleccionado(value);
-    setIsLoadingFilter(true);
-  };
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("all_time");
-
-  const detectRecurringTransactions = (transacciones) => {
-    const today = new Date();
-    const threeMonthsAgo = new Date(
-      today.getFullYear(),
-      today.getMonth() - 2,
-      1
-    ); // Inicio de hace 3 meses
-
-    const monthlyTransactions = transacciones.reduce((acc, transaction) => {
-      const transactionDate = new Date(transaction.fecha);
-      if (transactionDate >= threeMonthsAgo) {
-        const monthKey = `${transactionDate.getUTCFullYear()}-${transactionDate.getUTCMonth()}`;
-        if (!acc[transaction.motivo]) {
-          acc[transaction.motivo] = {};
-        }
-        if (!acc[transaction.motivo][monthKey]) {
-          acc[transaction.motivo][monthKey] = [];
-        }
-        acc[transaction.motivo][monthKey].push(transaction);
-      }
-      return acc;
-    }, {});
-    return Object.entries(monthlyTransactions)
-      .map(([descripcion, months]) => {
-        const monthKeys = Object.keys(months).sort(); // Aseguramos que los meses estén ordenados
-        const lastThreeMonths = Array.from({ length: 3 }, (_, index) => {
-          const date = new Date(
-            today.getFullYear(),
-            today.getMonth() - index,
-            1
-          );
-          return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
-        });
-
-        const hasTransactionsInEachMonth = lastThreeMonths.every((monthKey) =>
-          monthKeys.includes(monthKey)
-        );
-
-        if (hasTransactionsInEachMonth) {
-          return {
-            descripcion,
-            meses: lastThreeMonths,
-            transacciones: lastThreeMonths.flatMap(
-              (monthKey) => months[monthKey] || []
-            ),
-          };
-        }
-        return null;
-      })
-      .filter((result) => result !== null);
-  };
-
-  const transaccionesFiltradas = getTransaccionesFiltradas();
-
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
@@ -670,156 +472,334 @@ function HomePage() {
       }
     }
   };
-
-  const isAccepted = async (transaction, categoria, tipoGasto) => {
-    await aceptarTransaccion(transaction, categoria, tipoGasto);
-    eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
-      enviarRespuesta("aceptada", transaction.id_reserva);
-    }
-    setPendTran(false);
-  };
-
-  const isRejected = (transaction) => {
-    eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
-      enviarRespuesta("rechazada", transaction.id_reserva);
-    }
-    setPendTran(false);
-  };
-
-  const enviarRespuesta = async (resp, id_reserva) => {
+  const agregarTransaccion = async (e, categoria) => {
+    e.preventDefault();
     const token = localStorage.getItem("token");
+    let bodyJson = "";
+    let url = "";
     setTransaccionesCargadas(false);
-    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
-    const method = "POST";
+    if (selectedGroup == null) {
+      bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
+      url = edit
+        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
+        : "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+    } else {
+      const grupo = selectedGroup.value;
+      bodyJson = JSON.stringify({
+        motivo,
+        valor,
+        fecha,
+        categoria,
+        tipoGasto,
+        grupo,
+      });
+      url = edit
+        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`
+        : "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion";
+    }
+    const method = edit ? "PUT" : "POST";
     try {
-      //hacer chequeos de que pase bien las cosas en el back!
       const response = await fetch(url, {
         method: method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: bodyJson,
       });
-
       if (response.ok) {
-        //
+        const data = await response.json();
+        if (selectedGroup == null) {
+          if (edit) {
+            const updatedTransacciones = transacciones.map((t) =>
+              t.id === data.id ? data : t
+            );
+            setTransacciones(updatedTransacciones);
+          } else {
+            const updatedTransacciones = [...transacciones, data];
+            updatedTransacciones.sort(
+              (a, b) => new Date(b.fecha) - new Date(a.fecha)
+            );
+            setTransacciones(updatedTransacciones);
+          }
+        }
+        closeModal();
+        setSelectedGroup(null);
+      } else {
+        console.log("la respuesta no fue ok");
       }
     } catch (err) {
-      // habria que avisar que hubo un error en aceptar la transaccion o algo
+      console.log(err);
+    } finally {
+      setTransaccionesCargadas(true);
+      if (!edit) {
+        checkTransaccionAchievment();
+      }
+    }
+  };
+
+  const checkTransaccionAchievment = async () => {
+    const token = localStorage.getItem("token");
+    fetch(
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data == 1 || data == 5 || data == 10) {
+          setAchievementData(data);
+          setShowNotification(true);
+        } else {
+          console.log(data);
+        }
+      });
+  };
+
+  const deleteRow = async (id) => {
+    const token = localStorage.getItem("token");
+    setTransaccionesCargadas(false);
+    try {
+      const response = await fetch(
+        `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        setTransacciones(transacciones.filter((t) => t.id !== id));
+      } else {
+        setError("Error al eliminar la transacción");
+      }
+    } catch (err) {
+      setError("Ocurrió un error. Intenta nuevamente.");
     } finally {
       setTransaccionesCargadas(true);
     }
   };
-
   const eliminarTransaccionPendiente = async (id) => {
     const tranEliminada = await deletePendingTransaction(id);
     tranEliminada ? showTransactionsPendientes() : console.log("Error");
   };
+  const handleMotivoChange = (e) => {
+    setMotivo(e.target.value);
+  };
+  const handleCategoryChange = (value) => {
+    setCategoria(value ? value.value : "");
+    setSelectedCategory(value);
+  };
+  const handlePayChange = (value) => {
+    setTipoGasto(value ? value.value : "");
+    setSelectedPayMethod(value);
+  };
+  const handleCreateTP = async (inputValue) => {
+    const newOption = createPaymentMethodAPI(inputValue);
+    setPayOptions((prevOptions) => [...prevOptions, newOption]);
+    setSelectedPayMethod(newOption);
+    setTipoGasto(newOption.label);
+  };
+  const handleCreateCat = async (nombre, icono) => {
+    const ret = await createCatAPI(nombre, icono);
+    if (ret.newCat != null) {
+      setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
+      setSelectedCategory(ret.newCat);
+      setCategoria(ret.newCat.value);
+    }
+    return ret.error;
+  };
+  const handleChange = (event) => {
+    setIsLoadingFilter(true);
+    let cat = event.target.value;
+    setCategoriaSeleccionada(cat);
+    getTransacciones(cat);
+  };
+  const resetFilters = () => {
+    setCategoriaSeleccionada("Todas");
+    setFiltroAno("2025");
+    setFiltroMes("");
+  };
+  const refershTransacciones = (transaccionNueva) => {
+    const updatedTransacciones = [...transacciones, transaccionNueva];
+    updatedTransacciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    setTransacciones(updatedTransacciones);
+  };
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  const detectRecurringTransactions = (transacciones) => {
+    const today = new Date();
+    const threeMonthsAgo = new Date(
+      today.getFullYear(),
+      today.getMonth() - 2,
+      1
+    ); // Inicio de hace 3 meses
+
+    const monthlyTransactions = transacciones.reduce((acc, transaction) => {
+      const transactionDate = new Date(transaction.fecha);
+      if (transactionDate >= threeMonthsAgo) {
+        const monthKey = `${transactionDate.getUTCFullYear()}-${transactionDate.getUTCMonth()}`;
+        if (!acc[transaction.motivo]) {
+          acc[transaction.motivo] = {};
+        }
+        if (!acc[transaction.motivo][monthKey]) {
+          acc[transaction.motivo][monthKey] = [];
+        }
+        acc[transaction.motivo][monthKey].push(transaction);
+      }
+      return acc;
+    }, {});
+    return Object.entries(monthlyTransactions)
+      .map(([descripcion, months]) => {
+        const monthKeys = Object.keys(months).sort(); // Aseguramos que los meses estén ordenados
+        const lastThreeMonths = Array.from({ length: 3 }, (_, index) => {
+          const date = new Date(
+            today.getFullYear(),
+            today.getMonth() - index,
+            1
+          );
+          return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+        });
+
+        const hasTransactionsInEachMonth = lastThreeMonths.every((monthKey) =>
+          monthKeys.includes(monthKey)
+        );
+
+        if (hasTransactionsInEachMonth) {
+          return {
+            descripcion,
+            meses: lastThreeMonths,
+            transacciones: lastThreeMonths.flatMap(
+              (monthKey) => months[monthKey] || []
+            ),
+          };
+        }
+        return null;
+      })
+      .filter((result) => result !== null);
+  };
 
   return (
-    <AppLayout>
-      <div className="space-y-8 min-h-full min-w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-2">
-            <LayoutDashboard className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold font-headline text-white">
-              Dashboard
-            </h1>
-          </div>
-          <div className="flex flex-col gap-2 justify-end w-full sm:flex-row sm:items-center sm:space-x-2 sm:gap-0">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Filters
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80 bg-card" align="end">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none font-headline">
-                      Filters
-                    </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Filter transactions by date.
-                    </p>
-                  </div>
-                  <div className="grid gap-2">
-                    <Select
-                      value={categoriaSeleccionada}
-                      onValueChange={setCategoriaSeleccionada}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar Categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categoriasConTodas.map((cat) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={filtroMes} onValueChange={setFiltroMes}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Month" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month) => (
-                          <SelectItem key={month.value} value={month.value}>
-                            {month.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={filtroAno} onValueChange={setFiltroAno}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select Year" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {years.map((year) => (
-                          <SelectItem key={year.value} value={year.value}>
-                            {year.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="bg-primary text-black"
-                    onClick={resetFilters}
-                  >
-                    <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Button
-              asChild
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              <a
-                href="#"
-                className="text-sm text-muted-foreground hover:text-primary text-center hover:text-black"
-                onClick={() => openModal()}
+    <div className="container min-h-screen min-w-full max-w-full bg-[#000814]">
+      <Header
+        payCategories={payCategories}
+        setPayCategories={setPayCategories}
+        fetchPersonalCategorias={fetchPersonalCategorias}
+        getTransacciones={getTransacciones}
+        openModal={openModal}
+      />
+      <div className="flex justify-end w-full p-4">
+        <button
+          onClick={() => setIsFiltersOpen(!isFiltersOpen)}
+          className="btn bg-[#ffd60a] border-[#ffd60a] btn-sm w-full focus:bg-[#ffc300] hover:bg-[#ffc300] border-none"
+        >
+          {isFiltersOpen ? "Ocultar Filtros" : "Mostrar Filtros"}
+        </button>
+      </div>
+
+      {isFiltersOpen && (
+        <div className="flex flex-col md:flex-row items-start md:items-center md:gap-6 mb-1">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 w-full">
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                id="categorias"
+                value={categoriaSeleccionada}
+                onChange={handleChange}
+                className="block select select-bordered w-full max-w-full"
               >
-                <PlusCircle className="mr-1 h-4 w-4" /> Agregar Transaccion
-              </a>
-            </Button>
+                {categoriasConTodas.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Select de Mes */}
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                value={filtroMes}
+                onChange={(e) => setFiltroMes(e.target.value)}
+                className="select select-bordered w-full max-w-full"
+              >
+                <option value="">Mes</option>
+                <option value="01">Enero</option>
+                <option value="02">Febrero</option>
+                <option value="03">Marzo</option>
+                <option value="04">Abril</option>
+                <option value="05">Mayo</option>
+                <option value="06">Junio</option>
+                <option value="07">Julio</option>
+                <option value="08">Agosto</option>
+                <option value="09">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col w-full md:w-1/3">
+              <select
+                value={filtroAno}
+                onChange={(e) => setFiltroAno(e.target.value)}
+                className="select select-bordered w-full max-w-full"
+              >
+                <option value="">Todos los años</option>{" "}
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+                <option value="2024">2024</option>
+                <option value="2025">2025</option>
+                <option value="2026">2026</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => resetFilters()}
+              className="btn bg-[#ffd60a] hover:bg-[#ffc300] focus:bg-[#ffc300] w-full md:w-auto mt-2 md:mt-0 border-none"
+            >
+              Borrar filtros
+            </button>
           </div>
         </div>
-        {isLoadingFilter ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
-            <span className="text-lg text-white font-semibold">
-              Cargando...
-            </span>
+      )}
+      <>
+        {isLoading && (
+          <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin border-t-4 border-[#0001d3d]-500 border-solid w-16 h-16 rounded-full"></div>
+            </div>
           </div>
-        ) : transacciones.length > 0 ? (
-          <div className="flex flex-col gap-6 w-full  mx-auto">
-            {transacciones && !loadGraphic && transacciones[0] && (
+        )}
+        {transaccionesCargadas && (
+          <PresupuestosWidget
+            transacciones={
+              categoriaSeleccionada != "Todas"
+                ? transaccionesSinFiltroCat
+                : transacciones
+            }
+            filtroMes={filtroMes}
+            filtroAno={filtroAno}
+          />
+        )}
+
+        {!showNoTransactions && (
+          <>
+            <div className="flex items-center">
+              <h2 className="text-xl md:text-2xl py-2 font-bold text-gray-100">
+                Monto por Categoria
+              </h2>
+            </div>
+
+            {!loadGraphic && (
               <MonthlyGraphic
                 type="categorias"
                 transacciones={transacciones}
@@ -830,39 +810,73 @@ function HomePage() {
                 transaccionesSinFiltroCat={transaccionesSinFiltroCat}
               />
             )}
+          </>
+        )}
 
-            {transaccionesCargadas &&
-              !loadGraphic &&
-              transacciones[0] != null && (
-                <PaymentMethodGraphic
-                  type="tipoGasto"
-                  transacciones={transacciones}
-                  payCategories={payOptions}
-                  loading={loadGraphic}
-                />
-              )}
+        {transaccionesCargadas && (
+          <PresupuestosWidget transacciones={transacciones} />
+        )}
+        {/* Cargando Spinner */}
+        {isLoadingFilter ? (
+          <div className="flex justify-center items-center">
+            <svg
+              className="animate-spin h-8 w-8 md:h-10 md:w-10 text-[#ffd60a]"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.965 7.965 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            <span className="text-[#ffd60a] font-bold ml-2">Cargando...</span>
           </div>
         ) : (
-          <div>
-            <div className="text-center text-muted-foreground mt-8 text-red-500 font-extrabold">
-              No hay transacciones en el periodo seleccionado.
-            </div>
-            <div className="flex justify-center mt-4">
-              <Button
-                asChild
-                className="bg-primary text-center hover:bg-primary/90 text-primary-foreground"
-              >
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground text-center hover:text-black"
-                  onClick={() => openModal()}
+          <>
+            <TransaccionesTable
+              transactions={transacciones}
+              payCategories={payCategories}
+              editRow={editRow}
+              deleteRow={deleteRow}
+              onTableEmpty={() => setShowNoTransactions(true)}
+              onTransactions={() => setShowNoTransactions(false)}
+            />
+
+            {/* Si no hay transacciones */}
+            {showNoTransactions && (
+              <div className="flex flex-col justify-center items-center mb-0">
+                {(categoriaSeleccionada !== "Todas" ||
+                  filtroAno !== "2024" ||
+                  filtroMes !== "") && (
+                  <p className="text-red-500 font-bold mb-4">
+                    Su filtro no coincide con ninguna transacción
+                  </p>
+                )}
+                <button
+                  className="bg-[#ffd60a] text-gray-950 font-extrabold py-4 px-8 rounded-lg hover:bg-[#ffc300]"
+                  onClick={openModal}
                 >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
-                </a>
-              </Button>
-            </div>
-          </div>
+                  Ingrese una transacción
+                </button>
+              </div>
+            )}
+          </>
         )}
+
+        <ModalNewSuscription
+          handleSubmit={() => console.log("SUBMIT")}
+          newSubs={posibleSub}
+        />
         <ModalForm
           isModalOpen={isModalOpen}
           closeModal={closeModal}
@@ -886,6 +900,11 @@ function HomePage() {
           selectedGroup={selectedGroup}
           grupos={grupos}
         />
+        <ModalAskPayment payCategories={payCategories} />
+        <ModalSendPayment
+          payCategories={payCategories}
+          refreshTransacciones={refershTransacciones}
+        />
         <AlertPending
           isOpen={pendTran}
           pendingTransaction={tranPendiente}
@@ -899,8 +918,8 @@ function HomePage() {
             onClose={() => setShowNotification(false)}
           />
         )}
-      </div>
-    </AppLayout>
+      </>
+    </div>
   );
 }
 

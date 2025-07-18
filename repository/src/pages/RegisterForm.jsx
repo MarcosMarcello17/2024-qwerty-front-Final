@@ -104,7 +104,7 @@ function RegisterForm() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              onClick();
+              onRegister(e);
             }}
             className="space-y-4"
           >

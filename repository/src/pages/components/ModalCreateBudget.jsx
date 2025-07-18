@@ -1,7 +1,29 @@
-import React, { useEffect, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Button } from "@/components/ui/button";
+import { Loader2, Save } from "lucide-react";
+
+// Componente personalizado para el input del DatePicker
+const CustomInput = forwardRef(({ value, onClick, placeholder }, ref) => (
+  <div className="relative">
+    <input
+      className="mt-1 block w-full p-2 pr-10 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+      onClick={onClick}
+      value={value}
+      placeholder={placeholder}
+      readOnly
+      ref={ref}
+    />
+    <FontAwesomeIcon
+      icon="fa-solid fa-calendar-days"
+      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+    />
+  </div>
+));
 
 function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   library.add(fas);
@@ -32,12 +54,11 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     },
     { value: "Clase", label: "Clase", iconPath: "fa-solid fa-chalkboard-user" },
   ]);
-
   const [budgetValues, setBudgetValues] = useState({});
   const [totalBudget, setTotalBudget] = useState("");
   const [errors, setErrors] = useState({});
   const [budgetName, setBudgetName] = useState("");
-  const [budgetDate, setBudgetDate] = useState("");
+  const [budgetDate, setBudgetDate] = useState(null);
 
   useEffect(() => {
     const fetchPersonalCategorias = async () => {
@@ -49,7 +70,6 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-
         if (response.ok) {
           const data = await response.json();
           const customOptions = data.map((cat) => ({
@@ -57,21 +77,31 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
             value: cat.nombre,
             iconPath: cat.iconPath,
           }));
-
           setPayCategories([...payCategoriesDefault, ...customOptions]);
         }
       } catch (error) {
         console.error("Error al obtener las categorías personalizadas:", error);
       }
     };
-
     fetchPersonalCategorias();
   }, []);
 
   useEffect(() => {
     if (initialBudget) {
       setBudgetName(initialBudget.nameBudget || "");
-      setBudgetDate(initialBudget.budgetMonth || "");
+      let date = null;
+      if (initialBudget.budgetMonth) {
+        if (initialBudget.budgetMonth instanceof Date) {
+          date = initialBudget.budgetMonth;
+        } else if (typeof initialBudget.budgetMonth === "string") {
+          // Soporta formatos como "2024-06" o "2025-08-01T03:00:00.000Z"
+          const tempDate = new Date(initialBudget.budgetMonth);
+          date = isNaN(tempDate.getTime()) ? null : tempDate;
+        } else {
+          date = null;
+        }
+      }
+      setBudgetDate(date);
       setTotalBudget(initialBudget.totalBudget || "");
       setBudgetValues(initialBudget.categoryBudgets || {});
     }
@@ -83,7 +113,6 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
       ...prevValues,
       [category]: numericValue,
     }));
-
     setErrors((prevErrors) => ({
       ...prevErrors,
       [category]: numericValue < 0 ? "El valor no puede ser negativo" : "",
@@ -101,17 +130,18 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
     if (!budgetName) {
       alert("El nombre del presupuesto es obligatorio.");
       return;
     }
-
+    if (!budgetDate) {
+      alert("La fecha (mes y año) es obligatoria.");
+      return;
+    }
     const totalCategoryBudget = Object.values(budgetValues).reduce(
       (acc, curr) => acc + (curr || 0),
       0
     );
-
     if (totalCategoryBudget >= totalBudget) {
       setErrors((prevErrors) => ({
         ...prevErrors,
@@ -122,20 +152,16 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     } else {
       setErrors((prevErrors) => ({ ...prevErrors, totalBudget: "" }));
     }
-
     const hasNegativeValues = Object.values(budgetValues).some(
       (value) => value < 0
     );
-
     if (hasNegativeValues) {
       alert("Algunos valores de categorías son negativos. Revise los campos.");
       return;
     }
-
     const filteredBudgetValues = Object.fromEntries(
       Object.entries(budgetValues).filter(([_, value]) => value > 0)
     );
-
     const formData = initialBudget
       ? {
           ...initialBudget,
@@ -150,7 +176,6 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           budgetMonth: budgetDate,
           categoryBudgets: filteredBudgetValues,
         };
-
     createOrUpdateBudget(formData);
   };
 
@@ -161,7 +186,6 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
       ? "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto/editPresupuesto"
       : "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto";
     const method = initialBudget ? "PUT" : "POST";
-
     try {
       const response = await fetch(url, {
         method: method,
@@ -171,7 +195,6 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
         },
         body: JSON.stringify(budget),
       });
-
       if (response.ok) {
         setFormMessage(
           initialBudget ? "Presupuesto actualizado!" : "Presupuesto creado!"
@@ -198,41 +221,41 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
   };
 
   return (
-    <div className="modal-box w-full max-w-lg p-6 bg-[#000814] rounded-lg shadow-lg mx-4 md:mx-auto lg:w-1/2">
+    <div className="modal-box w-full max-w-lg p-6 bg-card rounded-lg shadow-lg mx-4 md:mx-auto lg:w-1/2">
       <h3 className="text-xl font-bold mb-4 text-white">
         {initialBudget ? "Editar Presupuesto" : "Agregar Nuevo Presupuesto"}
       </h3>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="mb-4">
-          <label className="block text-sm font-semibold mb-1 text-white">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div>
+          <label className="block text-white mb-2">
             Nombre del Presupuesto
           </label>
           <input
             type="text"
             placeholder="Nombre del Presupuesto"
-            className="input input-bordered w-full bg-[#001d3d]"
+            className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
             value={budgetName}
             onChange={(e) => setBudgetName(e.target.value)}
             required
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-semibold mb-1 text-white">
-            Fecha (Mes y Año)
-          </label>
-          <input
-            type="month"
-            className="input input-bordered w-full bg-[#001d3d]"
-            value={budgetDate}
-            onChange={(e) => setBudgetDate(e.target.value)}
+        <div className="w-full">
+          <label className="block text-white mb-2">Fecha (Mes y Año)</label>
+          <DatePicker
+            selected={budgetDate}
+            onChange={(date) => setBudgetDate(date)}
+            dateFormat="yyyy-MM"
+            showMonthYearPicker
+            customInput={<CustomInput placeholder="Selecciona mes y año" />}
             required
+            className="react-datepicker-wrapper"
+            wrapperClassName="w-full"
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-semibold mb-1 text-white">
+        <div>
+          <label className="block text-white mb-2">
             <FontAwesomeIcon
               className="mr-2"
               color="#FFFFFF"
@@ -243,7 +266,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           <input
             type="number"
             placeholder="Monto Total"
-            className="input input-bordered w-full bg-[#001d3d]"
+            className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
             value={totalBudget}
             onChange={(e) => setTotalBudget(parseFloat(e.target.value))}
             required
@@ -253,79 +276,85 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
           )}
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-semibold mb-1 text-white">
-            Agregar Categoría
-          </label>
-          <select
-            className="input input-bordered w-full bg-[#001d3d]"
-            onChange={(e) => {
-              const selectedCategory = payCategories.find(
-                (cat) => cat.value === e.target.value
-              );
-              if (selectedCategory) addCategory(selectedCategory);
-              e.target.value = "";
-            }}
-          >
-            <option value="">Seleccionar categoría</option>
-            {payCategories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+        <div>
+          <label className="block text-white mb-2">Agregar Presupuesto</label>
+          <div className="relative">
+            <select
+              className="mt-1 block w-full p-2 pr-10 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none appearance-none cursor-pointer"
+              onChange={(e) => {
+                const selectedCategory = payCategories.find(
+                  (cat) => cat.value === e.target.value
+                );
+                if (selectedCategory) addCategory(selectedCategory);
+                e.target.value = "";
+              }}
+            >
+              <option value="">Seleccionar categoría</option>
+              {payCategories.map((category) => (
+                <option key={category.value} value={category.value}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
+            <FontAwesomeIcon
+              icon="fa-solid fa-chevron-down"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+          </div>
         </div>
 
-        {Object.keys(budgetValues).map((category, index) => (
-          <div className="mb-4" key={index}>
-            <label className="block text-sm font-semibold mb-1 text-white">
-              <FontAwesomeIcon
-                className="mr-2"
-                color="#FFFFFF"
-                icon={
-                  payCategories.find((cat) => cat.value === category)?.iconPath
-                }
+        {Object.keys(budgetValues).map((category, index) => {
+          const iconPath =
+            payCategories.find((cat) => cat.value === category)?.iconPath ||
+            "fa-solid fa-question";
+          return (
+            <div key={category}>
+              <label className="block text-white mb-2">
+                <FontAwesomeIcon
+                  className="mr-2"
+                  color="#FFFFFF"
+                  icon={iconPath}
+                />
+                {category}
+              </label>
+              <input
+                type="number"
+                id={`amount-${index}`}
+                placeholder={`Monto para ${category}`}
+                className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
+                value={budgetValues[category] || ""}
+                onChange={(e) => handleInputChange(e.target.value, category)}
               />
-              {category}
-            </label>
-            <input
-              type="number"
-              id={`amount-${index}`}
-              placeholder={`Monto para ${category}`}
-              className="input input-bordered w-full bg-[#001d3d]"
-              value={budgetValues[category] || ""}
-              onChange={(e) => handleInputChange(e.target.value, category)}
-            />
-            {errors[category] && (
-              <p className="text-red-500 text-sm">{errors[category]}</p>
-            )}
-          </div>
-        ))}
+              {errors[category] && (
+                <p className="text-red-500 text-sm">{errors[category]}</p>
+              )}
+            </div>
+          );
+        })}
 
-        {formMessage && <p className="text-green-500 text-sm">{formMessage}</p>}
-
-        <div className="flex flex-wrap justify-end gap-4 mt-6">
-          <button
-            type="button"
-            className="btn btn-ghost bg-red-500 hover:bg-red-700"
-            onClick={closeModal}
-          >
-            Cancelar
-          </button>
-          <button
+        <div className="flex gap-4">
+          <Button
             type="submit"
-            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black"
-            disabled={isLoading}
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            {!isLoading ? (
-              "Guardar"
-            ) : (
+            {isLoading ? (
               <div>
-                <span className="loading loading-spinner loading-lg"></span>
+                <Loader2 />
                 Cargando...
               </div>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" /> Guardar{" "}
+              </>
             )}
-          </button>
+          </Button>
+          <Button
+            type="button"
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            onClick={() => closeModal()}
+          >
+            Cerrar
+          </Button>
         </div>
       </form>
     </div>

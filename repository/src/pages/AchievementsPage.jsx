@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Achievement from "./components/Achievement";
+import AppLayout from "./AppLayout";
 
 const AchievementsPage = () => {
   const navigate = useNavigate();
@@ -36,27 +37,21 @@ const AchievementsPage = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#000814] text-white py-6 px-4 sm:px-8">
-      {/* Botón de regreso */}
-      <div className="mb-4">
-        <button
-          onClick={() => navigate("/profile")}
-          className="w-full sm:w-auto px-4 py-2 bg-[#ffd60a] text-black rounded-md hover:bg-[#ffc300] transition"
-        >
-          Volver al Perfil
-        </button>
-      </div>
+    <AppLayout>
+      <div className="min-h-screen flex flex-col bg-background text-white px-2 sm:px-0">
+        <h1 className="text-xl sm:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
+          Mis Logros
+        </h1>
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-center text-white mb-6 sm:mb-8">
-        Mis Logros
-      </h1>
-
-      <div className="flex-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
-        {achievements.map((achievement) => (
-          <Achievement key={achievement.id} achievement={achievement} />
-        ))}
+        <div className="flex-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+          {achievements.map((achievement) => (
+            <div key={achievement.id} className="w-full max-w-xs mx-auto">
+              <Achievement achievement={achievement} />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 

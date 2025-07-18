@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
 import ModalCreateBudget from "./ModalCreateBudget"; // Importa tu modal
+import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle, Edit3 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 function BudgetCard({
   budget,
@@ -140,51 +152,60 @@ function BudgetCard({
     );
   } else {
     return (
-      <div className="card shadow-lg rounded-lg bg-[#001d3d] p-4 text-white">
-        <div className="flex items-center gap-4 mb-2">
-          <img src={icon} alt={budget.nameBudget} className="w-10 h-10" />
-          <div className="flex-1">
-            <div className="text-xl font-semibold">{budget.nameBudget}</div>
-            <div className="text-sm text-white">{categoryString}</div>
-            <div className="text-sm text-white">{`${dateFrom} a ${dateTo}`}</div>
+      <Card
+        className={cn(
+          "shadow-lg hover:shadow-xl transition-shadow duration-300",
+          porcentaje > 100 && "border-destructive ring-2 ring-destructive/50"
+        )}
+      >
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <img src={icon} alt={budget.nameBudget} className="w-5 h-5" />
+                <CardTitle className="font-headline text-lg">
+                  {budget.nameBudget}
+                </CardTitle>
+              </div>
+              <CardDescription>
+                <div>{categoryString}</div>
+                <div>{`${dateFrom} a ${dateTo}`}</div>
+              </CardDescription>
+            </div>
+            {isFutureBudget && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleEdit()}
+              >
+                <Edit3 className="h-4 w-4" />
+                <span className="sr-only">Editar Presupuesto</span>
+              </Button>
+            )}
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="w-full bg-gray-100 rounded-full h-4 relative">
-            <div
-              style={{ width: `${porcentaje > 100 ? 100 : porcentaje}%` }}
-              className={`absolute top-0 left-0 h-full rounded-full transition-all ${
-                porcentaje < 50
-                  ? "bg-green-400"
-                  : porcentaje <= 90
-                  ? "bg-yellow-400"
-                  : "bg-red-700"
-              }`}
-            />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex justify-between items-baseline">
+            <span className="text-2xl font-bold">
+              ${totalGastado.toFixed(2)}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              / ${budget.totalBudget.toFixed(2)}
+            </span>
           </div>
-          <div className="text-sm font-semibold">
-            {(porcentaje > 100 ? 100 : porcentaje).toFixed(1)}%
-          </div>
-        </div>
-
-        <div className="flex justify-between mt-2 text-sm">
-          <span>$0</span>
-          <span>Gastado: ${totalGastado}</span>
-          <span>${budget.totalBudget}</span>
-        </div>
-
-        <div className="mt-4">
-          <span className="text-sm font-semibold text-white">
-            {`Monto restante: $ ${
-              budget.totalBudget - totalGastado < 0
-                ? 0
-                : budget.totalBudget - totalGastado
-            }` +
-              (budget.totalBudget - totalGastado < 0
-                ? " ($ " + (totalGastado - budget.totalBudget) + " por encima)"
-                : "")}
-          </span>
+          <Progress
+            value={porcentaje}
+            aria-label={`${categoryString} budget progress`}
+            className={cn(porcentaje > 100 && "[&>div]:bg-destructive")}
+          />
+          {porcentaje > 100 && (
+            <div className="flex items-center text-xs text-destructive">
+              <AlertTriangle className="mr-1 h-3 w-3" />
+              Presupuesto excedido en $
+              {Math.abs(totalGastado - budget.totalBudget).toFixed(2)}
+            </div>
+          )}
           {Object.entries(remainingByCategory).map(([category, remaining]) => {
             const totalCatBudget = budget.categoryBudgets[category];
             const percentageCatSpent =
@@ -200,45 +221,32 @@ function BudgetCard({
                       : totalCatBudget - remaining}{" "}
                     / ${totalCatBudget} ({percentageCatSpent.toFixed(1)}%)
                   </span>
-                  <div className="w-1/3 bg-gray-100 rounded-full h-2 relative ml-2">
-                    <div
-                      style={{
-                        width: `${
-                          percentageCatSpent > 100 ? 100 : percentageCatSpent
-                        }%`,
-                      }}
-                      className={`absolute top-0 left-0 h-full rounded-full transition-all ${
-                        percentageCatSpent < 50
-                          ? "bg-green-400"
-                          : percentageCatSpent <= 90
-                          ? "bg-yellow-400"
-                          : "bg-red-700"
-                      }`}
-                    />
-                  </div>
+                  <Progress
+                    value={percentageCatSpent > 100 ? 100 : percentageCatSpent}
+                    aria-label={`${percentageCatSpent} budget progress`}
+                    className={cn(
+                      percentageCatSpent > 100 && "[&>div]:bg-destructive"
+                    )}
+                  />
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {isFutureBudget && (
-          <div className="flex gap-2 mt-4">
-            <button
-              className="btn btn-sm border-[#ffc300] hover:border-[#ffc300] bg-[#001d3d] text-[#ffc300] hover:bg-[#ffc300] hover:text-[#001d3d]"
-              onClick={handleEdit}
-            >
-              Edit
-            </button>
-            <button
-              className="btn btn-sm btn-outline btn-error"
-              onClick={handleDelete}
-            >
-              Delete
-            </button>
-          </div>
-        )}
-
+        </CardContent>
+        <CardFooter>
+          <p
+            className={cn(
+              "text-sm",
+              porcentaje > 100 ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
+            {porcentaje > 100
+              ? `You are $${Math.abs(totalGastado - budget.totalBudget).toFixed(
+                  2
+                )} over budget.`
+              : `$${(budget.totalBudget - totalGastado).toFixed(2)} remaining.`}
+          </p>
+        </CardFooter>
         {isModalOpen && (
           <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <ModalCreateBudget
@@ -247,7 +255,7 @@ function BudgetCard({
             />
           </div>
         )}
-      </div>
+      </Card>
     );
   }
 }

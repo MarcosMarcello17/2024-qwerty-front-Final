@@ -2,6 +2,29 @@ import React, { useEffect, useState } from "react";
 import BudgetCard from "./components/BudgetCard";
 import ModalCreateBudget from "./components/ModalCreateBudget";
 import { useNavigate } from "react-router-dom";
+import AppLayout from "./AppLayout";
+import {
+  AlertTriangle,
+  CalendarDays,
+  Lightbulb,
+  PlusCircle,
+  Target,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 function BudgetPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -192,150 +215,162 @@ function BudgetPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000814] text-white">
-      <div className="container mx-auto p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-          <button
-            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black mb-4 mr-2 sm:mb-0 sm:order-1"
-            onClick={() => navigate("/")}
-          >
-            HomePage
-          </button>
-          <div className="text-2xl font-semibold justify-start sm:flex-1">
-            Presupuestos Mensuales
+    <AppLayout>
+      <div className="space-y-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-2">
+            <Target className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold font-headline text-white">
+              Presupuestos
+            </h1>
           </div>
-          <div className="mt-4 sm:mt-0 sm:order-2">
-            <select
-              className="select select-bordered w-full max-w-xs bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffd60a] hover:border-[#ffd60a] text-black"
-              value={filtro}
-              onChange={(e) => setFiltro(e.target.value)}
+          <div className="flex items-center space-x-2">
+            <Select value={filtro} onValueChange={setFiltro}>
+              <SelectTrigger className="w-[200px] bg-card hover:bg-background">
+                <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />
+                <SelectValue placeholder="Mostrar Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem key="Todos" value="Todos">
+                  Mostrar Todos
+                </SelectItem>
+                <SelectItem key="Pasados" value="Pasados">
+                  Pasados
+                </SelectItem>
+                <SelectItem key="Actuales" value="Actuales">
+                  Actuales
+                </SelectItem>
+                <SelectItem key="Futuros" value="Futuros">
+                  Futuros
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {isModalOpen && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <ModalCreateBudget closeModal={closeModal} />
+          </div>
+        )}
+
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="outline"
+              onClick={() => openModal()}
+              className="bg-primary text-black"
             >
-              <option value="Todos">Mostrar Todos</option>
-              <option value="Pasados">Pasados</option>
-              <option value="Actuales">Actuales</option>
-              <option value="Futuros">Futuros</option>
-            </select>
+              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Presupuesto
+            </Button>
           </div>
-        </div>
-
-        <div className="flex flex-col items-center justify-center my-5">
-          <button
-            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black w-64 h-10"
-            onClick={() => setShowSuggestions(!showSuggestions)}
-          >
-            Mostrar sugerencias de Ahorro
-          </button>
-        </div>
-
-        {showSuggestions && (
-          <div className="carousel w-full">
-            <div className="carousel-item relative w-full">
-              {(() => {
-                const suggestions = analyzeSpendingPatterns(transacciones);
-                const totalPages = Math.ceil(suggestions.length / itemsPerPage);
-
-                // Obtener elementos de la página actual
-                const currentSuggestions = suggestions.slice(
-                  currentSlide * itemsPerPage,
-                  currentSlide * itemsPerPage + itemsPerPage
-                );
-                if (suggestions.length !== 0) {
-                  return (
-                    <div className="w-full">
-                      <div className="flex justify-between items-center">
-                        {/* Flecha Izquierda */}
-                        <button
-                          className="btn btn-circle bg-yellow-400 text-black"
-                          onClick={() => handlePrevSlide(totalPages)}
-                        >
-                          ❮
-                        </button>
-
-                        {/* Contenedor de Sugerencias */}
-                        <div className="flex justify-center flex-1 space-x-6">
-                          {currentSuggestions.map((suggestion, index) => (
-                            <div
-                              key={index}
-                              className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
-                            >
-                              <p className="text-lg font-semibold">
-                                {suggestion.message}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Flecha Derecha */}
-                        <button
-                          className="btn btn-circle bg-yellow-400 text-black"
-                          onClick={() => handleNextSlide(totalPages)}
-                        >
-                          ❯
-                        </button>
-                      </div>
-                    </div>
-                  );
-                } else {
-                  return (
-                    <div className="w-full">
-                      <div className="flex justify-between items-center text-center">
-                        No hay sugerencias disponibles
-                      </div>
-                    </div>
-                  );
-                }
-              })()}
+          {presupuestos.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardHeader>
+                <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <CardTitle className="font-headline">
+                  No hay presupuestos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>
+                  Cuando crees un prespuesto se va a mostrar aca
+                </CardDescription>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filtrarPresupuestos().map((budget) => (
+                <BudgetCard
+                  key={budget.id}
+                  budget={budget}
+                  transacciones={transacciones}
+                  onDelete={handleDelete}
+                  onEdit={onEdit}
+                />
+              ))}
             </div>
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center mt-5">
-            <span className="loading loading-spinner loading-lg"></span>{" "}
-            Cargando presupuestos...
-          </div>
-        ) : presupuestos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64">
-            <button
-              className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black text-xl w-64 h-10"
-              onClick={openModal}
-            >
-              Agregar Presupuesto
-            </button>
-            <p className="text-lg mt-4 text-red-600 font-bold">
-              No tienes presupuestos aún.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-6 mt-5">
-            {filtrarPresupuestos().map((budget) => (
-              <BudgetCard
-                key={budget.id}
-                budget={budget}
-                transacciones={transacciones}
-                onDelete={handleDelete}
-                onEdit={onEdit}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className="fixed bottom-6 right-6">
-          <button
-            className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black"
-            onClick={openModal}
-          >
-            Agregar Presupuesto
-          </button>
+          )}
         </div>
+        <Card className="mt-8 bg-secondary/50 border-secondary">
+          <CardHeader className="flex flex-row items-center gap-3">
+            <AlertTriangle className="h-6 w-6 text-accent" />
+            <CardTitle className="font-headline text-accent">
+              <div className="flex items-center">
+                <h2 className="text-2xl font-semibold font-headline text-accent">
+                  Sugerencias de Ahorro
+                </h2>
+              </div>
+            </CardTitle>
+            <div className="flex-1 flex justify-end">
+              <Button
+                variant="outline"
+                className="justify-end"
+                onClick={() => setShowSuggestions(!showSuggestions)}
+              >
+                <Lightbulb className="mr-2 h-4 w-4" />
+                {showSuggestions
+                  ? "Ocultar Sugerencias"
+                  : "Mostrar Sugerencias"}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {showSuggestions && (
+                <Card className="bg-secondary/30 border-secondary">
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {(() => {
+                        const suggestions =
+                          analyzeSpendingPatterns(transacciones);
+                        const totalPages = Math.ceil(
+                          suggestions.length / itemsPerPage
+                        );
+                        const currentSuggestions = suggestions.slice(
+                          currentSlide * itemsPerPage,
+                          currentSlide * itemsPerPage + itemsPerPage
+                        );
+                        if (suggestions.length !== 0) {
+                          return (
+                            <div className="w-full">
+                              <div className="flex justify-between items-center">
+                                <div className="flex justify-center flex-1 space-x-6">
+                                  {currentSuggestions.map(
+                                    (suggestion, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
+                                      >
+                                        <p className="text-lg font-semibold">
+                                          {suggestion.message}
+                                        </p>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div className="w-full">
+                              <div className="flex justify-between items-center text-center">
+                                No hay sugerencias disponibles
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <ModalCreateBudget closeModal={closeModal} />
-        </div>
-      )}
-    </div>
+    </AppLayout>
   );
 }
 

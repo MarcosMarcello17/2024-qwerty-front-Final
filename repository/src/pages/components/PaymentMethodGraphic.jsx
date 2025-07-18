@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-function MonthlyGraphic({
+function PaymentMethodGraphic({
   transacciones = [],
   type = "",
   payCategories = [],
@@ -116,7 +116,7 @@ function MonthlyGraphic({
     }, {});
 
     const allMonths = Array.from({ length: 12 }, (_, index) =>
-      new Date(2024, index).toLocaleString("es-ES", { month: "short" })
+      new Date(2024, index).toLocaleString("default", { month: "short" })
     );
 
     const allDays = (month) => {
@@ -191,150 +191,85 @@ function MonthlyGraphic({
     return category ? category.iconPath : null;
   };
 
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
-    // ...en MonthlyGraphic.jsx y PaymentMethodGraphic.jsx...
-    <div>
-      {loadingg ? (
-        <LoadingSpinner />
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 min-h-full">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardHeader>
-              <CardTitle className="font-headline">
-                Gasto por categoria
-              </CardTitle>
-              <CardDescription>
-                Vista de los gastos por categoria en el periodo seleccionado.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                className="flex flex-row items-center"
-                style={{ width: "100%", height: 300 }}
-              >
-                <div style={{ width: "65%", height: "100%" }}>
-                  <ResponsiveContainer>
-                    <PieChart>
-                      <Pie
-                        data={type === "categorias" ? data : dataPay}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={renderCustomizedLabel}
-                        outerRadius="80%"
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {(type === "categorias" ? data : dataPay).map(
-                          (entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={COLORS[index % COLORS.length]}
-                            />
-                          )
-                        )}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div
-                  className="legend flex flex-col ml-6"
-                  style={{ minWidth: 120 }}
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+      <CardHeader>
+        <CardTitle className="font-headline">Gasto por Medio de Pago</CardTitle>
+        <CardDescription>
+          Vista de los gastos por medio de pago en el periodo seleccionado
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div
+          className="flex flex-row items-center"
+          style={{ width: "100%", height: 300 }}
+        >
+          <div style={{ width: "65%", height: "100%" }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie
+                  data={dataPay}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius="80%"
+                  fill="#8884d8"
+                  dataKey="value"
                 >
-                  {type === "categorias" &&
-                    data.map((entry, index) => {
-                      const iconPath = getCategoryIcon(entry.name);
-                      return (
-                        <div
-                          key={`legend-item-${index}`}
-                          className="flex items-center mb-2 text-white"
-                        >
-                          {iconPath && (
-                            <FontAwesomeIcon
-                              icon={iconPath}
-                              className="mr-2"
-                              style={{ color: COLORS[index % COLORS.length] }}
-                            />
-                          )}
-                          <span>{entry.name}</span>
-                        </div>
-                      );
-                    })}
-                  {type === "tipoGasto" &&
-                    dataPay.map((entry, index) => (
-                      <div
-                        key={`legend-item-${index}`}
-                        className="flex items-center mb-2 text-white"
-                      >
-                        <div
-                          style={{
-                            width: "12px",
-                            height: "12px",
-                            backgroundColor: COLORS[index % COLORS.length],
-                            marginRight: "8px",
-                          }}
-                        ></div>
-                        <span>{entry.name}</span>
-                      </div>
-                    ))}
-                </div>
+                  {(type === "categorias" ? data : dataPay).map(
+                    (entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    )
+                  )}
+                </Pie>
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    borderColor: "hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                  }}
+                  formatter={(value) => [`${value}%`, "Usage"]}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="legend flex flex-col ml-6" style={{ minWidth: 120 }}>
+            {dataPay.map((entry, index) => (
+              <div
+                key={`legend-item-${index}`}
+                className="flex items-center mb-2 text-white"
+              >
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: COLORS[index % COLORS.length],
+                    marginRight: "8px",
+                  }}
+                ></div>
+                <span>{entry.name}</span>
               </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle className="font-headline">
-                  Evolucion Mensual
-                </CardTitle>
-                <CardDescription>
-                  Evolucion de los gastos en los ultimos meses
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div style={{ width: "100%", height: 300 }}>
-                <ResponsiveContainer>
-                  <BarChart data={dataLine}>
-                    <XAxis
-                      dataKey="label"
-                      stroke="#ffffff"
-                      height={40}
-                      tick={{ fill: "#ffffff" }}
-                      tickLine={{ stroke: "#ffffff" }}
-                    />
-                    <YAxis
-                      stroke="#ffffff"
-                      tick={{ fill: "#ffffff" }}
-                      tickLine={{ stroke: "#ffffff" }}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#000814",
-                        border: "none",
-                        borderRadius: "4px",
-                        color: "#ffffff",
-                      }}
-                      formatter={(value) => `$${value.toFixed(2)}`}
-                    />
-                    <Bar
-                      type="monotone"
-                      dataKey="total"
-                      fill="#FFC300"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
-export default MonthlyGraphic;
+export default PaymentMethodGraphic;
 
 const renderCustomizedLabel = ({
   cx,
