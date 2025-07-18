@@ -3,7 +3,13 @@ import BudgetCard from "./components/BudgetCard";
 import ModalCreateBudget from "./components/ModalCreateBudget";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "./AppLayout";
-import { AlertTriangle, CalendarDays, PlusCircle, Target } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  Lightbulb,
+  PlusCircle,
+  Target,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -248,10 +254,13 @@ function BudgetPage() {
           </div>
         )}
 
-        {/* Category Budgets Section */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <Button variant="outline" onClick={() => openModal()}>
+            <Button
+              variant="outline"
+              onClick={() => openModal()}
+              className="bg-primary text-black"
+            >
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Presupuesto
             </Button>
           </div>
@@ -287,88 +296,77 @@ function BudgetPage() {
           <CardHeader className="flex flex-row items-center gap-3">
             <AlertTriangle className="h-6 w-6 text-accent" />
             <CardTitle className="font-headline text-accent">
-              Sugerencia de Ahorro
+              <div className="flex items-center">
+                <h2 className="text-2xl font-semibold font-headline text-accent">
+                  Sugerencias de Ahorro
+                </h2>
+              </div>
             </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center my-5">
-              <button
-                className="btn bg-[#ffd60a] border-[#ffd60a] hover:bg-[#ffc300] hover:border-[#ffc300] text-black w-64 h-10"
+            <div className="flex-1 flex justify-end">
+              <Button
+                variant="outline"
+                className="justify-end"
                 onClick={() => setShowSuggestions(!showSuggestions)}
               >
-                Mostrar sugerencias de Ahorro
-              </button>
+                <Lightbulb className="mr-2 h-4 w-4" />
+                {showSuggestions
+                  ? "Ocultar Sugerencias"
+                  : "Mostrar Sugerencias"}
+              </Button>
             </div>
-
-            {showSuggestions && (
-              <div className="carousel w-full">
-                <div className="carousel-item relative w-full">
-                  {(() => {
-                    const suggestions = analyzeSpendingPatterns(transacciones);
-                    const totalPages = Math.ceil(
-                      suggestions.length / itemsPerPage
-                    );
-
-                    // Obtener elementos de la página actual
-                    const currentSuggestions = suggestions.slice(
-                      currentSlide * itemsPerPage,
-                      currentSlide * itemsPerPage + itemsPerPage
-                    );
-                    if (suggestions.length !== 0) {
-                      return (
-                        <div className="w-full">
-                          <div className="flex justify-between items-center">
-                            {/* Flecha Izquierda */}
-                            <button
-                              className="btn btn-circle bg-yellow-400 text-black"
-                              onClick={() => handlePrevSlide(totalPages)}
-                            >
-                              ❮
-                            </button>
-
-                            {/* Contenedor de Sugerencias */}
-                            <div className="flex justify-center flex-1 space-x-6">
-                              {currentSuggestions.map((suggestion, index) => (
-                                <div
-                                  key={index}
-                                  className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
-                                >
-                                  <p className="text-lg font-semibold">
-                                    {suggestion.message}
-                                  </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {showSuggestions && (
+                <Card className="bg-secondary/30 border-secondary">
+                  <CardContent className="pt-6">
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                      {(() => {
+                        const suggestions =
+                          analyzeSpendingPatterns(transacciones);
+                        const totalPages = Math.ceil(
+                          suggestions.length / itemsPerPage
+                        );
+                        const currentSuggestions = suggestions.slice(
+                          currentSlide * itemsPerPage,
+                          currentSlide * itemsPerPage + itemsPerPage
+                        );
+                        if (suggestions.length !== 0) {
+                          return (
+                            <div className="w-full">
+                              <div className="flex justify-between items-center">
+                                <div className="flex justify-center flex-1 space-x-6">
+                                  {currentSuggestions.map(
+                                    (suggestion, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex-1 max-w-xs p-6 bg-gray-700 text-center rounded shadow-md"
+                                      >
+                                        <p className="text-lg font-semibold">
+                                          {suggestion.message}
+                                        </p>
+                                      </div>
+                                    )
+                                  )}
                                 </div>
-                              ))}
+                              </div>
                             </div>
-
-                            {/* Flecha Derecha */}
-                            <button
-                              className="btn btn-circle bg-yellow-400 text-black"
-                              onClick={() => handleNextSlide(totalPages)}
-                            >
-                              ❯
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    } else {
-                      return (
-                        <div className="w-full">
-                          <div className="flex justify-between items-center text-center">
-                            No hay sugerencias disponibles
-                          </div>
-                        </div>
-                      );
-                    }
-                  })()}
-                </div>
-              </div>
-            )}
-            <CardDescription className="text-secondary-foreground">
-              Future budgets can be edited to plan ahead. Current and past month
-              budgets are locked to maintain historical accuracy. Review your
-              spending regularly and adjust future budgets as needed to meet
-              your financial goals!
-            </CardDescription>
+                          );
+                        } else {
+                          return (
+                            <div className="w-full">
+                              <div className="flex justify-between items-center text-center">
+                                No hay sugerencias disponibles
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

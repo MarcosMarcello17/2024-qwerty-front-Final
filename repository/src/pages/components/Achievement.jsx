@@ -64,18 +64,18 @@ const Achievement = ({ achievement }) => {
     );
   } else {
     return (
-      <div className="w-full h-2/3 max-w-sm mx-auto p-4 bg-[#001d3d] rounded-lg shadow-lg hover:shadow-xl transition-shadow">
-        <figure className="px-4 pt-4">
+      <div className="w-full max-w-sm mx-auto p-2 sm:p-4 bg-[#001d3d] rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+        <figure className="px-2 pt-2 sm:px-4 sm:pt-4">
           <img
             src={achievement.img}
             alt={`Achievement: ${title}`}
-            className={`w-24 h-24 object-contain mx-auto border-4 rounded-full ${getBorderColor(
+            className={`w-20 h-20 sm:w-24 sm:h-24 object-contain mx-auto border-4 rounded-full ${getBorderColor(
               type
-            )}`}
+            )} max-w-full`}
           />
         </figure>
-        <div className="text-center px-4 py-2">
-          <h2 className="text-xl font-bold text-white mb-2">
+        <div className="text-center px-2 py-2 sm:px-4">
+          <h2 className="text-base sm:text-xl font-bold text-white mb-2">
             {title} - Nivel{" "}
             {achievement.type === "Bronce"
               ? 1
@@ -85,11 +85,11 @@ const Achievement = ({ achievement }) => {
               ? 3
               : 4}
           </h2>
-          <p className="text-sm text-gray-400">{description}</p>
+          <p className="text-xs sm:text-sm text-gray-400">{description}</p>
 
-          <div className="mt-4">
+          <div className="mt-3">
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+              className={`inline-block px-2 py-1 sm:px-3 rounded-full text-xs font-semibold ${
                 completed
                   ? "bg-green-500 text-green-100"
                   : "bg-orange-400 text-orange-100"
@@ -99,9 +99,9 @@ const Achievement = ({ achievement }) => {
             </span>
           </div>
 
-          <div className="mt-3">
+          <div className="mt-2 sm:mt-3">
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${getBadgeColor(
+              className={`inline-block px-2 py-1 sm:px-3 rounded-full text-xs font-bold ${getBadgeColor(
                 type
               )}`}
             >
