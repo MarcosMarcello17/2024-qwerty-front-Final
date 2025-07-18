@@ -23,6 +23,7 @@ import {
   Filter,
   TrendingUp,
   TrendingDown,
+  XCircle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -35,6 +36,44 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ModalForm from "./components/ModalForm";
 import { createCatAPI } from "@/functions/createCatAPI";
 import { fas } from "@fortawesome/free-solid-svg-icons";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+const months = [
+  { value: "00", label: "Todos" },
+  { value: "01", label: "Enero" },
+  { value: "02", label: "Febrero" },
+  { value: "03", label: "Marzo" },
+  { value: "04", label: "Abril" },
+  { value: "05", label: "Mayo" },
+  { value: "06", label: "Junio" },
+  { value: "07", label: "Julio" },
+  { value: "08", label: "Agosto" },
+  { value: "09", label: "Septiembre" },
+  { value: "10", label: "Octubre" },
+  { value: "11", label: "Noviembre" },
+  { value: "12", label: "Diciembre" },
+];
+
+const years = [
+  { value: "00", label: "Todos los años" },
+  { value: "2021", label: "2021" },
+  { value: "2022", label: "2022" },
+  { value: "2023", label: "2023" },
+  { value: "2024", label: "2024" },
+  { value: "2025", label: "2025" },
+  { value: "2026", label: "2026" },
+];
 
 export default function TransactionsPage() {
   library.add(fas);
@@ -92,6 +131,8 @@ export default function TransactionsPage() {
   const [tipoGasto, setTipoGasto] = useState("Efectivo");
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [grupos, setGrupos] = useState([]);
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [categoriasConTodas, setCategoriasConTodas] = useState([]);
 
   // Handlers necesarios
   const handleMotivoChange = (e) => setMotivo(e.target.value);
@@ -120,6 +161,11 @@ export default function TransactionsPage() {
   const handleGroupChange = (group) => setSelectedGroup(group);
 
   useEffect(() => {
+    fetchPersonalCategorias();
+    setCategoriasConTodas([
+      { value: "Todas", label: "Todas las Categorias" },
+      ...payCategories,
+    ]);
     getTransacciones(categoriaSeleccionada);
   }, [categoriaSeleccionada, filtroMes, filtroAno]);
   const getTransacciones = async (filtrado = "Todas") => {
@@ -343,6 +389,12 @@ export default function TransactionsPage() {
   const [valor, setValor] = useState("");
   const [edit, setEdit] = useState(false);
 
+  const resetFilters = () => {
+    setCategoriaSeleccionada("Todas");
+    setFiltroAno("2025");
+    setFiltroMes("00");
+  };
+
   const handleSort = (key) => {
     setSortConfig((prevConfig) => ({
       key,
@@ -398,6 +450,11 @@ export default function TransactionsPage() {
     }
   };
 
+  const openModal = () => {
+    fetchGrupos();
+    setIsModalOpen(true);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -409,8 +466,78 @@ export default function TransactionsPage() {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" /> Filtrar
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="mr-2 h-4 w-4" /> Filters
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 bg-card" align="end">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none font-headline">
+                      Filters
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Filter transactions by date.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Select
+                      value={categoriaSeleccionada}
+                      onValueChange={setCategoriaSeleccionada}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoriasConTodas.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year.value} value={year.value}>
+                            {year.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="bg-primary text-black"
+                    onClick={resetFilters}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => openModal()}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Transaccion
             </Button>
           </div>
         </div>
@@ -423,11 +550,10 @@ export default function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Categoria</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Motivo</TableHead>
                   <TableHead>Valor</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Categoria</TableHead>
                   <TableHead>Medio de Pago</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -479,25 +605,6 @@ export default function TransactionsPage() {
                       <TableCell>{transaction.motivo}</TableCell>
                       <TableCell className="font-medium">
                         ${transaction.valor.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          const iconPath = payCategories.find(
-                            (cat) => cat.value === transaction.categoria
-                          )?.iconPath;
-
-                          return (
-                            <>
-                              {iconPath && (
-                                <FontAwesomeIcon
-                                  icon={iconPath}
-                                  className="mr-2 text-white"
-                                />
-                              )}
-                              {transaction.categoria}
-                            </>
-                          );
-                        })()}
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
                         {transaction.tipoGasto}

@@ -7,7 +7,13 @@ import AchievementNotification from "./components/AchievementNotification";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
-import { LayoutDashboard, Loader2, PlusCircle } from "lucide-react";
+import {
+  Filter,
+  LayoutDashboard,
+  Loader2,
+  PlusCircle,
+  XCircle,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -19,6 +25,37 @@ import { Button } from "@/components/ui/button";
 import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
 import AppLayout from "./AppLayout";
 import AlertPending from "./components/AlertPending";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+const months = [
+  { value: "00", label: "Todos" },
+  { value: "01", label: "Enero" },
+  { value: "02", label: "Febrero" },
+  { value: "03", label: "Marzo" },
+  { value: "04", label: "Abril" },
+  { value: "05", label: "Mayo" },
+  { value: "06", label: "Junio" },
+  { value: "07", label: "Julio" },
+  { value: "08", label: "Agosto" },
+  { value: "09", label: "Septiembre" },
+  { value: "10", label: "Octubre" },
+  { value: "11", label: "Noviembre" },
+  { value: "12", label: "Diciembre" },
+];
+
+const years = [
+  { value: "00", label: "Todos los años" },
+  { value: "2021", label: "2021" },
+  { value: "2022", label: "2022" },
+  { value: "2023", label: "2023" },
+  { value: "2024", label: "2024" },
+  { value: "2025", label: "2025" },
+  { value: "2026", label: "2026" },
+];
 
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
@@ -348,6 +385,12 @@ function HomePage() {
     setIsModalOpen(false);
     clearForm();
     setEdit(false);
+  };
+
+  const resetFilters = () => {
+    setCategoriaSeleccionada("Todas");
+    setFiltroAno("2025");
+    setFiltroMes("");
   };
 
   const clearForm = () => {
@@ -686,33 +729,73 @@ function HomePage() {
             </h1>
           </div>
           <div className="flex flex-col gap-2 justify-end w-full sm:flex-row sm:items-center sm:space-x-2 sm:gap-0">
-            <Select defaultValue="all_time" onValueChange={handleChange}>
-              <SelectTrigger className="w-full sm:w-[180px] bg-card hover:bg-background">
-                <SelectValue placeholder="Select period" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="monthly">Ultimo Mes</SelectItem>
-                <SelectItem value="quarterly">Ultimos 3 Meses</SelectItem>
-                <SelectItem value="yearly">Este año</SelectItem>
-                <SelectItem value="all_time">Todos</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={categoriaSeleccionada}
-              onValueChange={(value) => setCategoriaSeleccionada(value)}
-            >
-              <SelectTrigger className="w-full sm:w-[180px] bg-card hover:bg-background">
-                <SelectValue placeholder="Filtrar por categoría" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Todas">Todas las Categorías</SelectItem>
-                {payCategories.map((cat) => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Filter className="mr-2 h-4 w-4" /> Filters
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 bg-card" align="end">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium leading-none font-headline">
+                      Filters
+                    </h4>
+                    <p className="text-sm text-muted-foreground">
+                      Filter transactions by date.
+                    </p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Select
+                      value={categoriaSeleccionada}
+                      onValueChange={setCategoriaSeleccionada}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar Categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categoriasConTodas.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {months.map((month) => (
+                          <SelectItem key={month.value} value={month.value}>
+                            {month.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {years.map((year) => (
+                          <SelectItem key={year.value} value={year.value}>
+                            {year.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    className="bg-primary text-black"
+                    onClick={resetFilters}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button
               asChild
               className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
@@ -734,12 +817,12 @@ function HomePage() {
               Cargando...
             </span>
           </div>
-        ) : transaccionesFiltradas.length > 0 ? (
+        ) : transacciones.length > 0 ? (
           <div className="flex flex-col gap-6 w-full  mx-auto">
-            {transaccionesCargadas && !loadGraphic && transacciones[0] && (
+            {transacciones && !loadGraphic && transacciones[0] && (
               <MonthlyGraphic
                 type="categorias"
-                transacciones={transaccionesFiltradas}
+                transacciones={transacciones}
                 payCategories={payCategories}
                 filtroMes={filtroMes}
                 filtroCategoria={categoriaSeleccionada}
@@ -753,7 +836,7 @@ function HomePage() {
               transacciones[0] != null && (
                 <PaymentMethodGraphic
                   type="tipoGasto"
-                  transacciones={transaccionesFiltradas}
+                  transacciones={transacciones}
                   payCategories={payOptions}
                   loading={loadGraphic}
                 />
