@@ -36,7 +36,7 @@ const ModalMedioDePago = ({
       padding: "20px", // Padding interno adaptativo
       margin: "auto", // Centrar el modal
       borderRadius: "10px", // Bordes redondeados
-      backgroundColor: "#000814", // Fondo oscuro para mantener el estilo
+      backgroundColor: "#001d3d", // Fondo oscuro para mantener el estilo
       overflowY: "auto", // Habilitamos scroll si el contenido es demasiado grande
     },
   };
@@ -81,7 +81,7 @@ const ModalMedioDePago = ({
       onRequestClose={onRequestClose}
       contentLabel={edit ? "Editar Medio De Pago" : "Crear Medio de Pago"}
       style={customStyles}
-      className="bg-gray-900 text-white p-4 sm:p-2 rounded-lg shadow-lg"
+      className=" text-white p-4 sm:p-2 rounded-lg shadow-lg"
     >
       <h2 className="text-xl sm:text-lg font-bold mb-4">
         {edit ? "Editar Medio De Pago" : "Crear Medio de Pago"}
@@ -91,7 +91,7 @@ const ModalMedioDePago = ({
         placeholder="Medio de Pago"
         value={medioDePagoNombre}
         onChange={(e) => setMedioDePagoNombre(e.target.value)}
-        className="mt-1 block w-full p-2 border border-[#ffc300] bg-[#001d3d] text-white rounded-md shadow-sm"
+        className="mt-1 block w-full p-2 border border-[#ffc300] bg-background text-white rounded-md shadow-sm"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <button

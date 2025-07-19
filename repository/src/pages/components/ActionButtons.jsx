@@ -36,43 +36,18 @@ function ActionButtons() {
 
   return (
     <div className="action-buttons-container">
-      <button className="primary-button" onClick={() => navigate("/index")}>
-        Ver Mis Transacciones
-      </button>
       <button
         className="primary-button"
-        onClick={() => navigate("/achievements")}
+        onClick={() => navigate("/change-password")}
       >
-        Ver Mis Logros
+        Cambiar Contraseña
       </button>
-      <details className="dropdown-container">
-        <summary className="primary-button cursor-pointer">
-          Más Opciones
-        </summary>
-        <ul className="dropdown-menu">
-          <li>
-            <button
-              className="dropdown-item"
-              onClick={() => navigate("/change-password")}
-            >
-              Cambiar Contraseña
-            </button>
-          </li>
-          <li>
-            <button className="dropdown-item mt-2" onClick={signOff}>
-              Cerrar Sesión
-            </button>
-          </li>
-          <li>
-            <button
-              className="dropdown-item mt-2 delete-button"
-              onClick={deleteAccount}
-            >
-              Eliminar Cuenta
-            </button>
-          </li>
-        </ul>
-      </details>
+      <button className="primary-button" onClick={signOff}>
+        Cerrar Sesión
+      </button>
+      <button className="primary-button delete-button" onClick={deleteAccount}>
+        Eliminar Cuenta
+      </button>
     </div>
   );
 }

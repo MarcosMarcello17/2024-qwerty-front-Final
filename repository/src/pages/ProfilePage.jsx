@@ -10,6 +10,8 @@ import ConfirmDeleteMedioDePago from "./components/ConfirmDeleteMedioDePago";
 import ModalMedioDePago from "./components/ModalMedioDePago";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import LoadingSpinner from "./components/LoadingSpinner";
+import AppLayout from "./AppLayout";
+import { CircleUserRound } from "lucide-react";
 
 function ProfilePage() {
   library.add(fas);
@@ -232,130 +234,115 @@ function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#000814] py-10">
-      <div className="text-2xl font-bold text-gray-100 text-center mb-4">
-        Mi Cuenta
-      </div>
-
-      <div className="flex justify-center mb-4">
-        <div className="w-24 h-24 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-[#FFC300]">
-          <img src={logo} alt="logo" className="w-full h-full object-cover" />
+    <AppLayout>
+      <div className="min-h-screen flex flex-col bg-[#000814] py-10">
+        <div className="text-2xl font-bold text-gray-100 text-center mb-4">
+          Mi Cuenta
         </div>
-      </div>
 
-      <div className="flex flex-col flex-grow px-4">
-        <div className="m-4">
-          <ActionButtons />
+        <div className="flex justify-center mb-4">
+          <div className="w-24 h-24 md:w-36 md:h-36 rounded-full overflow-hidden border-4 border-[#FFC300]">
+            <CircleUserRound className="w-full h-full object-cover" />
+          </div>
         </div>
-        <>
-          {isLoading && (
-            <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
-              <div className="flex items-center justify-center">
-                <div className="animate-spin border-t-4 border-[#003566] border-solid w-16 h-16 rounded-full"></div>
+
+        <div className="flex flex-col flex-grow px-4">
+          <div className="m-4">
+            <ActionButtons />
+          </div>
+          <>
+            {isLoading && (
+              <div className="fixed inset-0 bg-[#000814] bg-opacity-500 flex justify-center items-center z-50">
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin border-t-4 border-[#003566] border-solid w-16 h-16 rounded-full"></div>
+                </div>
               </div>
-            </div>
-          )}
-          {loadingGraphic ? ( // Muestra el spinner si está cargando
-            <LoadingSpinner />
-          ) : (
-            <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
-              <div className="font-bold text-[#ffd60a] text-xl text-center mb-4">
-                Mis Medios De Pago
+            )}
+            {loadingGraphic ? ( // Muestra el spinner si está cargando
+              <LoadingSpinner />
+            ) : (
+              <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
+                <div className="font-bold text-[#ffd60a] text-xl text-center mb-4">
+                  Mis Medios De Pago
+                </div>
+                <ul>
+                  {defaultMediosDePago.map((medioDePago) => (
+                    <li
+                      key={medioDePago.value}
+                      className="bg-[#003566] p-3 rounded-md shadow mb-3"
+                    >
+                      <div className="flex items-center">
+                        <div className={medioDePago.textColor}>
+                          {medioDePago.label}
+                        </div>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                <ul>
+                  {payOptions.slice(3).map((medioDePago) => (
+                    <li
+                      key={medioDePago.value}
+                      className="bg-[#003566] p-3 rounded-md shadow mb-3 flex justify-between"
+                    >
+                      <div className="flex items-center">
+                        <div className={medioDePago.textColor}>
+                          {medioDePago.label}
+                        </div>
+                      </div>
+                      <div className="flex items-center">
+                        <button
+                          className="text-white hover:bg-[#001d3d] mr-2"
+                          onClick={() => {
+                            setEditPayOption(medioDePago);
+                            setIsEditMode(true);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          className="text-red-500 hover:text-red-700 hover:bg-[#001d3d]"
+                          onClick={() => confirmDelete(medioDePago.value)}
+                        >
+                          X
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="mt-4 px-4 py-2 bg-[#ffd60a] text-[#000814] rounded-md hover:bg-[#ffc300]"
+                  onClick={() => {
+                    setEditPayOption({});
+                    setIsEditMode(false);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  + Agregar Medio de Pago
+                </button>
               </div>
-              <ul>
-                {defaultMediosDePago.map((medioDePago) => (
-                  <li
-                    key={medioDePago.value}
-                    className="bg-[#003566] p-3 rounded-md shadow mb-3"
-                  >
-                    <div className="flex items-center">
-                      <div className={medioDePago.textColor}>
-                        {medioDePago.label}
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              <ul>
-                {payOptions.slice(3).map((medioDePago) => (
-                  <li
-                    key={medioDePago.value}
-                    className="bg-[#003566] p-3 rounded-md shadow mb-3 flex justify-between"
-                  >
-                    <div className="flex items-center">
-                      <div className={medioDePago.textColor}>
-                        {medioDePago.label}
-                      </div>
-                    </div>
-                    <div className="flex items-center">
-                      <button
-                        className="text-white hover:bg-[#001d3d] mr-2"
-                        onClick={() => {
-                          setEditPayOption(medioDePago);
-                          setIsEditMode(true);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-700 hover:bg-[#001d3d]"
-                        onClick={() => confirmDelete(medioDePago.value)}
-                      >
-                        X
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-
-              <button
-                className="mt-4 px-4 py-2 bg-[#ffd60a] text-[#000814] rounded-md hover:bg-[#ffc300]"
-                onClick={() => {
-                  setEditPayOption({});
-                  setIsEditMode(false);
-                  setIsModalOpen(true);
-                }}
-              >
-                + Agregar Medio de Pago
-              </button>
-            </div>
-          )}
-
-          {transacciones[0] != null && (
-            <div className="flex items-center">
-              <h2 className="text-2xl py-2 font-bold text-gray-100">
-                Monto por Medio de Pago
-              </h2>
-            </div>
-          )}
-
-          {!loadingGraphic && transacciones[0] != null && (
-            <MonthlyGraphic
-              type="tipoGasto"
-              transacciones={transacciones}
-              payCategories={payOptions}
-              loading={loadingGraphic}
-            />
-          )}
-        </>
+            )}
+          </>
+        </div>
+        <ModalMedioDePago
+          isOpen={isModalOpen}
+          onRequestClose={() => setIsModalOpen(false)}
+          handleCreateTP={handleCreateTP}
+          handleEditTP={handleEdit}
+          edit={isEditMode}
+          editTP={editPayOption}
+        />
+        <ConfirmDeleteMedioDePago
+          isOpen={confirmDeleteOpen}
+          handleClose={cancelDelete}
+          handleDelete={() => {
+            handleDelete(itemToDelete);
+          }}
+        />
       </div>
-      <ModalMedioDePago
-        isOpen={isModalOpen}
-        onRequestClose={() => setIsModalOpen(false)}
-        handleCreateTP={handleCreateTP}
-        handleEditTP={handleEdit}
-        edit={isEditMode}
-        editTP={editPayOption}
-      />
-      <ConfirmDeleteMedioDePago
-        isOpen={confirmDeleteOpen}
-        handleClose={cancelDelete}
-        handleDelete={() => {
-          handleDelete(itemToDelete);
-        }}
-      />
-    </div>
+    </AppLayout>
   );
 }
 

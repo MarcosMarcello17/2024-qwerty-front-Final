@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,26 +7,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, UserCircle, Menu } from "lucide-react";
+import { LogOut, UserCircle, Menu, CircleUserRound } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar"; // Assuming useSidebar provides toggle for mobile
 import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const { toggleSidebar, isMobile } = useSidebar(); // Or pass a toggle function as prop
   const navigate = useNavigate();
-
-  // Placeholder user data
-  const user = {
-    name: "User Name",
-    email: "user@example.com",
-    image:
-      "https://creativeandcultural.wordpress.com/wp-content/uploads/2018/04/default-profile-picture.png",
-  };
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
 
   const signOff = () => {
     localStorage.removeItem("token");
@@ -60,18 +47,11 @@ export default function Header() {
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="relative h-10 w-10 rounded-full"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarImage
-                    src={user.image}
-                    alt={user.name}
-                    data-ai-hint="user avatar"
-                  />
-                </Avatar>
-              </Button>
+              <Avatar className="h-9 w-9 hover:cursor-pointer hover:ring-2 hover:ring-primary">
+                <AvatarFallback className="p-0">
+                  <CircleUserRound className="w-10 h-10" />
+                </AvatarFallback>
+              </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuItem asChild>
@@ -87,8 +67,6 @@ export default function Header() {
                   onClick={() => signOff()}
                   className="cursor-pointer"
                 >
-                  {" "}
-                  {/* Replace with actual logout logic */}
                   <LogOut className="mr-2 h-4 w-4" />
                   Cerrar Sesion
                 </a>
