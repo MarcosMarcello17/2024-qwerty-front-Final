@@ -1,62 +1,15 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
 import React, { useEffect, useState } from "react";
 
-function ModalSendPayment({ isModalOpen = false, payCategories }) {
-  const defaultMediosDePago = [
-    {
-      value: "Tarjeta de credito",
-      label: "Tarjeta de credito",
-      textColor: "mr-2 text-yellow-500",
-    },
-    {
-      value: "Tarjeta de Debito",
-      label: "Tarjeta de debito",
-      textColor: "mr-2 text-yellow-500",
-    },
-    { value: "Efectivo", label: "Efectivo", textColor: "mr-2 text-yellow-500" },
-  ];
-  const [payOption, setPayOption] = useState("");
+function ModalAskPayment({ closeModal = () => {} }) {
   const [motivo, setMotivo] = useState("");
-  const [categoria, setCategoria] = useState("");
-  const [payOptions, setPayOptions] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
   const [emailReceptor, setEmailReceptor] = useState("");
   const [valor, setValor] = useState(0);
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [modalError, setModalError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const idReserva = 0;
-
-  const fetchPersonalTipoGastos = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const customOptions = data.map((tipo) => ({
-          label: tipo.nombre,
-          value: tipo.nombre,
-          textColor: "mr-2 text-white",
-        }));
-        setPayOptions([...defaultMediosDePago, ...customOptions]);
-      }
-    } catch (error) {
-      console.error(
-        "Error al obtener los tipos de gasto personalizados:",
-        error
-      );
-    }
-  };
-
-  useEffect(() => {
-    fetchPersonalTipoGastos();
-  }, []);
 
   const validateForm = () => {
     if (!emailReceptor || !motivo || !valor || !fecha) {
@@ -121,7 +74,7 @@ function ModalSendPayment({ isModalOpen = false, payCategories }) {
           console.log("Pago enviado");
         }
         cleanForm();
-        document.getElementById("generatePayModal").close();
+        closeModal();
       } else {
         setIsLoading(false);
       }
@@ -131,108 +84,91 @@ function ModalSendPayment({ isModalOpen = false, payCategories }) {
     }
   };
 
-  const handleCategoryChange = (e) => {
-    const selectedValue = e.target.value;
-    setCategoria(selectedValue);
-    setSelectedCategory(
-      payCategories.find((cat) => cat.value === selectedValue)
-    );
-  };
-
   const cleanForm = () => {
     setEmailReceptor("");
     setMotivo("");
     setValor(0);
-    setPayOption("");
-    setCategoria("");
     setIsLoading(false);
     setFecha(new Date().toISOString().split("T")[0]);
   };
 
   return (
-    <dialog
-      id="generatePayModal"
-      className={`modal ${isModalOpen ? "open" : ""}`}
-    >
-      <div className="modal-box bg-[#000814]">
-        <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">
-          Generar Cobro
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label className="text-gray-100 mb-6">E-Mail:</label>
-            <input
-              type="text"
-              value={emailReceptor}
-              onChange={(e) => setEmailReceptor(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Motivo:</label>
-            <input
-              type="text"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Valor:</label>
-            <input
-              type="number"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Fecha:</label>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          {modalError && (
-            <div className="text-red-500 text-sm text-center">{modalError}</div>
-          )}
-          <div className="flex flex-col md:flex-row justify-end mt-4 space-y-2 md:space-y-0 md:space-x-2">
-            <button
-              type="button"
-              className="btn border-none w-full md:w-auto bg-red-500 hover:bg-red-600 text-white"
-              onClick={() => {
-                cleanForm();
-                setModalError("");
-                document.getElementById("generatePayModal").close();
-              }}
-            >
-              Cerrar
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn w-full border-none sm:w-auto bg-[#ffd60a] hover:bg-[#ffc300] text-black"
-            >
-              {isLoading ? (
-                <div>
-                  <span className="loading loading-spinner loading-sm text-white"></span>
-                  <div className="text-white p-0 m-0">Cargando...</div>
-                </div>
-              ) : (
-                "Enviar"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </dialog>
+    <div className="modal-box">
+      <form onSubmit={handleSubmit}>
+        <div>
+          <span>E-Mail:</span>
+          <Input
+            type="text"
+            value={emailReceptor}
+            placeholder="persona@email.com"
+            onChange={(e) => setEmailReceptor(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-gray-100 mt-6">Motivo:</label>
+          <Input
+            type="text"
+            value={motivo}
+            placeholder="motivo"
+            onChange={(e) => setMotivo(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-gray-100 mt-6">Valor:</label>
+          <Input
+            type="number"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label>Fecha:</label>
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            className="my-1 block w-full p-1 px-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        {modalError && (
+          <div className="text-red-500 text-sm text-center">{modalError}</div>
+        )}
+        <div className="flex flex-col md:flex-row justify-end mt-4 space-y-2 md:space-y-0 md:space-x-2">
+          <Button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Send className="mr-2 h-4 w-4" />{" "}
+            {isLoading ? (
+              <div>
+                <span className="loading loading-spinner loading-sm text-white"></span>
+                <div className="text-white p-0 m-0">Cargando...</div>
+              </div>
+            ) : (
+              "Enviar"
+            )}
+          </Button>
+          <Button
+            type="button"
+            className="w-full bg-red-500 hover:bg-red-600 text-white"
+            onClick={() => {
+              cleanForm();
+              closeModal();
+            }}
+          >
+            Cerrar
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 
-export default ModalSendPayment;
+export default ModalAskPayment;

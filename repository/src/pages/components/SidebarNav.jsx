@@ -17,6 +17,7 @@ import {
   Award,
   ListChecks,
   LayoutList,
+  HandCoins,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
@@ -49,6 +50,11 @@ const mainNavItems = [
     title: "Logros",
     href: "/achievements",
     icon: Award,
+  },
+  {
+    title: "Pagos",
+    href: "/pagos",
+    icon: HandCoins,
   },
 ];
 

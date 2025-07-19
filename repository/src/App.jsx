@@ -13,6 +13,7 @@ import BudgetPage from "./pages/BudgetPage";
 import AchievementsPage from "./pages/AchievementsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import CategoryPage from "./pages/CategoryPage";
+import PaymentsPage from "./pages/PaymentsPage";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             path="/change-password"
             element={<ChangePasswordForm />}
           />
+          <Route exact path="/pagos" element={<PaymentsPage />} />
           <Route exact path="/profile" element={<ProfilePage />} />
           <Route exact path="/presupuestos" element={<BudgetPage />} />
           <Route exact path="/achievements" element={<AchievementsPage />} />

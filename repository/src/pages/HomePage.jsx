@@ -242,7 +242,10 @@ function HomePage() {
         throw new Error(`Error: ${response.status}`);
       }
 
-      const data = await response.json();
+      let data = await response.json();
+      data = data.filter(
+        (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro"
+      );
       if (data[0] != null) {
         setTranPendiente(data[0]);
         setPendTran(true);
