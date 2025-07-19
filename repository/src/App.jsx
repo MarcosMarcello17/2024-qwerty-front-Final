@@ -14,6 +14,7 @@ import AchievementsPage from "./pages/AchievementsPage";
 import TransactionsPage from "./pages/TransactionsPage";
 import CategoryPage from "./pages/CategoryPage";
 import PaymentsPage from "./pages/PaymentsPage";
+import GroupsPage from "./pages/GroupsPage";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route exact path="/achievements" element={<AchievementsPage />} />
           <Route exact path="/transacciones" element={<TransactionsPage />} />
           <Route exact path="/categorias" element={<CategoryPage />} />
+          <Route exact path="/grupos" element={<GroupsPage />} />
         </Route>
         <Route element={<KeepSignedIn />}>
           <Route exact path="/" element={<LoginForm />} />

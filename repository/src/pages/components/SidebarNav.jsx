@@ -18,6 +18,7 @@ import {
   ListChecks,
   LayoutList,
   HandCoins,
+  Users,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
@@ -42,19 +43,19 @@ const mainNavItems = [
     icon: ListChecks,
   },
   {
+    title: "Pagos",
+    href: "/pagos",
+    icon: HandCoins,
+  },
+  {
     title: "Categorias",
     href: "/categorias",
     icon: LayoutList,
   },
   {
-    title: "Logros",
-    href: "/achievements",
-    icon: Award,
-  },
-  {
-    title: "Pagos",
-    href: "/pagos",
-    icon: HandCoins,
+    title: "Grupos",
+    href: "/grupos",
+    icon: Users,
   },
 ];
 
@@ -63,6 +64,11 @@ const userNavItems = [
     title: "Perfil",
     href: "/profile",
     icon: UserCircle,
+  },
+  {
+    title: "Logros",
+    href: "/achievements",
+    icon: Award,
   },
   {
     title: "Cerrar Sesion",
