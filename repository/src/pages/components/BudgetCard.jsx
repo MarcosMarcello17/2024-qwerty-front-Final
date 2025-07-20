@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Edit3 } from "lucide-react";
+import { AlertTriangle, Edit3, Trash2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 function BudgetCard({
@@ -173,15 +173,26 @@ function BudgetCard({
               </CardDescription>
             </div>
             {isFutureBudget && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleEdit()}
-              >
-                <Edit3 className="h-4 w-4" />
-                <span className="sr-only">Editar Presupuesto</span>
-              </Button>
+              <div className="flex gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleEdit()}
+                >
+                  <Edit3 className="h-4 w-4" />
+                  <span className="sr-only">Editar Presupuesto</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  onClick={() => handleDelete()}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Eliminar Presupuesto</span>
+                </Button>
+              </div>
             )}
           </div>
         </CardHeader>
@@ -241,10 +252,10 @@ function BudgetCard({
             )}
           >
             {porcentaje > 100
-              ? `You are $${Math.abs(totalGastado - budget.totalBudget).toFixed(
-                  2
-                )} over budget.`
-              : `$${(budget.totalBudget - totalGastado).toFixed(2)} remaining.`}
+              ? `Te pasaste $${Math.abs(
+                  totalGastado - budget.totalBudget
+                ).toFixed(2)} del limite.`
+              : `$${(budget.totalBudget - totalGastado).toFixed(2)} restante.`}
           </p>
         </CardFooter>
         {isModalOpen && (

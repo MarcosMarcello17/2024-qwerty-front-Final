@@ -32,6 +32,7 @@ function BudgetPage() {
   const [transacciones, setTransacciones] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingPresupuestos, setLoadingPresupuestos] = useState(true);
   const navigate = useNavigate();
   const [filtro, setFiltro] = useState("Todos");
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -171,6 +172,7 @@ function BudgetPage() {
 
   const getPersonalPresupuestos = async () => {
     const token = localStorage.getItem("token");
+    setLoadingPresupuestos(true);
     try {
       const response = await fetch(
         "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto",
@@ -187,6 +189,8 @@ function BudgetPage() {
       }
     } catch (error) {
       console.error("Error al obtener las categorías personalizadas:", error);
+    } finally {
+      setLoadingPresupuestos(false);
     }
   };
 
@@ -196,19 +200,24 @@ function BudgetPage() {
 
   const filtrarPresupuestos = () => {
     const fechaActual = new Date();
-    const mesActual = fechaActual.getMonth() + 1;
+    const mesActual = fechaActual.getMonth() + 1; // getMonth() devuelve 0-11, por eso sumamos 1
     const añoActual = fechaActual.getFullYear();
     const formatoMesActual = `${añoActual}-${mesActual
       .toString()
       .padStart(2, "0")}`;
-
     return presupuestos.filter((presupuesto) => {
-      const budgetMonth = presupuesto.budgetMonth;
+      // Extraer solo año-mes del budgetMonth (formato: 2025-07-01T03:00:00.000 -> 2025-07)
+      const budgetDate = new Date(presupuesto.budgetMonth);
+      const budgetYear = budgetDate.getFullYear();
+      const budgetMonth = budgetDate.getMonth() + 1; // getMonth() devuelve 0-11
+      const formatoBudgetMonth = `${budgetYear}-${budgetMonth
+        .toString()
+        .padStart(2, "0")}`;
 
       if (filtro === "Todos") return true;
-      if (filtro === "Pasados") return budgetMonth < formatoMesActual;
-      if (filtro === "Actuales") return budgetMonth === formatoMesActual;
-      if (filtro === "Futuros") return budgetMonth > formatoMesActual;
+      if (filtro === "Pasados") return formatoBudgetMonth < formatoMesActual;
+      if (filtro === "Actuales") return formatoBudgetMonth === formatoMesActual;
+      if (filtro === "Futuros") return formatoBudgetMonth > formatoMesActual;
 
       return true;
     });
@@ -264,7 +273,21 @@ function BudgetPage() {
               <PlusCircle className="mr-2 h-4 w-4" /> Agregar Presupuesto
             </Button>
           </div>
-          {presupuestos.length === 0 ? (
+          {loadingPresupuestos ? (
+            <Card className="text-center py-12">
+              <CardHeader>
+                <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-pulse" />
+                <CardTitle className="font-headline">
+                  Cargando presupuestos...
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : presupuestos.length === 0 ? (
             <Card className="text-center py-12">
               <CardHeader>
                 <Target className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
