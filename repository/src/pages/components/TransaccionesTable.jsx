@@ -9,6 +9,7 @@ const TransaccionesTable = ({
   deleteRow,
   onTableEmpty,
   onTransactions,
+  onDistributeIncome,
 }) => {
   library.add(fas);
 
@@ -114,6 +115,19 @@ const TransaccionesTable = ({
                         size="lg"
                       />
                     </button>
+                    {transaction.categoria === "Ingreso de Dinero" && (
+                      <button
+                        className="p-1 bg-[#ffd60a] rounded hover:bg-[#ffc300]"
+                        onClick={() => onDistributeIncome && onDistributeIncome(transaction)}
+                        title="Distribuir automáticamente"
+                      >
+                        <FontAwesomeIcon
+                          icon="fa-solid fa-chart-pie"
+                          style={{ color: "#000000" }}
+                          size="lg"
+                        />
+                      </button>
+                    )}
                     <button
                       className="p-1 bg-red-600 rounded hover:bg-red-700"
                       onClick={() => deleteRow(transaction.id)}
@@ -164,6 +178,19 @@ const TransaccionesTable = ({
                     size="lg"
                   />
                 </button>
+                {transaction.categoria === "Ingreso de Dinero" && (
+                  <button
+                    className="p-1 bg-[#ffd60a] rounded hover:bg-[#ffc300]"
+                    onClick={() => onDistributeIncome && onDistributeIncome(transaction)}
+                    title="Distribuir automáticamente"
+                  >
+                    <FontAwesomeIcon
+                      icon="fa-solid fa-chart-pie"
+                      style={{ color: "#000000" }}
+                      size="lg"
+                    />
+                  </button>
+                )}
                 <button
                   className="p-1 bg-red-600 rounded hover:bg-red-700"
                   onClick={() => deleteRow(transaction.id)}

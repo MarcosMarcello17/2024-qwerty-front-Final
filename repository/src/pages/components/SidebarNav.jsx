@@ -19,6 +19,7 @@ import {
   LayoutList,
   HandCoins,
   Users,
+  Bot,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEffect, useState } from "react";
@@ -36,6 +37,11 @@ const mainNavItems = [
     title: "Presupuestos",
     href: "/presupuestos",
     icon: Target,
+  },
+  {
+    title: "Automatización",
+    href: "/automatizacion",
+    icon: Bot,
   },
   {
     title: "Transacciones",

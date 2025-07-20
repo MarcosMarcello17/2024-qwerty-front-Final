@@ -24,6 +24,7 @@ import {
   TrendingUp,
   TrendingDown,
   XCircle,
+  PieChart,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -34,7 +35,9 @@ import { getApiTransacciones } from "@/functions/getApiTransacciones";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ModalForm from "./components/ModalForm";
+import AutomaticDistribution from "../components/AutomaticDistribution";
 import { createCatAPI } from "@/functions/createCatAPI";
+import { distributeIncomeAutomatically } from "@/functions/distributeIncomeAPI";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import {
   Popover,
@@ -133,6 +136,10 @@ export default function TransactionsPage() {
   const [grupos, setGrupos] = useState([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
+  
+  // Estados para distribución automática
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [transactionToDistribute, setTransactionToDistribute] = useState(null);
 
   // Handlers necesarios
   const handleMotivoChange = (e) => setMotivo(e.target.value);
@@ -405,6 +412,44 @@ export default function TransactionsPage() {
       setError("Error de red.");
     }
   };
+
+  // Funciones para distribución automática
+  const handleDistributeIncome = (transaction) => {
+    setTransactionToDistribute(transaction);
+    setShowDistributionModal(true);
+  };
+
+  const handleConfirmDistribution = async (shouldDistribute) => {
+    setShowDistributionModal(false);
+    
+    if (shouldDistribute && transactionToDistribute) {
+      try {
+        const result = await distributeIncomeAutomatically(
+          transactionToDistribute.valor,
+          transactionToDistribute.fecha,
+          transactionToDistribute.motivo
+        );
+        
+        if (result.success) {
+          // Recargar transacciones para mostrar las nuevas transacciones distribuidas
+          await getTransacciones();
+          alert(`Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`);
+        } else {
+          alert(`Error en la distribución: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("Error al distribuir ingreso:", error);
+        alert("Error de conexión al distribuir el ingreso");
+      }
+    }
+    
+    setTransactionToDistribute(null);
+  };
+
+  const handleCancelDistribution = () => {
+    setShowDistributionModal(false);
+    setTransactionToDistribute(null);
+  };
   const sortedtransacciones = React.useMemo(() => {
     if (sortConfig.key) {
       const sorted = [...transacciones].sort((a, b) => {
@@ -657,6 +702,30 @@ export default function TransactionsPage() {
                         >
                           <Edit3 />
                         </Button>
+                        {transaction.categoria === "Ingreso de Dinero" && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-primary hover:text-primary/80"
+                            onClick={() => handleDistributeIncome(transaction)}
+                            title="Distribuir automáticamente según presupuestos"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M3 3v18h18" />
+                              <path d="m19 9-5 5-4-4-3 3" />
+                            </svg>
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon"
@@ -696,6 +765,15 @@ export default function TransactionsPage() {
         handleGroupChange={handleGroupChange}
         selectedGroup={selectedGroup}
         grupos={grupos}
+      />
+      
+      <AutomaticDistribution
+        isVisible={showDistributionModal}
+        valor={transactionToDistribute?.valor || 0}
+        fecha={transactionToDistribute?.fecha || ""}
+        motivo={transactionToDistribute?.motivo || ""}
+        onDistribute={handleConfirmDistribution}
+        onCancel={handleCancelDistribution}
       />
     </AppLayout>
   );
