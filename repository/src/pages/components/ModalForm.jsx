@@ -178,6 +178,7 @@ function ModalForm({
       setIsLoading(false); // Desactivamos el spinner al finalizar
       closeModal();
       setModalError("");
+      setIsRecurrent(false);
     }
   };
 
@@ -223,6 +224,7 @@ function ModalForm({
   };
   const closeWindow = () => {
     setModalError("");
+    setIsRecurrent(false);
     closeModal();
   };
 

@@ -136,7 +136,7 @@ export default function TransactionsPage() {
   const [grupos, setGrupos] = useState([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
-  
+
   // Estados para distribución automática
   const [showDistributionModal, setShowDistributionModal] = useState(false);
   const [transactionToDistribute, setTransactionToDistribute] = useState(null);
@@ -391,6 +391,9 @@ export default function TransactionsPage() {
         tipoGasto: bodyTrans.tipoGasto,
         valor: bodyTrans.valor,
         frecuencia: "mensual",
+        nextExecution: new Date(new Date().setMonth(new Date().getMonth() + 1))
+          .toISOString()
+          .split("T")[0],
       };
       const response = await fetch(
         "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
@@ -421,7 +424,7 @@ export default function TransactionsPage() {
 
   const handleConfirmDistribution = async (shouldDistribute) => {
     setShowDistributionModal(false);
-    
+
     if (shouldDistribute && transactionToDistribute) {
       try {
         const result = await distributeIncomeAutomatically(
@@ -429,11 +432,13 @@ export default function TransactionsPage() {
           transactionToDistribute.fecha,
           transactionToDistribute.motivo
         );
-        
+
         if (result.success) {
           // Recargar transacciones para mostrar las nuevas transacciones distribuidas
           await getTransacciones();
-          alert(`Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`);
+          alert(
+            `Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`
+          );
         } else {
           alert(`Error en la distribución: ${result.error}`);
         }
@@ -442,7 +447,7 @@ export default function TransactionsPage() {
         alert("Error de conexión al distribuir el ingreso");
       }
     }
-    
+
     setTransactionToDistribute(null);
   };
 
@@ -766,7 +771,7 @@ export default function TransactionsPage() {
         selectedGroup={selectedGroup}
         grupos={grupos}
       />
-      
+
       <AutomaticDistribution
         isVisible={showDistributionModal}
         valor={transactionToDistribute?.valor || 0}

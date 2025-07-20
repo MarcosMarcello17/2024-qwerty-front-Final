@@ -39,11 +39,6 @@ const mainNavItems = [
     icon: Target,
   },
   {
-    title: "Automatización",
-    href: "/automatizacion",
-    icon: Bot,
-  },
-  {
     title: "Transacciones",
     href: "/transacciones",
     icon: ListChecks,

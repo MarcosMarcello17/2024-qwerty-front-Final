@@ -9,12 +9,15 @@ import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
 import { deletePendingTransaction } from "../functions/deletePendingTransaction";
+import { processRecurringTransactions } from "../functions/processRecurringTransactions";
 import {
   Filter,
   LayoutDashboard,
   Loader2,
   PlusCircle,
   XCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Select,
@@ -131,6 +134,8 @@ function HomePage() {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [showSubscriptions, setShowSubscriptions] = useState(true);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
   const handleGroupChange = (selectedOption) => {
     if (selectedOption && selectedOption.value === null) {
       setSelectedGroup(null); // Restablecer a null si se selecciona "Personal"
@@ -189,6 +194,7 @@ function HomePage() {
   useEffect(() => {
     fetchPersonalTipoGastos();
     fetchGrupos();
+    processRecurringOnLoad();
   }, []);
 
   useEffect(() => {
@@ -197,6 +203,30 @@ function HomePage() {
       setPosibleSub(recurringTransactions);
     }
   }, [transacciones]); // Se ejecuta cuando transacciones cambia
+
+  // Función para procesar transacciones recurrentes al cargar la página
+  const processRecurringOnLoad = async () => {
+    try {
+      const createdTransactions = await processRecurringTransactions();
+      if (createdTransactions.length > 0) {
+        console.log(
+          `Se crearon ${createdTransactions.length} transacciones recurrentes automáticamente`
+        );
+        // Refrescar las transacciones para mostrar las nuevas
+        const apiTransacciones = await getApiTransacciones();
+        if (apiTransacciones && apiTransacciones.transacciones) {
+          setTransacciones(apiTransacciones.transacciones);
+          setTransaccionesSinFiltroCat(
+            apiTransacciones.transacciones.filter(
+              (transaccion) => transaccion.categoria !== "Ingreso de Dinero"
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error al procesar transacciones recurrentes:", error);
+    }
+  };
 
   const fetchGrupos = async () => {
     setIsLoading(true);
@@ -463,6 +493,7 @@ function HomePage() {
         }
         closeModal();
         setSelectedGroup(null);
+        setShowSubscriptions(false); // Ocultar suscripciones al crear transacción
         if (isRecurrent) {
           await agregarTransaccionRecurrente({
             motivo,
@@ -830,7 +861,7 @@ function HomePage() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Filters
+                  <Filter className="mr-2 h-4 w-4" /> Filtrar
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card" align="end">
@@ -924,7 +955,53 @@ function HomePage() {
           </div>
         </div>
         {/* Mostrar suscripciones detectadas */}
-        <DetectedSubscriptions subs={posibleSub} />
+        {posibleSub.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">
+                Suscripciones Detectadas
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (!showSubscriptions) {
+                    setIsLoadingSubscriptions(true);
+                    setTimeout(() => {
+                      setShowSubscriptions(true);
+                      setIsLoadingSubscriptions(false);
+                    }, 300);
+                  } else {
+                    setShowSubscriptions(false);
+                  }
+                }}
+                className="text-white hover:text-primary"
+              >
+                {showSubscriptions ? (
+                  <>
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Ocultar
+                  </>
+                ) : (
+                  <>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Mostrar
+                  </>
+                )}
+              </Button>
+            </div>
+            {isLoadingSubscriptions ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
+                <span className="text-white text-sm">
+                  Cargando suscripciones...
+                </span>
+              </div>
+            ) : (
+              showSubscriptions && <DetectedSubscriptions subs={posibleSub} />
+            )}
+          </div>
+        )}
         {isLoadingFilter ? (
           <div className="flex flex-col items-center justify-center py-12 text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>

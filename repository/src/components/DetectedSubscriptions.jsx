@@ -31,6 +31,7 @@ export default function DetectedSubscriptions({ subs }) {
   const [loadingRecurrents, setLoadingRecurrents] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [recurrentToDelete, setRecurrentToDelete] = useState(null);
+  const [payCategories, setPayCategories] = useState([]);
 
   useEffect(() => {
     const fetchRecurrents = async () => {
@@ -40,9 +41,40 @@ export default function DetectedSubscriptions({ subs }) {
       setLoadingRecurrents(false);
     };
     fetchRecurrents();
+    fetchPersonalCategorias();
   }, []);
 
   if (!subs || subs.length === 0) return null;
+
+  const fetchPersonalCategorias = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const customOptions = data.map((cat) => ({
+          label: cat.nombre,
+          value: cat.nombre,
+          iconPath: cat.iconPath,
+        }));
+
+        setPayCategories([...categoriasDefault, ...customOptions]);
+      }
+    } catch (error) {
+      console.error("Error al obtener las categorías personalizadas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const onAdd = (sub) => {
     setSelectedSub(sub);
@@ -82,6 +114,9 @@ export default function DetectedSubscriptions({ subs }) {
         tipoGasto: medioPago,
         valor: transaccionMasReciente.valor,
         frecuencia: "mensual",
+        nextExecution: new Date(new Date().setMonth(new Date().getMonth() + 1))
+          .toISOString()
+          .split("T")[0],
       };
       const response = await fetch(
         "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
@@ -151,8 +186,9 @@ export default function DetectedSubscriptions({ subs }) {
       <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
         <BadgeCheck className="text-primary" /> Suscripciones detectadas
       </h2>
-      <ul className="space-y-2">
-        {subs.map((sub, idx) => {
+      {/* Filtrar suscripciones que ya están como transacciones recurrentes */}
+      {(() => {
+        const filteredSubs = subs.filter((sub) => {
           const isRecurrent =
             recurrents &&
             recurrents.some(
@@ -161,43 +197,34 @@ export default function DetectedSubscriptions({ subs }) {
                 r.motivo.trim().toLowerCase() ===
                   sub.descripcion.trim().toLowerCase()
             );
-          const subRecurrente = isRecurrent
-            ? recurrents.find(
-                (r) =>
-                  r.motivo.trim().toLowerCase() ===
-                  sub.descripcion.trim().toLowerCase()
-              )
-            : null;
+          return !isRecurrent; // Solo mostrar suscripciones que NO son recurrentes
+        });
+
+        if (filteredSubs.length === 0) {
           return (
-            <li
-              key={"sub-" + idx}
-              className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
-            >
-              <span className="font-semibold text-primary">
-                {sub.descripcion}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Recurrente en: {sub.meses.join(", ")}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                Total transacciones: {sub.transacciones.length}
-              </span>
-              <div className="flex-1 flex justify-end">
-                {isRecurrent ? (
-                  <Button
-                    className="flex items-center text-white text-xs bg-red-600 hover:bg-red-700"
-                    onClick={() => {
-                      setRecurrentToDelete(subRecurrente);
-                      setShowDeleteModal(true);
-                    }}
-                    title="Eliminar transacción recurrente"
-                    style={{ marginTop: 4 }}
-                    disabled={loading}
-                  >
-                    <X />
-                    Eliminar
-                  </Button>
-                ) : (
+            <div className="text-sm text-muted-foreground">
+              No se ha detectado ninguna nueva posible suscripcion.
+            </div>
+          );
+        }
+
+        return (
+          <ul className="space-y-2">
+            {filteredSubs.map((sub, idx) => (
+              <li
+                key={"sub-" + idx}
+                className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
+              >
+                <span className="font-semibold text-primary">
+                  {sub.descripcion}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Recurrente en: {sub.meses.join(", ")}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  Total transacciones: {sub.transacciones.length}
+                </span>
+                <div className="flex-1 flex justify-end">
                   <Button
                     className="flex items-center text-black text-xs"
                     onClick={() => onAdd(sub)}
@@ -206,12 +233,12 @@ export default function DetectedSubscriptions({ subs }) {
                   >
                     <PlusCircle className="w-4 h-4 mr-1" /> Agregar
                   </Button>
-                )}
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                </div>
+              </li>
+            ))}
+          </ul>
+        );
+      })()}
       <div className="text-xs text-muted-foreground mt-2">
         * Se detectan pagos recurrentes por nombre del motivo en los últimos 3
         meses.
@@ -285,7 +312,7 @@ export default function DetectedSubscriptions({ subs }) {
                 onChange={(e) => setCategoria(e.target.value)}
               >
                 <option value="">Selecciona una categoría</option>
-                {categoriasDefault.map((opt) => (
+                {payCategories.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>

@@ -25,7 +25,6 @@ export const getApiTransacciones = async (filtrado = "Todas", mes, ano) => {
     url += `?${params.join("&")}`;
   }
 
-  console.log(url);
   try {
     const response = await fetch(url, {
       method: "GET",

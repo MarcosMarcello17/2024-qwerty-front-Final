@@ -281,7 +281,10 @@ export default function GroupsPage() {
                       </CardDescription>
                     </CardContent>
                     <CardFooter className="justify-center">
-                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                      <Button
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                        onClick={() => setAddGrupoModalOpen(true)}
+                      >
                         <PlusCircle className="mr-2 h-4 w-4" /> Crear Grupo
                       </Button>
                     </CardFooter>
