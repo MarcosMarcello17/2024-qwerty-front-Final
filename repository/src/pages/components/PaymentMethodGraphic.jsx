@@ -28,6 +28,7 @@ function PaymentMethodGraphic({
   payCategories = [],
   payOptions = [],
   filtroMes = "",
+  filtroAno = "",
   filtroCategoria,
   loading = true,
   transaccionesSinFiltroCat,
@@ -42,9 +43,13 @@ function PaymentMethodGraphic({
   const [transaccionesRestantes, setTransaccionesRestantes] = useState([]);
 
   useEffect(() => {
-    const currentYear = new Date().getFullYear();
+    // Determinar el año a filtrar
+    const targetYear = filtroAno === "00" || !filtroAno 
+      ? new Date().getFullYear() 
+      : parseInt(filtroAno);
+    
     const transaccionesDelAnio = transacciones.filter(
-      (transaccion) => new Date(transaccion.fecha).getFullYear() === currentYear
+      (transaccion) => new Date(transaccion.fecha).getFullYear() === targetYear
     );
 
     const gastos =
@@ -58,7 +63,7 @@ function PaymentMethodGraphic({
     const transaccionesSinFiltroCatDelAnio =
       transaccionesSinFiltroCat?.filter(
         (transaccion) =>
-          new Date(transaccion.fecha).getFullYear() === currentYear
+          new Date(transaccion.fecha).getFullYear() === targetYear
       ) || [];
 
     let transaccionesConOtros = gastos;
@@ -69,23 +74,6 @@ function PaymentMethodGraphic({
       filtroCategoria !== "Ingreso de Dinero"
     ) {
       const transaccionesFiltradas = transaccionesSinFiltroCatDelAnio
-        .filter(
-          (transaccion) =>
-            transaccion.categoria !== "Ingreso de Dinero" &&
-            transaccion.categoria !== filtroCategoria
-        )
-        .map((transaccion) => ({
-          ...transaccion,
-          categoria: "Otros",
-        }));
-      transaccionesConOtros = [...gastos, ...transaccionesFiltradas];
-    }
-    if (
-      filtroCategoria &&
-      filtroCategoria !== "Todas" &&
-      filtroCategoria !== "Ingreso de Dinero"
-    ) {
-      const transaccionesFiltradas = transaccionesSinFiltroCat
         .filter(
           (transaccion) =>
             transaccion.categoria !== "Ingreso de Dinero" &&
@@ -119,16 +107,16 @@ function PaymentMethodGraphic({
       new Date(2024, index).toLocaleString("default", { month: "short" })
     );
 
-    const allDays = (month) => {
-      const daysInMonth = new Date(2024, month + 1, 0).getDate();
+    const allDays = (month, year) => {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
       return Array.from({ length: daysInMonth }, (_, index) => index + 1);
     };
 
     let newDataLine;
 
-    if (filtroMes) {
+    if (filtroMes && filtroMes !== "00") {
       const selectedMonth = parseInt(filtroMes, 10) - 1;
-      const days = allDays(selectedMonth);
+      const days = allDays(selectedMonth, targetYear);
 
       const gastosPorDia = gastos.reduce((acc, transaccion) => {
         const fecha = new Date(transaccion.fecha);
@@ -146,8 +134,12 @@ function PaymentMethodGraphic({
       }));
     } else {
       const gastosPorMes = gastos.reduce((acc, transaccion) => {
-        const mes = new Date(transaccion.fecha).getUTCMonth(); // Usar UTC para el mes
-        acc[mes] = (acc[mes] || 0) + transaccion.valor;
+        const fecha = new Date(transaccion.fecha);
+        // Solo incluir transacciones del año objetivo
+        if (fecha.getUTCFullYear() === targetYear) {
+          const mes = fecha.getUTCMonth(); // Usar UTC para el mes
+          acc[mes] = (acc[mes] || 0) + transaccion.valor;
+        }
         return acc;
       }, {});
 
@@ -174,7 +166,7 @@ function PaymentMethodGraphic({
 
     setDataLine(newDataLine);
     setLoadingg(false);
-  }, [payCategories, transacciones, filtroMes, filtroCategoria]);
+  }, [payCategories, transacciones, filtroMes, filtroCategoria, filtroAno, transaccionesSinFiltroCat]);
 
   const COLORS = [
     "#0088FE",

@@ -173,6 +173,7 @@ function HomePage() {
   };
 
   useEffect(() => {
+    setIsLoadingFilter(true); // Mostrar cargando cuando cambian los filtros
     getTransacciones(categoriaSeleccionada); //aplicar un filtro local
     setLoadGraphic(false);
   }, [categoriaSeleccionada, filtroMes, filtroAno]);
@@ -390,9 +391,11 @@ function HomePage() {
   };
 
   const resetFilters = () => {
+    setIsLoadingFilter(true); // Mostrar cargando al resetear filtros
     setCategoriaSeleccionada("Todas");
     setFiltroAno("00");
     setFiltroMes("00");
+    setIsLoadingFilter(false);
   };
 
   const clearForm = () => {
@@ -843,7 +846,10 @@ function HomePage() {
                   <div className="grid gap-2">
                     <Select
                       value={categoriaSeleccionada}
-                      onValueChange={setCategoriaSeleccionada}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setCategoriaSeleccionada(value);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar Categoría" />
@@ -856,7 +862,13 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                    <Select
+                      value={filtroMes}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setFiltroMes(value);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Month" />
                       </SelectTrigger>
@@ -868,7 +880,13 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                    <Select
+                      value={filtroAno}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setFiltroAno(value);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Year" />
                       </SelectTrigger>
@@ -937,6 +955,9 @@ function HomePage() {
                   transacciones={transacciones}
                   payCategories={payOptions}
                   loading={loadGraphic}
+                  filtroMes={filtroMes}
+                  filtroAno={filtroAno}
+                  filtroCategoria={categoriaSeleccionada}
                 />
               )}
           </div>
