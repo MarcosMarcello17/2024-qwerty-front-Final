@@ -4,6 +4,7 @@ import ModalForm from "./components/ModalForm";
 import "./styles/HomePage.css";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
+import DetectedSubscriptions from "../components/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
@@ -192,9 +193,6 @@ function HomePage() {
     if (transacciones.length > 0) {
       const recurringTransactions = detectRecurringTransactions(transacciones);
       setPosibleSub(recurringTransactions);
-      if (recurringTransactions[0] != null) {
-        document.getElementById("newSubModal").showModal();
-      }
     }
   }, [transacciones]); // Se ejecuta cuando transacciones cambia
 
@@ -813,6 +811,8 @@ function HomePage() {
             </Button>
           </div>
         </div>
+        {/* Mostrar suscripciones detectadas */}
+        <DetectedSubscriptions subs={posibleSub} />
         {isLoadingFilter ? (
           <div className="flex flex-col items-center justify-center py-12 text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
