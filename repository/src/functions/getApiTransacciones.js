@@ -1,15 +1,31 @@
 export const getApiTransacciones = async (filtrado = "Todas", mes, ano) => {
-  const filtroMes = mes == "00" ? "" : mes;
-  const filtroAno = ano == "00" ? "" : ano;
+  const filtroMes = mes === "00" ? "" : mes;
+  const filtroAno = ano === "00" ? "" : ano;
   let transacciones = [];
   let transaccionesSinFiltroCat = [];
   const token = localStorage.getItem("token");
   let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user/filter`;
-  if (filtrado !== "Todas" || filtroMes || filtroAno) {
-    url += `?categoria=${filtrado}`;
-    if (filtroMes) url += `&mes=${filtroMes}`;
-    if (filtroAno) url += `&anio=${filtroAno}`;
+
+  // Construir parámetros de query solo cuando hay filtros válidos
+  const params = [];
+
+  if (filtrado !== "Todas") {
+    params.push(`categoria=${filtrado}`);
   }
+
+  if (filtroMes) {
+    params.push(`mes=${filtroMes}`);
+  }
+
+  if (filtroAno) {
+    params.push(`anio=${filtroAno}`);
+  }
+
+  if (params.length > 0) {
+    url += `?${params.join("&")}`;
+  }
+
+  console.log(url);
   try {
     const response = await fetch(url, {
       method: "GET",

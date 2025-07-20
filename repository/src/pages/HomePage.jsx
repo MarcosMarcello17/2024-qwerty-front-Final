@@ -8,6 +8,7 @@ import DetectedSubscriptions from "../components/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
+import { deletePendingTransaction } from "../functions/deletePendingTransaction";
 import {
   Filter,
   LayoutDashboard,
@@ -119,8 +120,8 @@ function HomePage() {
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [pendTran, setPendTran] = useState(false);
-  const [filtroMes, setFiltroMes] = useState(""); // Ej: "10" para octubre
-  const [filtroAno, setFiltroAno] = useState(""); //
+  const [filtroMes, setFiltroMes] = useState("00"); // Ej: "10" para octubre
+  const [filtroAno, setFiltroAno] = useState("00"); //
   const [filterEmpty, setFilterEmpty] = useState(false);
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
@@ -244,7 +245,7 @@ function HomePage() {
       data = data.filter(
         (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro"
       );
-      if (data[0] != null) {
+      if (data[0] !== null && data[0] !== undefined) {
         setTranPendiente(data[0]);
         setPendTran(true);
       }
@@ -390,8 +391,8 @@ function HomePage() {
 
   const resetFilters = () => {
     setCategoriaSeleccionada("Todas");
-    setFiltroAno("2025");
-    setFiltroMes("");
+    setFiltroAno("00");
+    setFiltroMes("00");
   };
 
   const clearForm = () => {
@@ -412,7 +413,7 @@ function HomePage() {
     let bodyJson = "";
     let url = "";
     setTransaccionesCargadas(false);
-    if (selectedGroup == null) {
+    if (selectedGroup === null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
       url = edit
         ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
@@ -443,7 +444,7 @@ function HomePage() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (selectedGroup == null) {
+        if (selectedGroup === null) {
           if (edit) {
             const updatedTransacciones = transacciones.map((t) =>
               t.id === data.id ? data : t
@@ -469,10 +470,16 @@ function HomePage() {
           });
         }
       } else {
-        console.log("la respuesta no fue ok");
+        console.error(
+          "Error al crear transacción:",
+          response.status,
+          response.statusText
+        );
+        setError("Error al procesar la transacción.");
       }
     } catch (err) {
-      console.log(err);
+      console.error("Error en la solicitud:", err);
+      setError("Error de red al procesar la transacción.");
     } finally {
       setTransaccionesCargadas(true);
       if (!edit) {
@@ -526,12 +533,15 @@ function HomePage() {
     )
       .then((response) => response.json())
       .then((data) => {
-        if (data == 1 || data == 5 || data == 10) {
+        if (data === 1 || data === 5 || data === 10) {
           setAchievementData(data);
           setShowNotification(true);
         } else {
           console.log(data);
         }
+      })
+      .catch((error) => {
+        console.error("Error checking achievements:", error);
       });
   };
 
@@ -626,7 +636,7 @@ function HomePage() {
     setTransaccionesCargadas(false);
     let url =
       "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
-    if (transaccion.id_reserva == "Cobro") {
+    if (transaccion.id_reserva === "Cobro") {
       url += "/crearPago/" + transaccion.sentByEmail;
       const motivo = transaccion.motivo;
       const valor = transaccion.valor;
@@ -647,15 +657,23 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha)
           );
           setTransacciones(updatedTransacciones);
+        } else {
+          console.error(
+            "Error al crear pago:",
+            response.status,
+            response.statusText
+          );
+          setError("Error al procesar la transacción de cobro.");
         }
       } catch (err) {
-        console.log(err);
+        console.error("Error en la solicitud de cobro:", err);
+        setError("Error de red al procesar la transacción.");
       } finally {
         setTransaccionesCargadas(true);
       }
-    } else if (transaccion.id_reserva == "Pago") {
+    } else if (transaccion.id_reserva === "Pago") {
       console.log("Transaccion Aprobada");
-    } else if (transaccion.id_reserva == "Grupo") {
+    } else if (transaccion.id_reserva === "Grupo") {
       url =
         "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
       const grupoId = transaccion.grupoId;
@@ -672,10 +690,19 @@ function HomePage() {
         if (response.ok) {
           console.log("Usuario agregado al grupo exitosamente.");
         } else {
-          console.log("Hubo un problema al agregar el usuario al grupo.");
+          console.error(
+            "Error al agregar usuario al grupo:",
+            response.status,
+            response.statusText
+          );
+          setError("Hubo un problema al agregar el usuario al grupo.");
         }
       } catch (err) {
-        console.log("Error en la solicitud de agregar usuario al grupo:", err);
+        console.error(
+          "Error en la solicitud de agregar usuario al grupo:",
+          err
+        );
+        setError("Error de red al procesar la solicitud de grupo.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -684,7 +711,7 @@ function HomePage() {
       let motivo = transaccion.motivo;
       let valor = transaccion.valor;
       let fecha = transaccion.fecha;
-      categoria = "Clase";
+      let categoriaTransaccion = categoria || "Clase";
       try {
         //hacer chequeos de que pase bien las cosas en el back!
         const response = await fetch(url, {
@@ -693,7 +720,12 @@ function HomePage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ motivo, valor, fecha, categoria }),
+          body: JSON.stringify({
+            motivo,
+            valor,
+            fecha,
+            categoria: categoriaTransaccion,
+          }),
         });
 
         if (response.ok) {
@@ -703,9 +735,17 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha)
           );
           setTransacciones(updatedTransacciones);
+        } else {
+          console.error(
+            "Error al crear transacción:",
+            response.status,
+            response.statusText
+          );
+          setError("Error al procesar la transacción.");
         }
       } catch (err) {
-        // habria que avisar que hubo un error en aceptar la transaccion o algo
+        console.error("Error en la solicitud de transacción:", err);
+        setError("Error de red al procesar la transacción.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -715,7 +755,10 @@ function HomePage() {
   const isAccepted = async (transaction, categoria, tipoGasto) => {
     await aceptarTransaccion(transaction, categoria, tipoGasto);
     eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+    if (
+      transaction.id_reserva !== "Cobro" &&
+      transaction.id_reserva !== "Pago"
+    ) {
       enviarRespuesta("aceptada", transaction.id_reserva);
     }
     setPendTran(false);
@@ -723,7 +766,10 @@ function HomePage() {
 
   const isRejected = (transaction) => {
     eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+    if (
+      transaction.id_reserva !== "Cobro" &&
+      transaction.id_reserva !== "Pago"
+    ) {
       enviarRespuesta("rechazada", transaction.id_reserva);
     }
     setPendTran(false);
@@ -745,10 +791,18 @@ function HomePage() {
       });
 
       if (response.ok) {
-        //
+        console.log("Respuesta enviada exitosamente");
+      } else {
+        console.error(
+          "Error al enviar respuesta:",
+          response.status,
+          response.statusText
+        );
+        setError("Error al enviar la respuesta.");
       }
     } catch (err) {
-      // habria que avisar que hubo un error en aceptar la transaccion o algo
+      console.error("Error en la solicitud de respuesta:", err);
+      setError("Error de red al enviar la respuesta.");
     } finally {
       setTransaccionesCargadas(true);
     }
@@ -862,12 +916,13 @@ function HomePage() {
           </div>
         ) : transacciones.length > 0 ? (
           <div className="flex flex-col gap-6 w-full  mx-auto">
-            {transacciones && !loadGraphic && transacciones[0] && (
+            {transacciones && !loadGraphic && transacciones.length > 0 && (
               <MonthlyGraphic
                 type="categorias"
                 transacciones={transacciones}
                 payCategories={payCategories}
                 filtroMes={filtroMes}
+                filtroAno={filtroAno}
                 filtroCategoria={categoriaSeleccionada}
                 loading={loadGraphic}
                 transaccionesSinFiltroCat={transaccionesSinFiltroCat}
@@ -876,7 +931,7 @@ function HomePage() {
 
             {transaccionesCargadas &&
               !loadGraphic &&
-              transacciones[0] != null && (
+              transacciones.length > 0 && (
                 <PaymentMethodGraphic
                   type="tipoGasto"
                   transacciones={transacciones}
