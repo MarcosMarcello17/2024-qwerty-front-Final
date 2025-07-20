@@ -147,6 +147,7 @@ export default function DetectedSubscriptions({ subs }) {
 
   return (
     <div className="bg-card p-4 rounded-lg shadow-lg mb-6">
+      {/* Suscripciones detectadas */}
       <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
         <BadgeCheck className="text-primary" /> Suscripciones detectadas
       </h2>
@@ -169,7 +170,7 @@ export default function DetectedSubscriptions({ subs }) {
             : null;
           return (
             <li
-              key={idx}
+              key={"sub-" + idx}
               className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
             >
               <span className="font-semibold text-primary">
@@ -215,6 +216,55 @@ export default function DetectedSubscriptions({ subs }) {
         * Se detectan pagos recurrentes por nombre del motivo en los últimos 3
         meses.
       </div>
+
+      {/* Transacciones recurrentes */}
+      <h2 className="text-xl font-bold mb-2 flex items-center gap-2 mt-6">
+        <BadgeCheck className="text-primary" /> Transacciones recurrentes
+      </h2>
+      {loadingRecurrents ? (
+        <div className="text-sm text-muted-foreground">
+          Cargando transacciones recurrentes...
+        </div>
+      ) : recurrents && recurrents.length > 0 ? (
+        <ul className="space-y-2">
+          {recurrents.map((rec, idx) => (
+            <li
+              key={"rec-" + idx}
+              className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
+            >
+              <span className="font-semibold text-primary">{rec.motivo}</span>
+              <span className="text-xs text-muted-foreground">
+                Categoría: {rec.categoria || "-"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Medio de pago: {rec.tipoGasto || "-"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Valor: {rec.valor}
+              </span>
+              <div className="flex-1 flex justify-end">
+                <Button
+                  className="flex items-center text-white text-xs bg-red-600 hover:bg-red-700"
+                  onClick={() => {
+                    setRecurrentToDelete(rec);
+                    setShowDeleteModal(true);
+                  }}
+                  title="Eliminar transacción recurrente"
+                  style={{ marginTop: 4 }}
+                  disabled={loading}
+                >
+                  <X />
+                  Eliminar
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="text-sm text-muted-foreground">
+          No hay transacciones recurrentes registradas.
+        </div>
+      )}
 
       {/* Modal para crear transacción recurrente */}
       {showModal && (

@@ -406,7 +406,7 @@ function HomePage() {
     });
   };
 
-  const agregarTransaccion = async (e, categoria) => {
+  const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     let bodyJson = "";
@@ -459,6 +459,15 @@ function HomePage() {
         }
         closeModal();
         setSelectedGroup(null);
+        if (isRecurrent) {
+          await agregarTransaccionRecurrente({
+            motivo,
+            valor,
+            fecha,
+            categoria,
+            tipoGasto,
+          });
+        }
       } else {
         console.log("la respuesta no fue ok");
       }
@@ -469,6 +478,37 @@ function HomePage() {
       if (!edit) {
         checkTransaccionAchievment();
       }
+    }
+  };
+
+  const agregarTransaccionRecurrente = async (bodyTrans) => {
+    try {
+      const token = localStorage.getItem("token");
+      const body = {
+        motivo: bodyTrans.motivo,
+        categoria: bodyTrans.categoria,
+        tipoGasto: bodyTrans.tipoGasto,
+        valor: bodyTrans.valor,
+        frecuencia: "mensual",
+      };
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      if (response.ok) {
+        console.log("Transaccion Recurrente creada");
+      } else {
+        setError("Error al crear la transacción recurrente.");
+      }
+    } catch (err) {
+      setError("Error de red.");
     }
   };
 

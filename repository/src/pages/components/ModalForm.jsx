@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-modal";
 import Select from "react-select";
 import "./styles/ModalForm.css";
 import ModalCategoria from "./ModalCategoria";
 import CreatableSelect from "react-select/creatable";
+import { Repeat } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 function ModalForm({
   isModalOpen,
@@ -28,6 +30,7 @@ function ModalForm({
   selectedGroup,
   grupos,
 }) {
+  const [isRecurrent, setIsRecurrent] = useState(false);
   const customStyles = {
     overlay: {
       position: "fixed",
@@ -135,7 +138,7 @@ function ModalForm({
     }
     setIsLoading(true);
     try {
-      await agregarTransaccion(e, selectedCategory.value); // Espera a que se complete la transacción
+      await agregarTransaccion(e, selectedCategory.value, isRecurrent);
     } catch (error) {
       console.error("Error al agregar transacción:", error);
     } finally {
@@ -301,6 +304,27 @@ function ModalForm({
               className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
             />
           )}
+        </div>
+        <div className="flex items-center bg-[#0a223a] rounded-lg p-4 mt-2 mb-2 border border-[#132c47]">
+          <div className="flex-shrink-0">
+            <Repeat className="h-6 w-6 text-[#b5e0ff] mr-3" />
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-white text-base">
+                Activar Transaccion Recurrente
+              </span>
+              <Switch
+                checked={isRecurrent}
+                onCheckedChange={() => setIsRecurrent(!isRecurrent)}
+                className="ml-4"
+              />
+            </div>
+            <p className="text-sm text-[#b5e0ff] mt-1">
+              Si se activa, esta transaccion se registrara automaticamente todos
+              los meses
+            </p>
+          </div>
         </div>
         {modalError && (
           <div className="text-red-500 text-sm text-center">{modalError}</div>
