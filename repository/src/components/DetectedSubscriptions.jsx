@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { BadgeCheck, PlusCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { BadgeCheck, PlusCircle, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { getApiRecurrents } from "../functions/getApiRecurrents";
 
 // Puedes ajustar estas opciones según tu app
 const categoriasDefault = [
@@ -26,6 +27,20 @@ export default function DetectedSubscriptions({ subs }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [recurrents, setRecurrents] = useState([]);
+  const [loadingRecurrents, setLoadingRecurrents] = useState(true);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recurrentToDelete, setRecurrentToDelete] = useState(null);
+
+  useEffect(() => {
+    const fetchRecurrents = async () => {
+      setLoadingRecurrents(true);
+      const data = await getApiRecurrents();
+      setRecurrents(data);
+      setLoadingRecurrents(false);
+    };
+    fetchRecurrents();
+  }, []);
 
   if (!subs || subs.length === 0) return null;
 
@@ -82,11 +97,49 @@ export default function DetectedSubscriptions({ subs }) {
       if (response.ok) {
         setSuccess("Transacción recurrente creada con éxito.");
         handleClose();
+        // Refrescar recurrents
+        const data = await getApiRecurrents();
+        setRecurrents(data);
       } else {
         setError("Error al crear la transacción recurrente.");
       }
     } catch (err) {
       setError("Error de red.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Eliminar transacción recurrente
+  const handleDeleteRecurrent = async () => {
+    if (!recurrentToDelete) return;
+    setError("");
+    setSuccess("");
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents/${recurrentToDelete.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (response.ok) {
+        setSuccess("Transacción recurrente eliminada con éxito.");
+        setShowDeleteModal(false);
+        setRecurrentToDelete(null);
+        // Refrescar recurrents
+        const data = await getApiRecurrents();
+        setRecurrents(data);
+      } else {
+        setError("Error al eliminar la transacción recurrente.");
+      }
+    } catch (err) {
+      setError("Error de red al eliminar.");
     } finally {
       setLoading(false);
     }
@@ -98,39 +151,72 @@ export default function DetectedSubscriptions({ subs }) {
         <BadgeCheck className="text-primary" /> Suscripciones detectadas
       </h2>
       <ul className="space-y-2">
-        {subs.map((sub, idx) => (
-          <li
-            key={idx}
-            className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
-          >
-            <span className="font-semibold text-primary">
-              {sub.descripcion}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Recurrente en: {sub.meses.join(", ")}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              Total transacciones: {sub.transacciones.length}
-            </span>
-            <div className="flex-1 flex justify-end">
-              <Button
-                className="flex items-center text-black text-xs"
-                onClick={() => onAdd(sub)}
-                title="Agregar como recurrente"
-                style={{ marginTop: 4 }}
-              >
-                <PlusCircle className="w-4 h-4 mr-1" /> Agregar
-              </Button>
-            </div>
-          </li>
-        ))}
+        {subs.map((sub, idx) => {
+          const isRecurrent =
+            recurrents &&
+            recurrents.some(
+              (r) =>
+                r.motivo &&
+                r.motivo.trim().toLowerCase() ===
+                  sub.descripcion.trim().toLowerCase()
+            );
+          const subRecurrente = isRecurrent
+            ? recurrents.find(
+                (r) =>
+                  r.motivo.trim().toLowerCase() ===
+                  sub.descripcion.trim().toLowerCase()
+              )
+            : null;
+          return (
+            <li
+              key={idx}
+              className="flex flex-col md:flex-row md:items-center md:gap-4 bg-muted p-2 rounded"
+            >
+              <span className="font-semibold text-primary">
+                {sub.descripcion}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Recurrente en: {sub.meses.join(", ")}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Total transacciones: {sub.transacciones.length}
+              </span>
+              <div className="flex-1 flex justify-end">
+                {isRecurrent ? (
+                  <Button
+                    className="flex items-center text-white text-xs bg-red-600 hover:bg-red-700"
+                    onClick={() => {
+                      setRecurrentToDelete(subRecurrente);
+                      setShowDeleteModal(true);
+                    }}
+                    title="Eliminar transacción recurrente"
+                    style={{ marginTop: 4 }}
+                    disabled={loading}
+                  >
+                    <X />
+                    Eliminar
+                  </Button>
+                ) : (
+                  <Button
+                    className="flex items-center text-black text-xs"
+                    onClick={() => onAdd(sub)}
+                    title="Agregar como recurrente"
+                    style={{ marginTop: 4 }}
+                  >
+                    <PlusCircle className="w-4 h-4 mr-1" /> Agregar
+                  </Button>
+                )}
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <div className="text-xs text-muted-foreground mt-2">
         * Se detectan pagos recurrentes por nombre del motivo en los últimos 3
         meses.
       </div>
 
-      {/* Modal */}
+      {/* Modal para crear transacción recurrente */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl relative">
@@ -189,6 +275,40 @@ export default function DetectedSubscriptions({ subs }) {
                 disabled={loading}
               >
                 {loading ? "Creando..." : "Crear transacción recurrente"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación para eliminar transacción recurrente */}
+      {showDeleteModal && recurrentToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl relative">
+            <h3 className="text-lg font-bold mb-2 text-white">
+              Confirmar eliminación
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              ¿Estás seguro que deseas eliminar la transacción recurrente "
+              {recurrentToDelete.motivo}"?
+            </p>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setRecurrentToDelete(null);
+                }}
+                className="bg-background text-white"
+                disabled={loading}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleDeleteRecurrent}
+                className="bg-red-600 text-white hover:bg-red-700"
+                disabled={loading}
+              >
+                {loading ? "Eliminando..." : "Eliminar"}
               </Button>
             </div>
           </div>
