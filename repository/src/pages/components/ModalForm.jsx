@@ -444,15 +444,16 @@ function ModalForm({
                 strokeLinejoin="round"
                 className="mr-2 text-blue-400"
               >
-                <circle cx="12" cy="12" r="10"/>
-                <path d="m9 12 2 2 4-4"/>
+                <circle cx="12" cy="12" r="10" />
+                <path d="m9 12 2 2 4-4" />
               </svg>
               <span className="font-medium text-blue-200 text-sm">
                 Distribución Automática
               </span>
             </div>
             <p className="text-xs text-blue-300">
-              Puedes usar la distribución automática desde la tabla de transacciones después de guardar los cambios
+              Puedes usar la distribución automática desde la tabla de
+              transacciones después de guardar los cambios
             </p>
           </div>
         )}
@@ -512,7 +513,7 @@ function ModalForm({
         transaction={{
           valor: parseFloat(valor) || 0,
           fecha: fecha,
-          motivo: motivo || "Distribución automática"
+          motivo: motivo || "Distribución automática",
         }}
         onDistribute={handleConfirmDistribution}
         onCancel={handleCancelDistribution}

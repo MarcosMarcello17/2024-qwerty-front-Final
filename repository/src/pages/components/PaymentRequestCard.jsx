@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   CircleUserRound,
   ThumbsUp,
+  Loader2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -54,6 +55,8 @@ export function PaymentRequestCard({
   onCancel = () => {},
   onRemind = () => {},
   payCategories,
+  isProcessing = false,
+  disabled = false,
 }) {
   const [categoria, setCategoria] = useState("");
   const [payOption, setPayOption] = useState("");
@@ -154,8 +157,14 @@ export function PaymentRequestCard({
                   <Button
                     size="sm"
                     className="bg-green-600 hover:bg-green-700 text-white"
+                    disabled={disabled || isProcessing}
                   >
-                    <Check className="mr-2 h-4 w-4" /> Aceptar
+                    {isProcessing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="mr-2 h-4 w-4" />
+                    )}
+                    {isProcessing ? "Procesando..." : "Aceptar"}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-card">
@@ -184,8 +193,16 @@ export function PaymentRequestCard({
                     <AlertDialogAction
                       onClick={() => onPay(transaction)}
                       className={cn(buttonVariants({ variant: "default" }))}
+                      disabled={disabled || isProcessing}
                     >
-                      Aceptar
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Procesando...
+                        </>
+                      ) : (
+                        "Aceptar"
+                      )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -196,8 +213,13 @@ export function PaymentRequestCard({
             <div className="flex gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="ghost">
-                    <Send className="mr-2 h-4 w-4" /> Pagar
+                  <Button size="sm" variant="ghost" disabled={disabled || isProcessing}>
+                    {isProcessing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="mr-2 h-4 w-4" />
+                    )}
+                    {isProcessing ? "Procesando..." : "Pagar"}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-card">
@@ -231,6 +253,7 @@ export function PaymentRequestCard({
                       value={categoria}
                       onChange={(e) => setCategoria(e.target.value)}
                       className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                      disabled={disabled || isProcessing}
                     >
                       <option value="">Selecciona una categoría</option>
                       {payCategories.map((cat) => (
@@ -247,6 +270,7 @@ export function PaymentRequestCard({
                       value={payOption}
                       onChange={(e) => setPayOption(e.target.value)}
                       className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                      disabled={disabled || isProcessing}
                     >
                       <option value="">Selecciona una Tipo de Gasto</option>
                       {payOptions.map((cat) => (
@@ -258,14 +282,25 @@ export function PaymentRequestCard({
                   </div>
 
                   <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => onDecline(transaction)}>
+                    <AlertDialogCancel 
+                      onClick={() => onDecline(transaction)}
+                      disabled={disabled || isProcessing}
+                    >
                       Rechazar
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handlePayment()}
                       className="bg-primary"
+                      disabled={disabled || isProcessing}
                     >
-                      Pagar
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Procesando...
+                        </>
+                      ) : (
+                        "Pagar"
+                      )}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

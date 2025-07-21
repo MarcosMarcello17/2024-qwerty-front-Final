@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { HandCoins, PlusCircle, Send } from "lucide-react";
+import { HandCoins, PlusCircle, Send, Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
@@ -143,16 +143,33 @@ export default function PaymentsPage() {
   const [isRequestFormOpen, setIsRequestFormOpen] = useState(false);
   const [isSendFormOpen, setIsSendFormOpen] = useState(false);
   const [payCategories, setPayCategories] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isTransactionLoading, setIsTransactionLoading] = useState(false);
+  const [processingTransactionId, setProcessingTransactionId] = useState(null);
   const [tranPend, setTranPend] = useState([]);
   const [tranPendCobro, setTranPendCobro] = useState([]);
 
   useEffect(() => {
-    fetchPersonalCategorias();
-    showTransactionsPendientes();
+    const loadInitialData = async () => {
+      setIsLoading(true);
+      try {
+        await Promise.all([
+          fetchPersonalCategorias(),
+          showTransactionsPendientes()
+        ]);
+      } catch (error) {
+        console.error("Error loading initial data:", error);
+        toast.error("Error al cargar los datos iniciales");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadInitialData();
   }, []);
 
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
+    setProcessingTransactionId(transaccion.id);
     const token = localStorage.getItem("token");
     let url =
       "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
@@ -172,45 +189,72 @@ export default function PaymentsPage() {
         });
         if (response.ok) {
           const data = await response.json();
-          toast({
-            title: "Transaccion aceptada",
-            description:
-              "Puede observar la transaccion en la pagina de transacciones",
+          toast.success("Transacción aceptada", {
+            description: "Puede observar la transacción en la página de transacciones",
           });
+        } else {
+          throw new Error("Error al procesar la transacción");
         }
       } catch (err) {
         console.log(err);
+        toast.error("Error al procesar la transacción");
       }
     } else if (transaccion.id_reserva == "Pago") {
-      toast({
-        title: "Transaccion aceptada",
-        description:
-          "Puede observar la transaccion en la pagina de transacciones",
+      toast.success("Transacción aceptada", {
+        description: "Puede observar la transacción en la página de transacciones",
       });
     }
+    setProcessingTransactionId(null);
   };
 
   const isAccepted = async (transaction, categoria = "", tipoGasto = "") => {
-    await aceptarTransaccion(transaction, categoria, tipoGasto);
-    eliminarTransaccionPendiente(transaction.id);
-    showTransactionsPendientes();
+    setIsTransactionLoading(true);
+    try {
+      await aceptarTransaccion(transaction, categoria, tipoGasto);
+      await eliminarTransaccionPendiente(transaction.id);
+      await showTransactionsPendientes();
+    } catch (error) {
+      console.error("Error processing transaction:", error);
+      toast.error("Error al procesar la transacción");
+    } finally {
+      setIsTransactionLoading(false);
+    }
   };
 
   const eliminarTransaccionPendiente = async (id) => {
-    const tranEliminada = await deletePendingTransaction(id);
-    tranEliminada ? showTransactionsPendientes() : console.log("Error");
+    try {
+      const tranEliminada = await deletePendingTransaction(id);
+      if (!tranEliminada) {
+        throw new Error("Error al eliminar transacción");
+      }
+      return tranEliminada;
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      toast.error("Error al eliminar la transacción");
+      throw error;
+    }
   };
 
-  const isRejected = (transaction) => {
-    eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
-      enviarRespuesta("rechazada", transaction.id_reserva);
+  const isRejected = async (transaction) => {
+    setIsTransactionLoading(true);
+    setProcessingTransactionId(transaction.id);
+    try {
+      await eliminarTransaccionPendiente(transaction.id);
+      if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+        // enviarRespuesta("rechazada", transaction.id_reserva); // Commented out as function not defined
+      }
+      await showTransactionsPendientes();
+      toast.success("Transacción rechazada");
+    } catch (error) {
+      console.error("Error rejecting transaction:", error);
+      toast.error("Error al rechazar la transacción");
+    } finally {
+      setIsTransactionLoading(false);
+      setProcessingTransactionId(null);
     }
-    setPendTran(false);
   };
 
   const fetchPersonalCategorias = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -231,9 +275,14 @@ export default function PaymentsPage() {
         }));
 
         setPayCategories([...payCategoriesDefault, ...customOptions]);
+      } else {
+        throw new Error("Error al obtener categorías");
       }
     } catch (error) {
       console.error("Error al obtener las categorías personalizadas:", error);
+      toast.error("Error al cargar las categorías");
+      // Set default categories if there's an error
+      setPayCategories(payCategoriesDefault);
     }
   };
 
@@ -259,6 +308,10 @@ export default function PaymentsPage() {
       setTranPendCobro(data.filter((item) => item.id_reserva === "Cobro"));
     } catch (err) {
       console.error("Error fetching transactions:", err);
+      toast.error("Error al cargar las transacciones pendientes");
+      // Set empty arrays if there's an error
+      setTranPend([]);
+      setTranPendCobro([]);
     } finally {
       console.log("FIN PROCESO");
     }
@@ -277,7 +330,7 @@ export default function PaymentsPage() {
           <div className="flex items-center space-x-2">
             <Dialog open={isSendFormOpen} onOpenChange={setIsSendFormOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline">
+                <Button variant="outline" disabled={isLoading}>
                   <Send className="mr-2 h-4 w-4" /> Enviar Pago
                 </Button>
               </DialogTrigger>
@@ -293,6 +346,10 @@ export default function PaymentsPage() {
                 <ModalSendPayment
                   closeModal={() => setIsSendFormOpen(false)}
                   payCategories={payCategories}
+                  onSuccess={() => {
+                    setIsSendFormOpen(false);
+                    showTransactionsPendientes();
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -301,7 +358,10 @@ export default function PaymentsPage() {
               onOpenChange={setIsRequestFormOpen}
             >
               <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                <Button 
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                  disabled={isLoading}
+                >
                   <PlusCircle className="mr-2 h-4 w-4" /> Solicitar Pago
                 </Button>
               </DialogTrigger>
@@ -316,78 +376,105 @@ export default function PaymentsPage() {
                 </DialogHeader>
                 <ModalAskPayment
                   closeModal={() => setIsRequestFormOpen(false)}
+                  onSuccess={() => {
+                    setIsRequestFormOpen(false);
+                    showTransactionsPendientes();
+                  }}
                 />
               </DialogContent>
             </Dialog>
           </div>
         </div>
 
-        <Tabs defaultValue="incoming-requests" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="incoming-requests">
-              Pagos Realizados / A Realizar ({tranPendCobro.length})
-            </TabsTrigger>
-            <TabsTrigger value="my-requests">
-              Pagos Recibidos / A recibir ({tranPend.length})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="incoming-requests">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pagos Realizados</CardTitle>
-                <CardDescription>
-                  Estos son pagos que realizaste o te solicitaron
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {tranPendCobro.length > 0 ? (
-                  tranPendCobro.map((req) => (
-                    <PaymentRequestCard
-                      key={req.id}
-                      transaction={req}
-                      type="sent"
-                      payCategories={payCategories}
-                      onPay={(transaction, cat, tipo) =>
-                        isAccepted(transaction, cat, tipo)
-                      }
-                      onDecline={(transaction) => isRejected(transaction)}
-                    />
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    No tenes pagos realizados o por realizar
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="my-requests">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pagos Recibidos</CardTitle>
-                <CardDescription>
-                  Estos son pagos que solicitaste o que recibiste
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {tranPend.length > 0 ? (
-                  tranPend.map((req) => (
-                    <PaymentRequestCard
-                      key={req.id}
-                      transaction={req}
-                      type={"Recibido"}
-                      onPay={(transaction) => isAccepted(transaction)}
-                    />
-                  ))
-                ) : (
-                  <p className="text-muted-foreground text-center py-4">
-                    Todavia no recibiste ningun pago
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-muted-foreground">Cargando información de pagos...</p>
+          </div>
+        ) : (
+          <Tabs defaultValue="incoming-requests" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="incoming-requests">
+                Pagos Realizados / A Realizar ({tranPendCobro.length})
+              </TabsTrigger>
+              <TabsTrigger value="my-requests">
+                Pagos Recibidos / A recibir ({tranPend.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="incoming-requests">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pagos Realizados</CardTitle>
+                  <CardDescription>
+                    Estos son pagos que realizaste o te solicitaron
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isTransactionLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                      <span className="text-sm text-muted-foreground">Procesando transacción...</span>
+                    </div>
+                  )}
+                  {tranPendCobro.length > 0 ? (
+                    tranPendCobro.map((req) => (
+                      <PaymentRequestCard
+                        key={req.id}
+                        transaction={req}
+                        type="sent"
+                        payCategories={payCategories}
+                        onPay={(transaction, cat, tipo) =>
+                          isAccepted(transaction, cat, tipo)
+                        }
+                        onDecline={(transaction) => isRejected(transaction)}
+                        isProcessing={processingTransactionId === req.id}
+                        disabled={isTransactionLoading}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">
+                      No tenes pagos realizados o por realizar
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="my-requests">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pagos Recibidos</CardTitle>
+                  <CardDescription>
+                    Estos son pagos que solicitaste o que recibiste
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {isTransactionLoading && (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                      <span className="text-sm text-muted-foreground">Procesando transacción...</span>
+                    </div>
+                  )}
+                  {tranPend.length > 0 ? (
+                    tranPend.map((req) => (
+                      <PaymentRequestCard
+                        key={req.id}
+                        transaction={req}
+                        type={"Recibido"}
+                        onPay={(transaction) => isAccepted(transaction)}
+                        isProcessing={processingTransactionId === req.id}
+                        disabled={isTransactionLoading}
+                      />
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">
+                      Todavia no recibiste ningun pago
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
       </div>
     </AppLayout>
   );
