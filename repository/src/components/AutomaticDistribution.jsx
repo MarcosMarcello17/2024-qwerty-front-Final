@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 
 function AutomaticDistribution({
   isVisible,
-  valor,
-  fecha,
-  motivo,
+  transaction,
   onDistribute,
   onCancel,
 }) {
@@ -13,15 +11,15 @@ function AutomaticDistribution({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (isVisible && valor && fecha) {
+    if (isVisible && transaction && transaction.valor && transaction.fecha) {
       fetchDistributionPreview();
     }
-  }, [isVisible, valor, fecha]);
+  }, [isVisible, transaction]);
 
   const fetchDistributionPreview = async () => {
     setLoading(true);
     setError("");
-    
+
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
@@ -33,9 +31,9 @@ function AutomaticDistribution({
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            montoIngreso: parseFloat(valor),
-            fechaIngreso: fecha,
-            motivoOriginal: motivo || "Ingreso de dinero",
+            montoIngreso: parseFloat(transaction.valor),
+            fechaIngreso: transaction.fecha,
+            motivoOriginal: transaction.motivo || "Ingreso de dinero",
           }),
         }
       );
@@ -72,13 +70,17 @@ function AutomaticDistribution({
           <h3 className="text-xl font-bold text-[#ffd60a] mb-4">
             Distribución Automática
           </h3>
-          
+
           <div className="mb-4">
             <p className="text-gray-300 mb-2">
-              Monto a distribuir: <span className="text-[#ffd60a] font-bold">${valor}</span>
+              Monto a distribuir:{" "}
+              <span className="text-[#ffd60a] font-bold">
+                ${transaction?.valor}
+              </span>
             </p>
             <p className="text-gray-300 mb-4">
-              Se distribuirá este ingreso proporcionalmente según los presupuestos activos del mes.
+              Se distribuirá este ingreso proporcionalmente según los
+              presupuestos activos del mes.
             </p>
           </div>
 
@@ -100,18 +102,26 @@ function AutomaticDistribution({
               <h4 className="text-lg font-semibold text-gray-200 mb-3">
                 Vista previa de la distribución:
               </h4>
-              
+
               {distributionPreview.presupuestos.map((presupuesto, index) => (
-                <div key={index} className="bg-[#001d3d] rounded-lg p-4 border border-gray-600">
+                <div
+                  key={index}
+                  className="bg-[#001d3d] rounded-lg p-4 border border-gray-600"
+                >
                   <h5 className="text-[#ffd60a] font-semibold mb-3">
                     {presupuesto.nombrePresupuesto}
                   </h5>
-                  
+
                   <div className="space-y-2">
                     {presupuesto.categorias.map((categoria, catIndex) => (
-                      <div key={catIndex} className="flex justify-between items-center py-2 px-3 bg-[#000814] rounded">
+                      <div
+                        key={catIndex}
+                        className="flex justify-between items-center py-2 px-3 bg-[#000814] rounded"
+                      >
                         <div className="flex items-center space-x-3">
-                          <span className="text-gray-300">{categoria.categoria}</span>
+                          <span className="text-gray-300">
+                            {categoria.categoria}
+                          </span>
                           <span className="text-gray-500 text-sm">
                             ({categoria.porcentaje.toFixed(1)}% del presupuesto)
                           </span>
@@ -132,7 +142,8 @@ function AutomaticDistribution({
 
               <div className="bg-[#ffd60a]/10 border border-[#ffd60a] rounded-lg p-4 mt-4">
                 <p className="text-gray-300 text-center">
-                  Se crearán automáticamente transacciones para cada categoría según la distribución mostrada.
+                  Se crearán automáticamente transacciones para cada categoría
+                  según la distribución mostrada.
                 </p>
               </div>
             </div>

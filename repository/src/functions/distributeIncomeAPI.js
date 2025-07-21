@@ -5,9 +5,13 @@
  * @param {string} description - Descripción del ingreso
  * @returns {Promise<Object>} Resultado de la distribución
  */
-export const distributeIncomeAutomatically = async (amount, date, description = "") => {
+export const distributeIncomeAutomatically = async (
+  amount,
+  date,
+  description = ""
+) => {
   const token = localStorage.getItem("token");
-  
+
   try {
     const response = await fetch(
       "https://two024-qwerty-back-final-marcello.onrender.com/api/automation/distribuir",
@@ -34,13 +38,41 @@ export const distributeIncomeAutomatically = async (amount, date, description = 
 };
 
 /**
+ * Distribuye automáticamente un ingreso existente por ID de transacción
+ * @param {number} transactionId - ID de la transacción a distribuir
+ * @returns {Promise<Object>} Resultado de la distribución
+ */
+export const distributeExistingIncome = async (transactionId) => {
+  const token = localStorage.getItem("token");
+
+  try {
+    const response = await fetch(
+      `https://two024-qwerty-back-final-marcello.onrender.com/api/automation/distribuir/${transactionId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error al distribuir ingreso existente:", error);
+    throw new Error("Error de conexión al distribuir el ingreso existente");
+  }
+};
+
+/**
  * Verifica si se puede realizar una distribución automática para una fecha específica
  * @param {string} date - Fecha a verificar (formato YYYY-MM-DD)
  * @returns {Promise<boolean>} True si se puede distribuir, false si no
  */
 export const canDistributeForDate = async (date) => {
   const token = localStorage.getItem("token");
-  
+
   try {
     const response = await fetch(
       `https://two024-qwerty-back-final-marcello.onrender.com/api/automation/puede-distribuir?fecha=${date}`,
@@ -70,9 +102,13 @@ export const canDistributeForDate = async (date) => {
  * @param {string} description - Descripción del ingreso
  * @returns {Promise<Object>} Preview de la distribución
  */
-export const getDistributionPreview = async (amount, date, description = "") => {
+export const getDistributionPreview = async (
+  amount,
+  date,
+  description = ""
+) => {
   const token = localStorage.getItem("token");
-  
+
   try {
     const response = await fetch(
       "https://two024-qwerty-back-final-marcello.onrender.com/api/automation/previsualizar",

@@ -404,8 +404,8 @@ function ModalForm({
           <div className="text-red-500 text-sm text-center">{modalError}</div>
         )}
 
-        {/* Mostrar opción de distribución automática para ingresos existentes - Diseño compacto */}
-        {isIngresoCategory && canDistributeAutomatically && edit && (
+        {/* Mostrar opción de distribución automática solo para ingresos NUEVOS (no en edición) */}
+        {isIngresoCategory && canDistributeAutomatically && !edit && (
           <div className="bg-[#0a223a] rounded-lg p-3 mt-2 mb-2 border border-[#132c47]">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center">
@@ -424,6 +424,35 @@ function ModalForm({
             </div>
             <p className="text-xs text-[#b5e0ff]">
               Distribuye proporcionalmente según tus presupuestos del mes
+            </p>
+          </div>
+        )}
+
+        {/* Información para ingresos en edición */}
+        {isIngresoCategory && edit && (
+          <div className="bg-[#001d3d] rounded-lg p-3 mt-2 mb-2 border border-[#003d82]">
+            <div className="flex items-center mb-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2 text-blue-400"
+              >
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m9 12 2 2 4-4"/>
+              </svg>
+              <span className="font-medium text-blue-200 text-sm">
+                Distribución Automática
+              </span>
+            </div>
+            <p className="text-xs text-blue-300">
+              Puedes usar la distribución automática desde la tabla de transacciones después de guardar los cambios
             </p>
           </div>
         )}
@@ -480,9 +509,11 @@ function ModalForm({
 
       <AutomaticDistribution
         isVisible={showDistributionModal}
-        valor={valor}
-        fecha={fecha}
-        motivo={motivo}
+        transaction={{
+          valor: parseFloat(valor) || 0,
+          fecha: fecha,
+          motivo: motivo || "Distribución automática"
+        }}
         onDistribute={handleConfirmDistribution}
         onCancel={handleCancelDistribution}
       />
