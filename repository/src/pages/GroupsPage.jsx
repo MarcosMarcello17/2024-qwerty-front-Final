@@ -67,9 +67,12 @@ export default function GroupsPage() {
   const [grupoAEliminar, setGrupoAEliminar] = useState({});
   const [isModalDetallesGrupoOpen, setIsModalDetallesGrupoOpen] =
     useState(false);
+  const [loadingMiembros, setLoadingMiembros] = useState(false);
+  const [loadingEliminar, setLoadingEliminar] = useState(false);
 
   const fetchGrupos = async () => {
     setIsLoading(true);
+    setError(""); // Limpiar errores previos
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -137,6 +140,7 @@ export default function GroupsPage() {
   };
 
   const fetchMiembros = async (grupo) => {
+    setLoadingMiembros(true); // Loading específico para miembros
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -158,7 +162,9 @@ export default function GroupsPage() {
       setIsModalMiembrosOpen(true);
       setGrupoAAgregar(grupo);
     } catch (error) {
-      setModalError("Ocurrió un error al obtener los miembros del grupo.");
+      setError("Ocurrió un error al obtener los miembros del grupo.");
+    } finally {
+      setLoadingMiembros(false); // Finalizar loading específico
     }
   };
 
@@ -171,9 +177,12 @@ export default function GroupsPage() {
   };
   const closeModal = () => {
     setAddGrupoModalOpen(false);
+    setGrupoAAgregar(null); // Limpiar grupoAAgregar al cerrar modal
+    setError("");
   };
 
   const confirmDeleteGrupo = async () => {
+    setLoadingEliminar(true); // Loading específico para eliminar
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -189,11 +198,15 @@ export default function GroupsPage() {
       if (response.ok) {
         setGrupos(grupos.filter((grupo) => grupo.id !== grupoAEliminar.id));
         setIsModalEliminarOpen(false);
+        setGrupoAEliminar({});
+        setError(""); // Limpiar errores en operación exitosa
       } else {
-        setModalError("Error al eliminar el grupo.");
+        setError("Error al eliminar el grupo.");
       }
     } catch (error) {
-      setModalError("Ocurrió un error al intentar eliminar el grupo.");
+      setError("Ocurrió un error al intentar eliminar el grupo.");
+    } finally {
+      setLoadingEliminar(false); // Finalizar loading específico
     }
   };
 
@@ -214,17 +227,32 @@ export default function GroupsPage() {
           </div>
           <Button
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={() => setAddGrupoModalOpen(true)}
+            onClick={() => {
+              setGrupoAAgregar(null); // Asegurar que se limpia cuando se quiere crear un grupo nuevo
+              setAddGrupoModalOpen(true);
+            }}
           >
             <PlusCircle className="mr-2 h-4 w-4" /> Crear Grupo
           </Button>
         </div>
 
         <div className="flex flex-col flex-grow px-4">
+          {/* Mostrar errores */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+
           {/* Display user groups */}
           <div className="mb-4">
             {isLoading ? (
-              <p>Cargando grupos...</p>
+              <div className="flex justify-center items-center py-12">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                  <p className="text-muted-foreground">Cargando grupos...</p>
+                </div>
+              </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {grupos.length > 0 ? (
@@ -244,8 +272,10 @@ export default function GroupsPage() {
                         <Button
                           className="flex items-center text-sm text-muted-foreground bg-transparent hover:text-black"
                           onClick={() => fetchMiembros(grupo)}
+                          disabled={loadingMiembros}
                         >
-                          <Users className="mr-2 h-4 w-4" /> Miembros
+                          <Users className="mr-2 h-4 w-4" />
+                          {loadingMiembros ? "Cargando..." : "Miembros"}
                         </Button>
                       </CardContent>
                       <CardFooter className="flex justify-between gap-2">
@@ -283,7 +313,10 @@ export default function GroupsPage() {
                     <CardFooter className="justify-center">
                       <Button
                         className="bg-primary hover:bg-primary/90 text-primary-foreground"
-                        onClick={() => setAddGrupoModalOpen(true)}
+                        onClick={() => {
+                          setGrupoAAgregar(null); // Asegurar que se limpia cuando se quiere crear un grupo nuevo
+                          setAddGrupoModalOpen(true);
+                        }}
                       >
                         <PlusCircle className="mr-2 h-4 w-4" /> Crear Grupo
                       </Button>
@@ -299,6 +332,8 @@ export default function GroupsPage() {
         isOpen={addGrupoModalOpen}
         onRequestClose={() => closeModal()}
         grupoAAgregar={grupoAAgregar ? grupoAAgregar.id : null}
+        onGrupoCreated={fetchGrupos} // Callback para refrescar grupos
+        onUsuariosInvitados={fetchGrupos} // Callback para refrescar grupos
       />
 
       {grupoSeleccionado && (
@@ -317,6 +352,7 @@ export default function GroupsPage() {
         onRequestClose={() => {
           setIsModalMiembrosOpen(false);
           setGrupoAAgregar(null);
+          setMiembros([]);
         }}
         contentLabel="Lista de Miembros"
         style={customStyles}
@@ -346,14 +382,22 @@ export default function GroupsPage() {
           <div className="flex justify-end gap-4 mt-4">
             {grupoAAgregar && grupoAAgregar.estado && (
               <Button
-                onClick={() => setAddGrupoModalOpen(true)}
+                onClick={() => {
+                  setIsModalMiembrosOpen(false); // Cerrar modal de miembros
+                  setAddGrupoModalOpen(true); // Abrir modal de invitar
+                }}
+                disabled={loadingMiembros}
                 className="flex-1 bg-primary text-black  font-bold py-3 px-4 rounded transition-colors duration-300 mt-4"
               >
-                Invitar Usuarios
+                {loadingMiembros ? "Cargando..." : "Invitar Usuarios"}
               </Button>
             )}
             <Button
-              onClick={() => setIsModalMiembrosOpen(false)}
+              onClick={() => {
+                setIsModalMiembrosOpen(false);
+                setGrupoAAgregar(null); // Limpiar grupoAAgregar al cerrar
+                setMiembros([]); // Limpiar lista de miembros
+              }}
               className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300 mt-4"
             >
               Cerrar
@@ -377,9 +421,10 @@ export default function GroupsPage() {
         </p>
         <button
           onClick={confirmDeleteGrupo}
-          className="bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300"
+          disabled={loadingEliminar}
+          className="bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300 disabled:opacity-50"
         >
-          Eliminar grupo
+          {loadingEliminar ? "Eliminando..." : "Eliminar grupo"}
         </button>
         <button
           onClick={() => setIsModalEliminarOpen(false)}

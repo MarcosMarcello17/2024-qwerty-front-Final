@@ -8,6 +8,8 @@ const ModalCrearGrupo = ({
   isOpen = false,
   onRequestClose = () => {},
   grupoAAgregar = null,
+  onGrupoCreated = () => {}, // Callback para cuando se crea un grupo
+  onUsuariosInvitados = () => {}, // Callback para cuando se invitan usuarios
 }) => {
   const customStyles = {
     overlay: {
@@ -142,6 +144,7 @@ const ModalCrearGrupo = ({
         setUsuarios([]);
         setError("");
         onRequestClose();
+        onGrupoCreated(); // Llamar callback para refrescar la lista de grupos
       } catch (error) {
         setError("Ocurrió un error al procesar la solicitud.");
       } finally {
@@ -176,6 +179,7 @@ const ModalCrearGrupo = ({
         setUsuarios([]);
         setError("");
         onRequestClose();
+        onUsuariosInvitados(); // Llamar callback para refrescar la lista de grupos
       } catch (error) {
         setError("Ocurrió un error al procesar la solicitud.");
       } finally {
