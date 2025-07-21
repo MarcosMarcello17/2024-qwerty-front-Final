@@ -146,7 +146,7 @@ export default function TransactionsPage() {
   const [grupos, setGrupos] = useState([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
-  onst[(achievementData, setAchievementData)] = useState(0);
+  const [achievementData, setAchievementData] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
 
   // Estados para distribución automática
