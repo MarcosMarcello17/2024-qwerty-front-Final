@@ -125,7 +125,6 @@ function ProfilePage() {
         );
       }
     } else {
-      console.log("deberia redirec");
       navigate("/");
     }
     setIsLoading(false);
@@ -165,7 +164,7 @@ function ProfilePage() {
         return errorData || "Error al editar el medio de pago";
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       return "Error de conexión. Intenta nuevamente.";
     }
   };
@@ -193,7 +192,7 @@ function ProfilePage() {
         await getTransacciones();
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setLoadingGraphic(false);
     }

@@ -125,13 +125,12 @@ function ModalVerCategorias({
         }
       );
       if (response.ok) {
-        console.log(`Categoría editada: ${categoryValue}`);
         setPayCategories([]);
         await getTransacciones();
         setIsModalOpen(false);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -158,12 +157,11 @@ function ModalVerCategorias({
         }
       );
       if (response.ok) {
-        console.log(`Categoría eliminada: ${categoryValue}`);
         setPayCategories([]);
         await getTransacciones();
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 
@@ -192,7 +190,6 @@ function ModalVerCategorias({
         }
       );
       if (response.ok) {
-        console.log(`Categoría agregada: ${newName}`);
         setPayCategories([]);
         await fetchPersonalCategorias();
         setIsModalOpen(false);
@@ -200,11 +197,10 @@ function ModalVerCategorias({
       } else {
         const errorMessage = await response.text();
         console.error("Error al agregar categoria:", errorMessage);
-        console.log("la categoria existeeeeeeeeeee");
         return "La categoria ya existe";
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     }
   };
 

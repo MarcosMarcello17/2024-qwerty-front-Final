@@ -209,10 +209,6 @@ function HomePage() {
     try {
       const createdTransactions = await processRecurringTransactions();
       if (createdTransactions.length > 0) {
-        console.log(
-          `Se crearon ${createdTransactions.length} transacciones recurrentes automáticamente`
-        );
-        // Refrescar las transacciones para mostrar las nuevas
         const apiTransacciones = await getApiTransacciones();
         if (apiTransacciones && apiTransacciones.transacciones) {
           setTransacciones(apiTransacciones.transacciones);
@@ -711,7 +707,6 @@ function HomePage() {
       url =
         "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
       const grupoId = transaccion.grupoId;
-      console.log("este es el id " + grupoId);
       try {
         const response = await fetch(url, {
           method: "POST",
@@ -844,7 +839,7 @@ function HomePage() {
 
   const eliminarTransaccionPendiente = async (id) => {
     const tranEliminada = await deletePendingTransaction(id);
-    tranEliminada ? showTransactionsPendientes() : console.log("Error");
+    tranEliminada ? showTransactionsPendientes() : console.error("Error");
   };
 
   return (

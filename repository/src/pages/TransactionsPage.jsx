@@ -429,10 +429,10 @@ export default function TransactionsPage() {
           });
         }
       } else {
-        console.log("la respuesta no fue ok");
+        console.error("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setIsLoadingTransaction(false);
       setTransaccionesCargadas(true);

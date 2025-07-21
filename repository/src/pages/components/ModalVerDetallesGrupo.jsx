@@ -400,7 +400,6 @@ function ModalVerDetallesGrupo({
   const agregarTransaccion = async (e, categoria) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    console.log(transaccionId);
     let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`;
     let bodyJson = JSON.stringify({
       motivo,
@@ -420,7 +419,6 @@ function ModalVerDetallesGrupo({
         body: bodyJson,
       });
       if (response.ok) {
-        console.log("la respuesta fue ok");
         const data = await response.json();
         const updatedTransacciones = transacciones.map((t) =>
           t.id === data.id ? data : t
@@ -431,11 +429,11 @@ function ModalVerDetallesGrupo({
         setTransacciones(updatedTransacciones);
         closeModal();
       } else {
-        console.log("la respuesta no fue ok");
+        console.error("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log("la respuesta fue error");
-      console.log(err);
+      console.error("la respuesta fue error");
+      console.error(err);
     }
   };
   const handleMotivoChange = (e) => {
@@ -450,7 +448,6 @@ function ModalVerDetallesGrupo({
     setSelectedPayMethod(value);
   };
   const handleCreateCat = async (nombre, icono) => {
-    console.log("entre      ");
     const token = localStorage.getItem("token");
     if (!nombre || !icono) {
       console.error("Nombre y icono son obligatorios");
@@ -480,7 +477,6 @@ function ModalVerDetallesGrupo({
           iconPath: newCategoria.iconPath,
         };
         setPayCategories((prevOptions) => [...prevOptions, newOption]);
-        console.log(payCategories);
         setSelectedCategory(newOption);
         setCategoria(newCategoria.nombre);
       } else {

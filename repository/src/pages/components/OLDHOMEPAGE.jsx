@@ -410,7 +410,7 @@ function HomePage() {
           setTransacciones(updatedTransacciones);
         }
       } catch (err) {
-        console.log(err);
+        console.error(err);
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -529,7 +529,7 @@ function HomePage() {
         console.log("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setTransaccionesCargadas(true);
       if (!edit) {

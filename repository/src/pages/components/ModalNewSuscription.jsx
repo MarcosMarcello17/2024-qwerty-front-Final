@@ -20,7 +20,6 @@ function ModalNewSuscription({ newSubs = [] }) {
   const onSubmit = (e) => {
     e.preventDefault();
     selectedSubs.forEach((sub) => {
-      console.log(sub.transacciones);
       const lastTransaction = sub.transacciones[sub.transacciones.length - 1];
       handleSubmit({
         descripcion: sub.descripcion,

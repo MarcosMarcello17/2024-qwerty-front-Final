@@ -225,7 +225,7 @@ export default function CategoryPage() {
       setEditCategory({});
       setIsEditMode(false);
     } catch (err) {
-      console.log(err);
+      console.error(err);
       return "Error al editar la categoria";
     } finally {
       setIsLoadingEdit(false);
@@ -272,12 +272,11 @@ export default function CategoryPage() {
         }
       );
       if (response.ok) {
-        console.log(`Categoría eliminada: ${categoryValue}`);
         setPayCategories([]);
         await fetchPersonalCategorias();
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setIsLoadingDelete(false);
     }

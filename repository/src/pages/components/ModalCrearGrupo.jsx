@@ -100,10 +100,8 @@ const ModalCrearGrupo = ({
     const response = await fetch(url);
     if (response.ok) {
       const exists = await response.json();
-      console.log(exists);
       return exists;
     } else {
-      console.log(exists);
       return exists;
     }
   };

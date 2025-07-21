@@ -197,7 +197,7 @@ export default function PaymentsPage() {
           throw new Error("Error al procesar la transacción");
         }
       } catch (err) {
-        console.log(err);
+        console.error(err);
         toast.error("Error al procesar la transacción");
       }
     } else if (transaccion.id_reserva == "Pago") {
@@ -308,7 +308,6 @@ export default function PaymentsPage() {
       }
 
       const data = await response.json();
-      console.log(data);
       setTranPend(data.filter((item) => item.id_reserva === "Pago"));
       setTranPendCobro(data.filter((item) => item.id_reserva === "Cobro"));
     } catch (err) {
@@ -317,8 +316,6 @@ export default function PaymentsPage() {
       // Set empty arrays if there's an error
       setTranPend([]);
       setTranPendCobro([]);
-    } finally {
-      console.log("FIN PROCESO");
     }
   };
 
