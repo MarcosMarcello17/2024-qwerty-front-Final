@@ -61,6 +61,7 @@ export function PaymentRequestCard({
   const [categoria, setCategoria] = useState("");
   const [payOption, setPayOption] = useState("");
   const [payOptions, setPayOptions] = useState([]);
+  const [errorMessage, setErrorMessage] = useState("");
   const getStatusBadgeVariant = (status = "pending") => {
     switch (status) {
       case "pending":
@@ -107,14 +108,18 @@ export function PaymentRequestCard({
   };
 
   const handlePayment = () => {
-    if (!categoria || !payOption) {
-      toast({
-        title: "Error",
-        description: "Seleccione categoria y medio de pago",
-      });
-      return null;
+    if (!categoria && !payOption) {
+      setErrorMessage("Debe seleccionar una categoría y un medio de pago");
+      return;
+    } else if (!categoria) {
+      setErrorMessage("Debe seleccionar una categoría");
+      return;
+    } else if (!payOption) {
+      setErrorMessage("Debe seleccionar un medio de pago");
+      return;
     }
 
+    setErrorMessage("");
     onPay(transaction, categoria, payOption);
   };
 
@@ -251,12 +256,25 @@ export function PaymentRequestCard({
                     </label>
                   )}
 
+                  {errorMessage && (
+                    <div className="p-3 mb-4 bg-red-600 text-white font-medium rounded-md">
+                      {errorMessage}
+                    </div>
+                  )}
+
                   <div>
                     <label className="text-gray-100 mb-6">Categoría:</label>
                     <select
                       value={categoria}
-                      onChange={(e) => setCategoria(e.target.value)}
-                      className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                      onChange={(e) => {
+                        setCategoria(e.target.value);
+                        setErrorMessage("");
+                      }}
+                      className={`my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 ${
+                        !categoria && errorMessage
+                          ? "border-2 border-red-500"
+                          : ""
+                      }`}
                       disabled={disabled || isProcessing}
                     >
                       <option value="">Selecciona una categoría</option>
@@ -272,8 +290,15 @@ export function PaymentRequestCard({
                     <label className="text-gray-100 mb-6">Tipo de Gasto:</label>
                     <select
                       value={payOption}
-                      onChange={(e) => setPayOption(e.target.value)}
-                      className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+                      onChange={(e) => {
+                        setPayOption(e.target.value);
+                        setErrorMessage("");
+                      }}
+                      className={`my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 ${
+                        !payOption && errorMessage
+                          ? "border-2 border-red-500"
+                          : ""
+                      }`}
                       disabled={disabled || isProcessing}
                     >
                       <option value="">Selecciona una Tipo de Gasto</option>
@@ -292,9 +317,12 @@ export function PaymentRequestCard({
                     >
                       Rechazar
                     </AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => handlePayment()}
-                      className="bg-primary"
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handlePayment();
+                      }}
+                      className="bg-primary hover:bg-primary/90"
                       disabled={disabled || isProcessing}
                     >
                       {isProcessing ? (
@@ -305,7 +333,7 @@ export function PaymentRequestCard({
                       ) : (
                         "Pagar"
                       )}
-                    </AlertDialogAction>
+                    </Button>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
