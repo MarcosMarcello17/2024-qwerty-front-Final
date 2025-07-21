@@ -55,11 +55,15 @@ const defaultCategories = [
 export default function CategoryPage() {
   const [payCategories, setPayCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingAdd, setIsLoadingAdd] = useState(false);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
   const [editCategory, setEditCategory] = useState({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({});
+
   useEffect(() => {
     fetchPersonalCategorias();
   }, []);
@@ -88,10 +92,13 @@ export default function CategoryPage() {
       }
     } catch (error) {
       console.error("Error al obtener las categorías personalizadas:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleAddCategory = async (newName, newIcon) => {
+    setIsLoadingAdd(true);
     const token = localStorage.getItem("token");
     const newValue = {
       nombre: newName,
@@ -110,7 +117,6 @@ export default function CategoryPage() {
         }
       );
       if (response.ok) {
-        console.log(`Categoría agregada: ${newName}`);
         setPayCategories([]);
         await fetchPersonalCategorias();
         setIsModalOpen(false);
@@ -118,11 +124,12 @@ export default function CategoryPage() {
       } else {
         const errorMessage = await response.text();
         console.error("Error al agregar categoria:", errorMessage);
-        console.log("la categoria existeeeeeeeeeee");
         return "La categoria ya existe";
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
+    } finally {
+      setIsLoadingAdd(false);
     }
   };
 
@@ -130,6 +137,99 @@ export default function CategoryPage() {
     setEditCategory(categoria);
     setIsEditMode(true);
     setIsModalOpen(true);
+  };
+
+  const handleEditCategory = async (editCat, newName, newIcon) => {
+    setIsLoadingEdit(true);
+    const token = localStorage.getItem("token");
+    const oldValue = {
+      nombre: editCat.label,
+      iconPath: editCat.iconPath,
+    };
+    const newValue = {
+      nombre: newName,
+      iconPath: newIcon,
+    };
+
+    // Verificar si solo cambió el icono (no el nombre)
+    const nameChanged = oldValue.nombre !== newValue.nombre;
+    const iconChanged = oldValue.iconPath !== newValue.iconPath;
+
+    try {
+      // Si solo cambió el icono, necesitamos hacer una actualización especial
+      if (!nameChanged && iconChanged) {
+        // Crear un nombre temporal único para evitar el conflicto del backend
+        const tempName = `${newValue.nombre}_temp_${Date.now()}`;
+        const tempValue = {
+          nombre: tempName,
+          iconPath: newValue.iconPath,
+        };
+
+        // Paso 1: Cambiar temporalmente el nombre
+        const tempResponse = await fetch(
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${oldValue.nombre}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(tempValue),
+          }
+        );
+
+        if (!tempResponse.ok) {
+          throw new Error("Error en actualización temporal");
+        }
+
+        // Paso 2: Volver al nombre original con el nuevo icono
+        const finalResponse = await fetch(
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${tempName}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(newValue),
+          }
+        );
+
+        if (!finalResponse.ok) {
+          throw new Error("Error en actualización final");
+        }
+      } else {
+        // Si cambió el nombre o ambos, usar el método normal
+        const response = await fetch(
+          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${oldValue.nombre}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(newValue),
+          }
+        );
+
+        if (!response.ok) {
+          const errorMessage = await response.text();
+          console.error("Error al editar categoria:", errorMessage);
+          return "Error al editar la categoria";
+        }
+      }
+
+      setPayCategories([]);
+      await fetchPersonalCategorias();
+      setIsModalOpen(false);
+      setEditCategory({});
+      setIsEditMode(false);
+    } catch (err) {
+      console.error(err);
+      return "Error al editar la categoria";
+    } finally {
+      setIsLoadingEdit(false);
+    }
   };
 
   const handleOpenModal = () => {
@@ -145,11 +245,11 @@ export default function CategoryPage() {
 
   const cancelDelete = () => {
     setConfirmDeleteOpen(false);
-    setClickDelete(false);
     setItemToDelete({});
   };
 
   const handleDelete = async (categoryValue) => {
+    setIsLoadingDelete(true);
     const filteredCategories = payCategories.filter(
       (category) => category.value === categoryValue
     );
@@ -172,12 +272,13 @@ export default function CategoryPage() {
         }
       );
       if (response.ok) {
-        console.log(`Categoría eliminada: ${categoryValue}`);
         setPayCategories([]);
         await fetchPersonalCategorias();
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
+    } finally {
+      setIsLoadingDelete(false);
     }
   };
 
@@ -194,8 +295,10 @@ export default function CategoryPage() {
           <Button
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
             onClick={handleOpenModal}
+            disabled={isLoadingAdd || isLoadingEdit || isLoadingDelete}
           >
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Payment Method
+            <PlusCircle className="mr-2 h-4 w-4" />
+            {isLoadingAdd ? "Agregando..." : "Agregar Categoría"}
           </Button>
           <ModalCategoria
             isOpen={isModalOpen}
@@ -204,71 +307,96 @@ export default function CategoryPage() {
               setIsModalOpen(false);
             }}
             handleCreateCat={handleAddCategory}
-            handleEditCat={handleEdit}
+            handleEditCat={handleEditCategory}
             edit={isEditMode}
             editCat={editCategory}
+            isLoadingAdd={isLoadingAdd}
+            isLoadingEdit={isLoadingEdit}
           />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {defaultCategories.map((category) => (
-            <Card
-              key={category.value}
-              className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <FontAwesomeIcon
-                    icon={category.iconPath}
-                    className={`${category.textColor} h-8 w-8 text-primary`}
-                  />
-                </div>
-                <CardTitle className="font-headline pt-2">
-                  {category.value}
-                </CardTitle>
-              </CardHeader>
-              <CardContent></CardContent>
-            </Card>
-          ))}
-          {payCategories.map((category) => (
-            <Card
-              key={category.value}
-              className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <FontAwesomeIcon
-                    icon={category.iconPath}
-                    className="h-8 w-8"
-                  />
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                      <span className="sr-only">Edit</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive/80"
-                      onClick={() => confirmDelete(category.value)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">Delete</span>
-                    </Button>
-                  </div>
-                </div>
-                <CardTitle className="font-headline pt-2">
-                  {category.value}
-                </CardTitle>
-              </CardHeader>
-              <CardContent></CardContent>
-            </Card>
-          ))}
+          {isLoading ? (
+            <div className="col-span-full flex justify-center items-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-2 text-white">Cargando categorías...</span>
+            </div>
+          ) : (
+            <>
+              {defaultCategories.map((category) => (
+                <Card
+                  key={category.value}
+                  className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <FontAwesomeIcon
+                        icon={category.iconPath}
+                        className={`${category.textColor} h-8 w-8 text-primary`}
+                      />
+                    </div>
+                    <CardTitle className="font-headline pt-2">
+                      {category.value}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent></CardContent>
+                </Card>
+              ))}
+              {payCategories.map((category) => (
+                <Card
+                  key={category.value}
+                  className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col justify-between"
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <FontAwesomeIcon
+                        icon={category.iconPath}
+                        className="h-8 w-8"
+                      />
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => handleEdit(category)}
+                          disabled={
+                            isLoadingEdit || isLoadingDelete || isLoadingAdd
+                          }
+                        >
+                          {isLoadingEdit ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          ) : (
+                            <Edit3 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:text-destructive/80"
+                          onClick={() => confirmDelete(category.value)}
+                          disabled={
+                            isLoadingEdit || isLoadingDelete || isLoadingAdd
+                          }
+                        >
+                          {isLoadingDelete ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-destructive"></div>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </div>
+                    </div>
+                    <CardTitle className="font-headline pt-2">
+                      {category.value}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent></CardContent>
+                </Card>
+              ))}
+            </>
+          )}
         </div>
         <ConfirmDeleteCategory
           isOpen={confirmDeleteOpen}
@@ -276,6 +404,7 @@ export default function CategoryPage() {
           handleDelete={() => {
             handleDelete(itemToDelete);
           }}
+          isLoadingDelete={isLoadingDelete}
         />
       </div>
     </AppLayout>

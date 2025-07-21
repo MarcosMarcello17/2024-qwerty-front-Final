@@ -4,15 +4,20 @@ import ModalForm from "./components/ModalForm";
 import "./styles/HomePage.css";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
+import DetectedSubscriptions from "../components/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
+import { deletePendingTransaction } from "../functions/deletePendingTransaction";
+import { processRecurringTransactions } from "../functions/processRecurringTransactions";
 import {
   Filter,
   LayoutDashboard,
   Loader2,
   PlusCircle,
   XCircle,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Select,
@@ -118,8 +123,8 @@ function HomePage() {
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [pendTran, setPendTran] = useState(false);
-  const [filtroMes, setFiltroMes] = useState(""); // Ej: "10" para octubre
-  const [filtroAno, setFiltroAno] = useState(""); //
+  const [filtroMes, setFiltroMes] = useState("00"); // Ej: "10" para octubre
+  const [filtroAno, setFiltroAno] = useState("00"); //
   const [filterEmpty, setFilterEmpty] = useState(false);
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
@@ -129,6 +134,8 @@ function HomePage() {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [showSubscriptions, setShowSubscriptions] = useState(true);
+  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
   const handleGroupChange = (selectedOption) => {
     if (selectedOption && selectedOption.value === null) {
       setSelectedGroup(null); // Restablecer a null si se selecciona "Personal"
@@ -171,6 +178,7 @@ function HomePage() {
   };
 
   useEffect(() => {
+    setIsLoadingFilter(true); // Mostrar cargando cuando cambian los filtros
     getTransacciones(categoriaSeleccionada); //aplicar un filtro local
     setLoadGraphic(false);
   }, [categoriaSeleccionada, filtroMes, filtroAno]);
@@ -186,17 +194,35 @@ function HomePage() {
   useEffect(() => {
     fetchPersonalTipoGastos();
     fetchGrupos();
+    processRecurringOnLoad();
   }, []);
 
   useEffect(() => {
     if (transacciones.length > 0) {
       const recurringTransactions = detectRecurringTransactions(transacciones);
       setPosibleSub(recurringTransactions);
-      if (recurringTransactions[0] != null) {
-        document.getElementById("newSubModal").showModal();
-      }
     }
   }, [transacciones]); // Se ejecuta cuando transacciones cambia
+
+  // Función para procesar transacciones recurrentes al cargar la página
+  const processRecurringOnLoad = async () => {
+    try {
+      const createdTransactions = await processRecurringTransactions();
+      if (createdTransactions.length > 0) {
+        const apiTransacciones = await getApiTransacciones();
+        if (apiTransacciones && apiTransacciones.transacciones) {
+          setTransacciones(apiTransacciones.transacciones);
+          setTransaccionesSinFiltroCat(
+            apiTransacciones.transacciones.filter(
+              (transaccion) => transaccion.categoria !== "Ingreso de Dinero"
+            )
+          );
+        }
+      }
+    } catch (error) {
+      console.error("Error al procesar transacciones recurrentes:", error);
+    }
+  };
 
   const fetchGrupos = async () => {
     setIsLoading(true);
@@ -242,8 +268,11 @@ function HomePage() {
         throw new Error(`Error: ${response.status}`);
       }
 
-      const data = await response.json();
-      if (data[0] != null) {
+      let data = await response.json();
+      data = data.filter(
+        (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro"
+      );
+      if (data[0] !== null && data[0] !== undefined) {
         setTranPendiente(data[0]);
         setPendTran(true);
       }
@@ -388,9 +417,11 @@ function HomePage() {
   };
 
   const resetFilters = () => {
+    setIsLoadingFilter(true); // Mostrar cargando al resetear filtros
     setCategoriaSeleccionada("Todas");
-    setFiltroAno("2025");
-    setFiltroMes("");
+    setFiltroAno("00");
+    setFiltroMes("00");
+    setIsLoadingFilter(false);
   };
 
   const clearForm = () => {
@@ -405,13 +436,13 @@ function HomePage() {
     });
   };
 
-  const agregarTransaccion = async (e, categoria) => {
+  const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     let bodyJson = "";
     let url = "";
     setTransaccionesCargadas(false);
-    if (selectedGroup == null) {
+    if (selectedGroup === null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
       url = edit
         ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
@@ -442,7 +473,7 @@ function HomePage() {
       });
       if (response.ok) {
         const data = await response.json();
-        if (selectedGroup == null) {
+        if (selectedGroup === null) {
           if (edit) {
             const updatedTransacciones = transacciones.map((t) =>
               t.id === data.id ? data : t
@@ -458,16 +489,63 @@ function HomePage() {
         }
         closeModal();
         setSelectedGroup(null);
+        setShowSubscriptions(false); // Ocultar suscripciones al crear transacción
+        if (isRecurrent) {
+          await agregarTransaccionRecurrente({
+            motivo,
+            valor,
+            fecha,
+            categoria,
+            tipoGasto,
+          });
+        }
       } else {
-        console.log("la respuesta no fue ok");
+        console.error(
+          "Error al crear transacción:",
+          response.status,
+          response.statusText
+        );
+        setError("Error al procesar la transacción.");
       }
     } catch (err) {
-      console.log(err);
+      console.error("Error en la solicitud:", err);
+      setError("Error de red al procesar la transacción.");
     } finally {
       setTransaccionesCargadas(true);
       if (!edit) {
         checkTransaccionAchievment();
       }
+    }
+  };
+
+  const agregarTransaccionRecurrente = async (bodyTrans) => {
+    try {
+      const token = localStorage.getItem("token");
+      const body = {
+        motivo: bodyTrans.motivo,
+        categoria: bodyTrans.categoria,
+        tipoGasto: bodyTrans.tipoGasto,
+        valor: bodyTrans.valor,
+        frecuencia: "mensual",
+      };
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      if (response.ok) {
+        console.log("Transaccion Recurrente creada");
+      } else {
+        setError("Error al crear la transacción recurrente.");
+      }
+    } catch (err) {
+      setError("Error de red.");
     }
   };
 
@@ -485,12 +563,15 @@ function HomePage() {
     )
       .then((response) => response.json())
       .then((data) => {
-        if (data == 1 || data == 5 || data == 10) {
+        if (data === 1 || data === 5 || data === 10) {
           setAchievementData(data);
           setShowNotification(true);
         } else {
           console.log(data);
         }
+      })
+      .catch((error) => {
+        console.error("Error checking achievements:", error);
       });
   };
 
@@ -585,7 +666,7 @@ function HomePage() {
     setTransaccionesCargadas(false);
     let url =
       "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
-    if (transaccion.id_reserva == "Cobro") {
+    if (transaccion.id_reserva === "Cobro") {
       url += "/crearPago/" + transaccion.sentByEmail;
       const motivo = transaccion.motivo;
       const valor = transaccion.valor;
@@ -606,19 +687,26 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha)
           );
           setTransacciones(updatedTransacciones);
+        } else {
+          console.error(
+            "Error al crear pago:",
+            response.status,
+            response.statusText
+          );
+          setError("Error al procesar la transacción de cobro.");
         }
       } catch (err) {
-        console.log(err);
+        console.error("Error en la solicitud de cobro:", err);
+        setError("Error de red al procesar la transacción.");
       } finally {
         setTransaccionesCargadas(true);
       }
-    } else if (transaccion.id_reserva == "Pago") {
+    } else if (transaccion.id_reserva === "Pago") {
       console.log("Transaccion Aprobada");
-    } else if (transaccion.id_reserva == "Grupo") {
+    } else if (transaccion.id_reserva === "Grupo") {
       url =
         "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
       const grupoId = transaccion.grupoId;
-      console.log("este es el id " + grupoId);
       try {
         const response = await fetch(url, {
           method: "POST",
@@ -631,10 +719,19 @@ function HomePage() {
         if (response.ok) {
           console.log("Usuario agregado al grupo exitosamente.");
         } else {
-          console.log("Hubo un problema al agregar el usuario al grupo.");
+          console.error(
+            "Error al agregar usuario al grupo:",
+            response.status,
+            response.statusText
+          );
+          setError("Hubo un problema al agregar el usuario al grupo.");
         }
       } catch (err) {
-        console.log("Error en la solicitud de agregar usuario al grupo:", err);
+        console.error(
+          "Error en la solicitud de agregar usuario al grupo:",
+          err
+        );
+        setError("Error de red al procesar la solicitud de grupo.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -643,7 +740,7 @@ function HomePage() {
       let motivo = transaccion.motivo;
       let valor = transaccion.valor;
       let fecha = transaccion.fecha;
-      categoria = "Clase";
+      let categoriaTransaccion = categoria || "Clase";
       try {
         //hacer chequeos de que pase bien las cosas en el back!
         const response = await fetch(url, {
@@ -652,7 +749,12 @@ function HomePage() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ motivo, valor, fecha, categoria }),
+          body: JSON.stringify({
+            motivo,
+            valor,
+            fecha,
+            categoria: categoriaTransaccion,
+          }),
         });
 
         if (response.ok) {
@@ -662,9 +764,17 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha)
           );
           setTransacciones(updatedTransacciones);
+        } else {
+          console.error(
+            "Error al crear transacción:",
+            response.status,
+            response.statusText
+          );
+          setError("Error al procesar la transacción.");
         }
       } catch (err) {
-        // habria que avisar que hubo un error en aceptar la transaccion o algo
+        console.error("Error en la solicitud de transacción:", err);
+        setError("Error de red al procesar la transacción.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -674,7 +784,10 @@ function HomePage() {
   const isAccepted = async (transaction, categoria, tipoGasto) => {
     await aceptarTransaccion(transaction, categoria, tipoGasto);
     eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+    if (
+      transaction.id_reserva !== "Cobro" &&
+      transaction.id_reserva !== "Pago"
+    ) {
       enviarRespuesta("aceptada", transaction.id_reserva);
     }
     setPendTran(false);
@@ -682,7 +795,10 @@ function HomePage() {
 
   const isRejected = (transaction) => {
     eliminarTransaccionPendiente(transaction.id);
-    if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+    if (
+      transaction.id_reserva !== "Cobro" &&
+      transaction.id_reserva !== "Pago"
+    ) {
       enviarRespuesta("rechazada", transaction.id_reserva);
     }
     setPendTran(false);
@@ -704,10 +820,18 @@ function HomePage() {
       });
 
       if (response.ok) {
-        //
+        console.log("Respuesta enviada exitosamente");
+      } else {
+        console.error(
+          "Error al enviar respuesta:",
+          response.status,
+          response.statusText
+        );
+        setError("Error al enviar la respuesta.");
       }
     } catch (err) {
-      // habria que avisar que hubo un error en aceptar la transaccion o algo
+      console.error("Error en la solicitud de respuesta:", err);
+      setError("Error de red al enviar la respuesta.");
     } finally {
       setTransaccionesCargadas(true);
     }
@@ -715,7 +839,7 @@ function HomePage() {
 
   const eliminarTransaccionPendiente = async (id) => {
     const tranEliminada = await deletePendingTransaction(id);
-    tranEliminada ? showTransactionsPendientes() : console.log("Error");
+    tranEliminada ? showTransactionsPendientes() : console.error("Error");
   };
 
   return (
@@ -732,7 +856,7 @@ function HomePage() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Filters
+                  <Filter className="mr-2 h-4 w-4" /> Filtrar
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card" align="end">
@@ -748,7 +872,10 @@ function HomePage() {
                   <div className="grid gap-2">
                     <Select
                       value={categoriaSeleccionada}
-                      onValueChange={setCategoriaSeleccionada}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setCategoriaSeleccionada(value);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar Categoría" />
@@ -761,7 +888,13 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                    <Select
+                      value={filtroMes}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setFiltroMes(value);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Month" />
                       </SelectTrigger>
@@ -773,7 +906,13 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                    <Select
+                      value={filtroAno}
+                      onValueChange={(value) => {
+                        setIsLoadingFilter(true);
+                        setFiltroAno(value);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select Year" />
                       </SelectTrigger>
@@ -810,6 +949,54 @@ function HomePage() {
             </Button>
           </div>
         </div>
+        {/* Mostrar suscripciones detectadas */}
+        {posibleSub.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-white">
+                Suscripciones Detectadas
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  if (!showSubscriptions) {
+                    setIsLoadingSubscriptions(true);
+                    setTimeout(() => {
+                      setShowSubscriptions(true);
+                      setIsLoadingSubscriptions(false);
+                    }, 300);
+                  } else {
+                    setShowSubscriptions(false);
+                  }
+                }}
+                className="text-white hover:text-primary"
+              >
+                {showSubscriptions ? (
+                  <>
+                    <EyeOff className="mr-2 h-4 w-4" />
+                    Ocultar
+                  </>
+                ) : (
+                  <>
+                    <Eye className="mr-2 h-4 w-4" />
+                    Mostrar
+                  </>
+                )}
+              </Button>
+            </div>
+            {isLoadingSubscriptions ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
+                <span className="text-white text-sm">
+                  Cargando suscripciones...
+                </span>
+              </div>
+            ) : (
+              showSubscriptions && <DetectedSubscriptions subs={posibleSub} />
+            )}
+          </div>
+        )}
         {isLoadingFilter ? (
           <div className="flex flex-col items-center justify-center py-12 text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
@@ -819,12 +1006,13 @@ function HomePage() {
           </div>
         ) : transacciones.length > 0 ? (
           <div className="flex flex-col gap-6 w-full  mx-auto">
-            {transacciones && !loadGraphic && transacciones[0] && (
+            {transacciones && !loadGraphic && transacciones.length > 0 && (
               <MonthlyGraphic
                 type="categorias"
                 transacciones={transacciones}
                 payCategories={payCategories}
                 filtroMes={filtroMes}
+                filtroAno={filtroAno}
                 filtroCategoria={categoriaSeleccionada}
                 loading={loadGraphic}
                 transaccionesSinFiltroCat={transaccionesSinFiltroCat}
@@ -833,12 +1021,15 @@ function HomePage() {
 
             {transaccionesCargadas &&
               !loadGraphic &&
-              transacciones[0] != null && (
+              transacciones.length > 0 && (
                 <PaymentMethodGraphic
                   type="tipoGasto"
                   transacciones={transacciones}
                   payCategories={payOptions}
                   loading={loadGraphic}
+                  filtroMes={filtroMes}
+                  filtroAno={filtroAno}
+                  filtroCategoria={categoriaSeleccionada}
                 />
               )}
           </div>

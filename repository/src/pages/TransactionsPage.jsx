@@ -24,6 +24,11 @@ import {
   TrendingUp,
   TrendingDown,
   XCircle,
+  PieChart,
+  Loader2,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -34,7 +39,12 @@ import { getApiTransacciones } from "@/functions/getApiTransacciones";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ModalForm from "./components/ModalForm";
+import AutomaticDistribution from "../components/AutomaticDistribution";
 import { createCatAPI } from "@/functions/createCatAPI";
+import {
+  distributeIncomeAutomatically,
+  distributeExistingIncome,
+} from "@/functions/distributeIncomeAPI";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import {
   Popover,
@@ -81,11 +91,14 @@ export default function TransactionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transacciones, setTransacciones] = useState([]);
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
-  const [filtroMes, setFiltroMes] = useState("");
-  const [filtroAno, setFiltroAno] = useState("");
+  const [filtroMes, setFiltroMes] = useState("00");
+  const [filtroAno, setFiltroAno] = useState("00");
   const [isLoading, setIsLoading] = useState(false);
   const [transaccionesCargadas, setTransaccionesCargadas] = useState(false);
   const [isLoadingFilter, setIsLoadingFilter] = useState(false);
+  const [isLoadingDistribution, setIsLoadingDistribution] = useState(false);
+  const [isLoadingTransaction, setIsLoadingTransaction] = useState(false);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
   const [payCategories, setPayCategories] = useState([]);
   const [payCategoriesDefault, setPayCategoriesDefault] = useState([
     {
@@ -134,6 +147,10 @@ export default function TransactionsPage() {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
 
+  // Estados para distribución automática
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [transactionToDistribute, setTransactionToDistribute] = useState(null);
+
   // Handlers necesarios
   const handleMotivoChange = (e) => setMotivo(e.target.value);
   const handleCategoryChange = (value) => {
@@ -155,19 +172,67 @@ export default function TransactionsPage() {
       setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
       setSelectedCategory(ret.newCat);
       setCategoria(ret.newCat.value);
+      // Refrescar categorías desde el servidor para mantener consistencia
+      await fetchPersonalCategorias();
     }
     return ret.error;
   };
   const handleGroupChange = (group) => setSelectedGroup(group);
 
+  // Cargar categorías al montar el componente
   useEffect(() => {
-    fetchPersonalCategorias();
+    const initializeData = async () => {
+      await fetchPersonalCategorias();
+      getTransacciones("Todas");
+    };
+
+    initializeData();
+  }, []);
+
+  // Actualizar categoriasConTodas cuando payCategories cambie
+  useEffect(() => {
     setCategoriasConTodas([
       { value: "Todas", label: "Todas las Categorias" },
       ...payCategories,
     ]);
-    getTransacciones(categoriaSeleccionada);
-  }, [categoriaSeleccionada, filtroMes, filtroAno]);
+  }, [payCategories]);
+
+  // Actualizar categorías disponibles cuando cambien las transacciones
+  useEffect(() => {
+    if (transacciones.length > 0) {
+      // Extraer categorías únicas de las transacciones
+      const categoriasEnTransacciones = [
+        ...new Set(transacciones.map((t) => t.categoria)),
+      ];
+
+      // Crear categorías que pueden no estar en payCategories
+      const categoriasAdicionales = categoriasEnTransacciones
+        .filter((cat) => !payCategories.some((pc) => pc.value === cat))
+        .map((cat) => ({
+          value: cat,
+          label: cat,
+          iconPath: "fa-solid fa-circle-dot", // Icono por defecto
+        }));
+
+      // Actualizar categoriasConTodas con todas las categorías disponibles
+      const todasLasCategorias = [
+        { value: "Todas", label: "Todas las Categorias" },
+        ...payCategories,
+        ...categoriasAdicionales,
+      ];
+
+      setCategoriasConTodas(todasLasCategorias);
+    }
+  }, [transacciones, payCategories]);
+
+  // Obtener transacciones cuando cambien los filtros
+  useEffect(() => {
+    if (payCategories.length > 0) {
+      // Solo ejecutar cuando las categorías estén cargadas
+      setIsLoadingFilter(true);
+      getTransacciones(categoriaSeleccionada);
+    }
+  }, [categoriaSeleccionada, filtroMes, filtroAno, payCategories.length]);
   const getTransacciones = async (filtrado = "Todas") => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
@@ -186,14 +251,12 @@ export default function TransactionsPage() {
         setIsLoadingFilter(false);
         setTransaccionesCargadas(true);
       }
-      fetchPersonalCategorias();
     } else {
       navigate("/");
     }
     setIsLoading(false);
   };
   const fetchPersonalCategorias = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
@@ -256,6 +319,7 @@ export default function TransactionsPage() {
   };
   const deleteRow = async (id) => {
     const token = localStorage.getItem("token");
+    setIsLoadingDelete(true);
     setTransaccionesCargadas(false);
     try {
       const response = await fetch(
@@ -276,6 +340,7 @@ export default function TransactionsPage() {
     } catch (err) {
       setError("Ocurrió un error. Intenta nuevamente.");
     } finally {
+      setIsLoadingDelete(false);
       setTransaccionesCargadas(true);
     }
   };
@@ -300,11 +365,12 @@ export default function TransactionsPage() {
     });
   };
 
-  const agregarTransaccion = async (e, categoria) => {
+  const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     let bodyJson = "";
     let url = "";
+    setIsLoadingTransaction(true);
     setTransaccionesCargadas(false);
     if (selectedGroup == null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
@@ -353,12 +419,22 @@ export default function TransactionsPage() {
         }
         closeModal();
         setSelectedGroup(null);
+        if (isRecurrent) {
+          await agregarTransaccionRecurrente({
+            motivo,
+            valor,
+            fecha,
+            categoria,
+            tipoGasto,
+          });
+        }
       } else {
-        console.log("la respuesta no fue ok");
+        console.error("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
+      setIsLoadingTransaction(false);
       setTransaccionesCargadas(true);
       if (!edit) {
         checkTransaccionAchievment();
@@ -366,11 +442,113 @@ export default function TransactionsPage() {
     }
   };
 
+  const agregarTransaccionRecurrente = async (bodyTrans) => {
+    try {
+      const token = localStorage.getItem("token");
+      const body = {
+        motivo: bodyTrans.motivo,
+        categoria: bodyTrans.categoria,
+        tipoGasto: bodyTrans.tipoGasto,
+        valor: bodyTrans.valor,
+        frecuencia: "mensual",
+        nextExecution: new Date(new Date().setMonth(new Date().getMonth() + 1))
+          .toISOString()
+          .split("T")[0],
+      };
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+      if (response.ok) {
+        console.log("Transaccion Recurrente creada");
+      } else {
+        setError("Error al crear la transacción recurrente.");
+      }
+    } catch (err) {
+      setError("Error de red.");
+    }
+  };
+
+  // Funciones para distribución automática
+  const handleDistributeIncome = (transaction) => {
+    setTransactionToDistribute(transaction);
+    setShowDistributionModal(true);
+  };
+
+  const handleConfirmDistribution = async (shouldDistribute) => {
+    setShowDistributionModal(false);
+
+    if (shouldDistribute && transactionToDistribute) {
+      setIsLoadingDistribution(true);
+      setTransaccionesCargadas(false);
+      try {
+        const result = await distributeExistingIncome(
+          transactionToDistribute.id
+        );
+
+        if (result.success) {
+          // Marcar la transacción como distribuida localmente
+          const updatedTransacciones = transacciones.map((t) =>
+            t.id === transactionToDistribute.id
+              ? { ...t, distribuida: true }
+              : t
+          );
+          setTransacciones(updatedTransacciones);
+
+          // Recargar transacciones para mostrar las nuevas transacciones distribuidas
+          await getTransacciones();
+          alert(
+            `Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`
+          );
+        } else {
+          alert(`Error en la distribución: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("Error al distribuir ingreso:", error);
+        alert(error.message || "Error de conexión al distribuir el ingreso");
+      } finally {
+        setIsLoadingDistribution(false);
+        setTransaccionesCargadas(true);
+      }
+    }
+
+    setTransactionToDistribute(null);
+  };
+
+  const handleCancelDistribution = () => {
+    setShowDistributionModal(false);
+    setTransactionToDistribute(null);
+  };
   const sortedtransacciones = React.useMemo(() => {
     if (sortConfig.key) {
       const sorted = [...transacciones].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        // Manejo especial para fechas
+        if (sortConfig.key === "fecha") {
+          aValue = new Date(aValue);
+          bValue = new Date(bValue);
+        }
+
+        // Manejo especial para valores numéricos
+        if (sortConfig.key === "valor") {
+          aValue = parseFloat(aValue);
+          bValue = parseFloat(bValue);
+        }
+
+        // Manejo especial para strings (motivo, categoria, tipoGasto)
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          aValue = aValue.toLowerCase();
+          bValue = bValue.toLowerCase();
+        }
 
         if (aValue < bValue) {
           return sortConfig.direction === "asc" ? -1 : 1;
@@ -390,8 +568,9 @@ export default function TransactionsPage() {
   const [edit, setEdit] = useState(false);
 
   const resetFilters = () => {
+    setIsLoadingFilter(true);
     setCategoriaSeleccionada("Todas");
-    setFiltroAno("2025");
+    setFiltroAno("00");
     setFiltroMes("00");
   };
 
@@ -403,6 +582,32 @@ export default function TransactionsPage() {
           ? "desc"
           : "asc",
     }));
+  };
+
+  // Componente para headers ordenables
+  const SortableHeader = ({ sortKey, children, className = "" }) => {
+    const getSortIcon = () => {
+      if (sortConfig.key !== sortKey) {
+        return <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />;
+      }
+      return sortConfig.direction === "asc" ? (
+        <ArrowUp className="ml-2 h-4 w-4 text-primary" />
+      ) : (
+        <ArrowDown className="ml-2 h-4 w-4 text-primary" />
+      );
+    };
+
+    return (
+      <TableHead
+        className={`cursor-pointer hover:bg-muted/50 transition-colors select-none ${className}`}
+        onClick={() => handleSort(sortKey)}
+      >
+        <div className="flex items-center">
+          {children}
+          {getSortIcon()}
+        </div>
+      </TableHead>
+    );
   };
 
   const editRow = (row) => {
@@ -455,6 +660,32 @@ export default function TransactionsPage() {
     setIsModalOpen(true);
   };
 
+  const checkTransaccionAchievment = async () => {
+    const token = localStorage.getItem("token");
+    fetch(
+      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data === 1 || data === 5 || data === 10) {
+          // Handle achievement notification if needed
+          console.log("Achievement unlocked:", data);
+        } else {
+          console.log(data);
+        }
+      })
+      .catch((error) => {
+        console.error("Error checking achievements:", error);
+      });
+  };
+
   return (
     <AppLayout>
       <div className="space-y-8">
@@ -469,17 +700,17 @@ export default function TransactionsPage() {
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Filters
+                  <Filter className="mr-2 h-4 w-4" /> Filtros
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card" align="end">
                 <div className="grid gap-4">
                   <div className="space-y-2">
                     <h4 className="font-medium leading-none font-headline">
-                      Filters
+                      Filtros
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      Filter transactions by date.
+                      Filtrar transacciones por mes o categoria
                     </p>
                   </div>
                   <div className="grid gap-2">
@@ -527,8 +758,19 @@ export default function TransactionsPage() {
                     variant="ghost"
                     className="bg-primary text-black"
                     onClick={resetFilters}
+                    disabled={isLoadingFilter}
                   >
-                    <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
+                    {isLoadingFilter ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Aplicando...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="mr-2 h-4 w-4" />
+                        Limpiar Filtros
+                      </>
+                    )}
                   </Button>
                 </div>
               </PopoverContent>
@@ -536,8 +778,19 @@ export default function TransactionsPage() {
             <Button
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={() => openModal()}
+              disabled={isLoadingTransaction}
             >
-              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Transaccion
+              {isLoadingTransaction ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Agregar Transaccion
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -550,86 +803,156 @@ export default function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Motivo</TableHead>
-                  <TableHead>Valor</TableHead>
-                  <TableHead>Medio de Pago</TableHead>
+                  <SortableHeader sortKey="categoria">Categoria</SortableHeader>
+                  <SortableHeader sortKey="fecha">Fecha</SortableHeader>
+                  <SortableHeader sortKey="motivo">Motivo</SortableHeader>
+                  <SortableHeader sortKey="valor">Valor</SortableHeader>
+                  <SortableHeader sortKey="tipoGasto">
+                    Medio de Pago
+                  </SortableHeader>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(transacciones.length === 0 || !transacciones) && (
+                {(isLoading || isLoadingFilter || isLoadingDistribution) && (
                   <TableRow>
                     <TableCell
-                      colSpan={7}
+                      colSpan={6}
                       className="text-center text-muted-foreground py-8"
                     >
-                      No se encontraron transacciones
+                      <div className="flex items-center justify-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>
+                          {isLoadingDistribution
+                            ? "Distribuyendo ingreso automáticamente..."
+                            : isLoadingFilter
+                            ? "Aplicando filtros..."
+                            : "Cargando transacciones..."}
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
-                {sortedtransacciones.map((transaction, index) => {
-                  return (
-                    <TableRow
-                      key={index}
-                      className="hover:bg-muted/50 transition-colors"
-                    >
-                      <TableCell>
-                        <Badge
-                          variant={"secondary"}
-                          className={"whitespace-nowrap"}
-                        >
-                          {(() => {
-                            const iconPath = payCategories.find(
-                              (cat) => cat.value === transaction.categoria
-                            )?.iconPath;
-
-                            return (
-                              <>
-                                {iconPath && (
-                                  <FontAwesomeIcon
-                                    icon={iconPath}
-                                    className="mr-2 text-white"
-                                  />
-                                )}
-                                {transaction.categoria}
-                              </>
-                            );
-                          })()}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(transaction.fecha), "MMM dd, yyyy")}
-                      </TableCell>
-                      <TableCell>{transaction.motivo}</TableCell>
-                      <TableCell className="font-medium">
-                        ${transaction.valor.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="max-w-[200px] truncate">
-                        {transaction.tipoGasto}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => editRow(transaction)}
-                        >
-                          <Edit3 />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive/80"
-                          onClick={() => deleteRow(transaction.id)}
-                        >
-                          <Trash2 />
-                        </Button>
+                {!isLoading &&
+                  !isLoadingFilter &&
+                  !isLoadingDistribution &&
+                  (transacciones.length === 0 || !transacciones) && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        No se encontraron transacciones
                       </TableCell>
                     </TableRow>
-                  );
-                })}
+                  )}
+                {!isLoading &&
+                  !isLoadingFilter &&
+                  !isLoadingDistribution &&
+                  sortedtransacciones.map((transaction, index) => {
+                    return (
+                      <TableRow
+                        key={index}
+                        className="hover:bg-muted/50 transition-colors"
+                      >
+                        <TableCell>
+                          <Badge
+                            variant={"secondary"}
+                            className={"whitespace-nowrap"}
+                          >
+                            {(() => {
+                              const iconPath = payCategories.find(
+                                (cat) => cat.value === transaction.categoria
+                              )?.iconPath;
+
+                              return (
+                                <>
+                                  {iconPath && (
+                                    <FontAwesomeIcon
+                                      icon={iconPath}
+                                      className="mr-2 text-white"
+                                    />
+                                  )}
+                                  {transaction.categoria}
+                                </>
+                              );
+                            })()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(transaction.fecha), "MMM dd, yyyy")}
+                        </TableCell>
+                        <TableCell>{transaction.motivo}</TableCell>
+                        <TableCell className="font-medium">
+                          ${transaction.valor.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {transaction.tipoGasto}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => editRow(transaction)}
+                          >
+                            <Edit3 />
+                          </Button>
+                          {transaction.categoria === "Ingreso de Dinero" &&
+                            !transaction.distribuida && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-primary hover:text-primary/80"
+                                onClick={() =>
+                                  handleDistributeIncome(transaction)
+                                }
+                                title="Distribuir automáticamente según presupuestos"
+                                disabled={isLoadingDistribution}
+                              >
+                                {isLoadingDistribution ? (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M3 3v18h18" />
+                                    <path d="m19 9-5 5-4-4-3 3" />
+                                  </svg>
+                                )}
+                              </Button>
+                            )}
+                          {transaction.categoria === "Ingreso de Dinero" &&
+                            transaction.distribuida && (
+                              <Badge variant="secondary" className="text-xs">
+                                Ya distribuida
+                              </Badge>
+                            )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive/80"
+                            onClick={() => deleteRow(transaction.id)}
+                            disabled={isLoadingDelete}
+                          >
+                            {isLoadingDelete ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 />
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </CardContent>
@@ -657,6 +980,14 @@ export default function TransactionsPage() {
         handleGroupChange={handleGroupChange}
         selectedGroup={selectedGroup}
         grupos={grupos}
+        isLoading={isLoadingTransaction}
+      />
+
+      <AutomaticDistribution
+        isVisible={showDistributionModal}
+        transaction={transactionToDistribute}
+        onDistribute={handleConfirmDistribution}
+        onCancel={handleCancelDistribution}
       />
     </AppLayout>
   );

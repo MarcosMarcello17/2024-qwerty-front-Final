@@ -3,20 +3,105 @@
  */
 import Modal from "react-modal";
 import "./styles/ModalForm.css";
-import React, { useEffect, useState } from "react";
-import TransaccionesTable from "./TransaccionesTable";
+import { useEffect, useState } from "react";
 import ModalForm from "./ModalForm";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Edit3, Trash2 } from "lucide-react";
+import { format } from "date-fns";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { fas } from "@fortawesome/free-solid-svg-icons";
 
 function ModalVerDetallesGrupo({
   isModalDetallesGrupoOpen,
   closeModalDetallesGrupo,
   grupo,
   setGrupoSeleccionado,
-  payCategories,
   setGrupos,
   grupos,
-  getTransacciones,
 }) {
+  library.add(fas);
+  const [payCategories, setPayCategories] = useState([]);
+  const [payCategoriesDefault, setPayCategoriesDefault] = useState([
+    {
+      value: "Impuestos y Servicios",
+      label: "Impuestos y Servicios",
+      iconPath: "fa-solid fa-file-invoice-dollar",
+    },
+    {
+      value: "Entretenimiento y Ocio",
+      label: "Entretenimiento y Ocio",
+      iconPath: "fa-solid fa-ticket",
+    },
+    {
+      value: "Hogar y Mercado",
+      label: "Hogar y Mercado",
+      iconPath: "fa-solid fa-house",
+    },
+    { value: "Antojos", label: "Antojos", iconPath: "fa-solid fa-candy-cane" },
+    {
+      value: "Electrodomesticos",
+      label: "Electrodomesticos",
+      iconPath: "fa-solid fa-blender",
+    },
+    { value: "Clase", label: "Clase", iconPath: "fa-solid fa-chalkboard-user" },
+    {
+      value: "Ingreso de Dinero",
+      label: "Ingreso de Dinero",
+      iconPath: "fa-solid fa-money-bill",
+    },
+  ]);
+  const fetchPersonalCategorias = async () => {
+    setIsLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const customOptions = data.map((cat) => ({
+          label: cat.nombre,
+          value: cat.nombre,
+          iconPath: cat.iconPath,
+        }));
+
+        setPayCategories([
+          {
+            value: "Otros",
+            label: "Otros",
+            iconPath: "fa-solid fa-circle-dot",
+          },
+          {
+            value: "Gasto Grupal",
+            label: "Gasto Grupal",
+            iconPath: "fa-solid fa-people-group",
+          },
+          ...payCategoriesDefault,
+          ...customOptions,
+        ]);
+      }
+    } catch (error) {
+      console.error("Error al obtener las categorías personalizadas:", error);
+    }
+  };
   const [transacciones, setTransacciones] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [deudas, setDeudas] = useState([]);
@@ -158,6 +243,7 @@ function ModalVerDetallesGrupo({
   };
   useEffect(() => {
     if (isModalDetallesGrupoOpen) {
+      fetchPersonalCategorias();
       fetchTransaccionesDelGrupo();
       fetchPersonalTipoGastos();
     }
@@ -314,7 +400,6 @@ function ModalVerDetallesGrupo({
   const agregarTransaccion = async (e, categoria) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    console.log(transaccionId);
     let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`;
     let bodyJson = JSON.stringify({
       motivo,
@@ -334,7 +419,6 @@ function ModalVerDetallesGrupo({
         body: bodyJson,
       });
       if (response.ok) {
-        console.log("la respuesta fue ok");
         const data = await response.json();
         const updatedTransacciones = transacciones.map((t) =>
           t.id === data.id ? data : t
@@ -345,11 +429,11 @@ function ModalVerDetallesGrupo({
         setTransacciones(updatedTransacciones);
         closeModal();
       } else {
-        console.log("la respuesta no fue ok");
+        console.error("la respuesta no fue ok");
       }
     } catch (err) {
-      console.log("la respuesta fue error");
-      console.log(err);
+      console.error("la respuesta fue error");
+      console.error(err);
     }
   };
   const handleMotivoChange = (e) => {
@@ -364,7 +448,6 @@ function ModalVerDetallesGrupo({
     setSelectedPayMethod(value);
   };
   const handleCreateCat = async (nombre, icono) => {
-    console.log("entre      ");
     const token = localStorage.getItem("token");
     if (!nombre || !icono) {
       console.error("Nombre y icono son obligatorios");
@@ -394,7 +477,6 @@ function ModalVerDetallesGrupo({
           iconPath: newCategoria.iconPath,
         };
         setPayCategories((prevOptions) => [...prevOptions, newOption]);
-        console.log(payCategories);
         setSelectedCategory(newOption);
         setCategoria(newCategoria.nombre);
       } else {
@@ -444,65 +526,147 @@ function ModalVerDetallesGrupo({
       onRequestClose={closeModalDetallesGrupo}
       contentLabel="Detalle"
       style={customStyles}
-      className="bg-[#000814] shadow-lg p-4 rounded-lg"
+      className="bg-card shadow-lg p-4 rounded-lg min-h-[400px]"
     >
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         {grupo.nombre}
       </div>
       <div className="flex flex-col flex-grow px-4">
-        <div className="bg-[#001d3d] p-4 rounded-lg shadow-lg text-white">
-          <h3 className="text-lg font-semibold mb-2">Transacciones</h3>
-          {isLoading ? (
-            <p>Cargando transacciones...</p>
-          ) : transacciones.length > 0 ? (
-            <TransaccionesTable
-              transacciones={transacciones}
-              payCategories={payCategories}
-              editRow={editRow}
-              deleteRow={deleteRow}
-              grupoAbierto={grupo.estado}
-            />
-          ) : (
-            <p>No hay transacciones en este grupo.</p>
-          )}
-          <div className="flex justify-end gap-4 mt-4">
-            {grupo.estado && (
-              <button
-                onClick={cerrarGrupo}
-                className="flex-1 bg-[#ffd60a] text-black font-bold py-3 px-4 rounded hover:bg-[#ffc300] transition-colors duration-300 mt-4"
-              >
-                Finalizar Evento
-              </button>
-            )}
+        {isLoading ? (
+          <p>Cargando transacciones...</p>
+        ) : transacciones.length > 0 ? (
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Historial de Transacciones</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Motivo</TableHead>
+                    <TableHead>Valor</TableHead>
+                    <TableHead>Medio de Pago</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(transacciones.length === 0 || !transacciones) && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center text-muted-foreground py-8"
+                      >
+                        No se encontraron transacciones
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {transacciones.map((transaction, index) => {
+                    return (
+                      <TableRow
+                        key={index}
+                        className="hover:bg-muted/50 transition-colors"
+                      >
+                        <TableCell>
+                          <Badge
+                            variant={"secondary"}
+                            className={"whitespace-nowrap"}
+                          >
+                            {(() => {
+                              const iconPath = payCategories.find(
+                                (cat) => cat.value === transaction.categoria
+                              )?.iconPath;
+
+                              return (
+                                <>
+                                  {iconPath && (
+                                    <FontAwesomeIcon
+                                      icon={iconPath}
+                                      className="mr-2 text-white"
+                                    />
+                                  )}
+                                  {transaction.categoria}
+                                </>
+                              );
+                            })()}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {format(new Date(transaction.fecha), "MMM dd, yyyy")}
+                        </TableCell>
+                        <TableCell>{transaction.motivo}</TableCell>
+                        <TableCell className="font-medium">
+                          ${transaction.valor.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {transaction.tipoGasto}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => editRow(transaction)}
+                          >
+                            <Edit3 />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive/80"
+                            onClick={() => deleteRow(transaction.id)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        ) : (
+          <p>No hay transacciones en este grupo.</p>
+        )}
+        <div className="flex justify-end gap-4 mt-4">
+          {grupo.estado && (
             <button
-              onClick={closeWindow}
-              className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300 mt-4"
+              onClick={cerrarGrupo}
+              className="flex-1 bg-[#ffd60a] text-black font-bold py-3 px-4 rounded hover:bg-[#ffc300] transition-colors duration-300 mt-4"
             >
-              Cerrar
+              Finalizar Evento
             </button>
-          </div>
-          {!grupo.estado && (
-            <div className="mt-4">
-              <h3 className="text-lg font-semibold mb-2">Deudas:</h3>
-              {deudas.length > 0 ? (
-                <ul>
-                  {deudas.map((deuda, index) => (
-                    <li
-                      key={index}
-                      className="py-1 text-lg font-medium text-center"
-                    >
-                      {deuda}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-400">
-                  No hay deudas pendientes en este grupo
-                </p>
-              )}
-            </div>
           )}
+          <button
+            onClick={closeWindow}
+            className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300 mt-4"
+          >
+            Cerrar
+          </button>
         </div>
+        {!grupo.estado && (
+          <div className="mt-4">
+            <h3 className="text-lg font-semibold mb-2">Deudas:</h3>
+            {deudas.length > 0 ? (
+              <ul>
+                {deudas.map((deuda, index) => (
+                  <li
+                    key={index}
+                    className="py-1 text-lg font-medium text-center"
+                  >
+                    {deuda}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400">
+                No hay deudas pendientes en este grupo
+              </p>
+            )}
+          </div>
+        )}
       </div>
       <ModalForm
         isModalOpen={isModalOpen}

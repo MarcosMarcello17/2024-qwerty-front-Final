@@ -1,3 +1,6 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { UserPlus } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 
@@ -5,6 +8,8 @@ const ModalCrearGrupo = ({
   isOpen = false,
   onRequestClose = () => {},
   grupoAAgregar = null,
+  onGrupoCreated = () => {}, // Callback para cuando se crea un grupo
+  onUsuariosInvitados = () => {}, // Callback para cuando se invitan usuarios
 }) => {
   const customStyles = {
     overlay: {
@@ -21,14 +26,11 @@ const ModalCrearGrupo = ({
     },
     content: {
       position: "relative",
-      width: "90%",
-      maxWidth: "500px",
       height: "auto",
       maxHeight: "90vh",
       padding: "20px",
       margin: "auto",
       borderRadius: "10px",
-      backgroundColor: "#000814",
       overflowY: "auto",
     },
   };
@@ -98,10 +100,8 @@ const ModalCrearGrupo = ({
     const response = await fetch(url);
     if (response.ok) {
       const exists = await response.json();
-      console.log(exists);
       return exists;
     } else {
-      console.log(exists);
       return exists;
     }
   };
@@ -142,6 +142,7 @@ const ModalCrearGrupo = ({
         setUsuarios([]);
         setError("");
         onRequestClose();
+        onGrupoCreated(); // Llamar callback para refrescar la lista de grupos
       } catch (error) {
         setError("Ocurrió un error al procesar la solicitud.");
       } finally {
@@ -176,6 +177,7 @@ const ModalCrearGrupo = ({
         setUsuarios([]);
         setError("");
         onRequestClose();
+        onUsuariosInvitados(); // Llamar callback para refrescar la lista de grupos
       } catch (error) {
         setError("Ocurrió un error al procesar la solicitud.");
       } finally {
@@ -197,7 +199,7 @@ const ModalCrearGrupo = ({
       onRequestClose={onRequestClose}
       contentLabel={grupoAAgregar ? "Invitar Usuarios" : "Crear Grupo"}
       style={customStyles}
-      className="bg-gray-900 text-white p-4 sm:p-2 rounded-lg shadow-lg"
+      className="sm:max-w-[525px] bg-card"
     >
       <h2 className="text-xl sm:text-lg font-bold mb-4">
         {grupoAAgregar ? "Invitar Usuarios" : "Crear Nuevo Grupo"}
@@ -211,7 +213,7 @@ const ModalCrearGrupo = ({
             placeholder="Nombre del Grupo"
             value={grupoNombre}
             onChange={(e) => setGrupoNombre(e.target.value.slice(0, 16))}
-            className="mt-1 block w-full p-2 bg-[#001d3d] text-white rounded-md shadow-sm"
+            className="mt-1 block w-full p-2 bg-background text-white rounded-md shadow-sm"
           />
           <p className="text-gray-500 text-sm mt-1">
             {grupoNombre.length}/16 Largo maximo 16 caracteres
@@ -233,43 +235,58 @@ const ModalCrearGrupo = ({
         </div>
       )}
 
-      <input
-        type="email"
-        placeholder="Correo del Usuario"
-        value={correoUsuario}
-        onChange={(e) => setCorreoUsuario(e.target.value)}
-        className="mt-1 block w-full p-2 bg-[#001d3d] text-white rounded-md shadow-sm"
-      />
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      <button
-        onClick={handleAddUsuario}
-        className="mt-2 w-full sm:w-auto bg-[#003566] text-white font-bold py-2 px-4 rounded hover:bg-[#001d3d] transition duration-300"
-      >
-        Agregar Usuario
-      </button>
+      <div className="mb-4">
+        <label
+          className="block text-white font-semibold my-2"
+          htmlFor="correoUsuario"
+        >
+          Invitar usuarios
+        </label>
+        <div className="flex items-center rounded-md p-2">
+          <Input
+            id="correoUsuario"
+            type="email"
+            placeholder="user@example.com"
+            value={correoUsuario}
+            onChange={(e) => setCorreoUsuario(e.target.value)}
+            className="flex-1 bg-background text-white border-none focus:ring-0 placeholder-gray-400"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleAddUsuario}
+            className="ml-2 flex items-center bg-background text-white border-none hover:bg-primary"
+          >
+            <UserPlus className="mr-2 h-4 w-4" /> Add
+          </Button>
+        </div>
+      </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={isLoading}
-        className="mt-4 mx-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
-      >
-        {isLoading ? (
-          <div>
-            <span className="loading loading-spinner loading-sm"></span>
-            Cargando...
-          </div>
-        ) : grupoAAgregar ? (
-          "Invitar Usuarios"
-        ) : (
-          "Crear Grupo"
-        )}
-      </button>
-      <button
-        onClick={handleClose}
-        className="mt-2 w-full sm:w-auto bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition duration-300"
-      >
-        Cerrar
-      </button>
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      <div className="flex gap-2 mt-2">
+        <button
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="flex-1 bg-[#ffd60a] bg-opacity-90 font-bold text-gray-950 py-2 px-4 rounded-lg hover:bg-[#ffc300]"
+        >
+          {isLoading ? (
+            <div>
+              <span className="loading loading-spinner loading-sm"></span>
+              Cargando...
+            </div>
+          ) : grupoAAgregar ? (
+            "Invitar Usuarios"
+          ) : (
+            "Crear Grupo"
+          )}
+        </button>
+        <button
+          onClick={handleClose}
+          className="flex-1 bg-red-500 text-white font-bold py-3 px-4 rounded hover:bg-red-600 transition-colors duration-300"
+        >
+          Cerrar
+        </button>
+      </div>
     </Modal>
   );
 };

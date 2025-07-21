@@ -1,11 +1,10 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import CreatableSelect from "react-select/creatable";
 
-function ModalSendPayment({
-  isModalOpen = false,
-  payCategories,
-  refreshTransacciones,
-}) {
+function ModalSendPayment({ closeModal = () => {}, payCategories }) {
   const defaultMediosDePago = [
     {
       value: "Tarjeta de credito",
@@ -120,10 +119,9 @@ function ModalSendPayment({
         );
         if (response.ok) {
           console.log("Pago enviado");
-          refreshTransacciones(transaccion);
         }
         cleanForm();
-        document.getElementById("sendPayModal").close();
+        closeModal();
       } else {
         setIsLoading(false);
       }
@@ -153,116 +151,115 @@ function ModalSendPayment({
   };
 
   return (
-    <dialog id="sendPayModal" className={`modal ${isModalOpen ? "open" : ""}`}>
-      <div className="modal-box bg-[#000814]">
-        <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">
-          Enviar Pago
-        </h2>
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label className="text-gray-100 mb-6">E-Mail:</label>
-            <input
-              type="text"
-              value={emailReceptor}
-              onChange={(e) => setEmailReceptor(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Motivo:</label>
-            <input
-              type="text"
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Valor:</label>
-            <input
-              type="number"
-              value={valor}
-              onChange={(e) => setValor(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Medio de Pago:</label>
-            <select
-              value={payOption}
-              onChange={(e) => setPayOption(e.target.value)}
-              className="select mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            >
-              <option value="">Selecciona un Medio De Pago</option>
-              {payOptions.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Categoría:</label>
-            <select
-              value={categoria}
-              onChange={handleCategoryChange}
-              className="select mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            >
-              <option value="">Selecciona una categoría</option>
-              {payCategories.map((cat) => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-gray-100 mb-6">Fecha:</label>
-            <input
-              type="date"
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
-              required
-            />
-          </div>
-          {modalError && (
-            <div className="text-red-500 text-sm text-center">{modalError}</div>
-          )}
-          <div className="flex flex-col md:flex-row justify-end mt-4 space-y-2 md:space-y-0 md:space-x-2">
-            <button
-              type="button"
-              className="btn border-none w-full md:w-auto bg-red-500 hover:bg-red-600 text-white"
-              onClick={() => {
-                cleanForm();
-                document.getElementById("sendPayModal").close();
-              }}
-            >
-              Cerrar
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="btn w-full border-none sm:w-auto bg-[#ffd60a] hover:bg-[#ffc300] text-black"
-            >
-              {isLoading ? (
-                <div>
-                  <span className="loading loading-spinner loading-sm text-white"></span>
-                  <div className="text-white p-0 m-0">Cargando...</div>
-                </div>
-              ) : (
-                "Enviar"
-              )}
-            </button>
-          </div>
-        </form>
-      </div>
-    </dialog>
+    <div className="modal-box">
+      <form onSubmit={handleSubmit}>
+        <div>
+          <span>E-Mail:</span>
+          <Input
+            type="text"
+            value={emailReceptor}
+            placeholder="persona@email.com"
+            onChange={(e) => setEmailReceptor(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-gray-100 mt-6">Motivo:</label>
+          <Input
+            type="text"
+            value={motivo}
+            placeholder="motivo"
+            onChange={(e) => setMotivo(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-gray-100 mt-6">Valor:</label>
+          <Input
+            type="number"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        <div>
+          <label className="text-gray-100 mt-1">Medio de Pago:</label>
+          <select
+            value={payOption}
+            onChange={(e) => setPayOption(e.target.value)}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          >
+            <option value="" disabled>
+              Selecciona un Medio De Pago
+            </option>
+            {payOptions.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Categoría:</label>
+          <select
+            value={categoria}
+            onChange={handleCategoryChange}
+            className="my-1 block w-full p-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          >
+            <option value="">Selecciona una categoría</option>
+            {payCategories.map((cat) => (
+              <option key={cat.value} value={cat.value}>
+                {cat.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Fecha:</label>
+          <input
+            type="date"
+            value={fecha}
+            onChange={(e) => setFecha(e.target.value)}
+            className="my-1 block w-full p-1 px-2 bg-background text-white rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500"
+            required
+          />
+        </div>
+        {modalError && (
+          <div className="text-red-500 text-sm text-center">{modalError}</div>
+        )}
+        <div className="flex flex-col md:flex-row justify-end mt-4 space-y-2 md:space-y-0 md:space-x-2">
+          <Button
+            type="submit"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Send className="mr-2 h-4 w-4" />{" "}
+            {isLoading ? (
+              <div>
+                <span className="loading loading-spinner loading-sm text-white"></span>
+                <div className="text-white p-0 m-0">Cargando...</div>
+              </div>
+            ) : (
+              "Enviar"
+            )}
+          </Button>
+          <Button
+            type="button"
+            className="w-full bg-red-500 hover:bg-red-600 text-white"
+            onClick={() => {
+              cleanForm();
+              closeModal();
+            }}
+          >
+            Cerrar
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 

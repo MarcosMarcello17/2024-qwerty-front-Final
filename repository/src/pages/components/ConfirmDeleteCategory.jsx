@@ -8,6 +8,7 @@ function ConfirmDeleteCategory({
   isOpen = false,
   handleClose = () => {},
   handleDelete = () => {},
+  isLoadingDelete = false,
 }) {
   library.add(fas);
   const customStyles = {
@@ -54,13 +55,22 @@ function ConfirmDeleteCategory({
         </p>
         <button
           onClick={() => handleDelete()}
-          className="mt-2 w-full sm:w-auto bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition duration-300"
+          disabled={isLoadingDelete}
+          className="mt-2 w-full sm:w-auto bg-red-500 text-white font-bold py-2 px-4 rounded hover:bg-red-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Eliminar
+          {isLoadingDelete ? (
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Eliminando...
+            </div>
+          ) : (
+            "Eliminar"
+          )}
         </button>
         <button
           onClick={() => handleClose()}
-          className="mt-2 w-full sm:w-auto bg-[#ffd60a] ml-2 text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
+          disabled={isLoadingDelete}
+          className="mt-2 w-full sm:w-auto bg-[#ffd60a] ml-2 text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Cancelar
         </button>

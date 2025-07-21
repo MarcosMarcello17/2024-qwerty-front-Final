@@ -55,7 +55,6 @@ function LoginForm() {
 
       if (response.ok) {
         const token = await response.text();
-        console.log("Token recibido:", token);
         localStorage.setItem("token", token);
         localStorage.setItem("mail", email);
         setIsLoading(false);

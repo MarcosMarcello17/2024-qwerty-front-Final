@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Modal from "react-modal";
 import Select from "react-select";
 import "./styles/ModalForm.css";
 import ModalCategoria from "./ModalCategoria";
 import CreatableSelect from "react-select/creatable";
+import { Repeat } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import AutomaticDistribution from "../../components/AutomaticDistribution";
+import { checkCanDistributeAutomatically } from "../../functions/automaticDistributionAPI";
+import { distributeIncomeAutomatically } from "../../functions/distributeIncomeAPI";
 
 function ModalForm({
   isModalOpen,
@@ -28,6 +33,11 @@ function ModalForm({
   selectedGroup,
   grupos,
 }) {
+  const [isRecurrent, setIsRecurrent] = useState(false);
+  const [showDistributionModal, setShowDistributionModal] = useState(false);
+  const [canDistributeAutomatically, setCanDistributeAutomatically] =
+    useState(false);
+  const [isIngresoCategory, setIsIngresoCategory] = useState(false);
   const customStyles = {
     overlay: {
       position: "fixed",
@@ -42,15 +52,17 @@ function ModalForm({
       alignItems: "center",
     },
     content: {
-      padding: "2rem",
+      padding: "1.5rem",
       borderRadius: "0.75rem",
       width: "90vw",
       maxWidth: "500px",
+      maxHeight: "90vh",
       margin: "auto",
       display: "flex",
       flexDirection: "column",
-      gap: "1.5rem",
+      gap: "1rem",
       zIndex: 1001,
+      overflow: "auto",
     },
   };
   const customSelectStyles = {
@@ -103,6 +115,30 @@ function ModalForm({
     }
     setActiveGroups(grupos.filter((grupo) => grupo.estado === true));
   }, [grupos]);
+
+  // Verificar si la categoría es "Ingreso de Dinero"
+  useEffect(() => {
+    const isIngreso =
+      selectedCategory && selectedCategory.value === "Ingreso de Dinero";
+    setIsIngresoCategory(isIngreso);
+
+    if (isIngreso && fecha) {
+      checkDistributionAvailability();
+    } else {
+      setCanDistributeAutomatically(false);
+    }
+  }, [selectedCategory, fecha]);
+
+  const checkDistributionAvailability = async () => {
+    try {
+      const canDistribute = await checkCanDistributeAutomatically(fecha);
+      setCanDistributeAutomatically(canDistribute);
+    } catch (error) {
+      console.error("Error checking distribution availability:", error);
+      setCanDistributeAutomatically(false);
+    }
+  };
+
   useEffect(() => {
     if (selectedCategory && selectedCategory.value === "Gasto Grupal") {
       setIsGroupDisabled(false);
@@ -135,17 +171,60 @@ function ModalForm({
     }
     setIsLoading(true);
     try {
-      await agregarTransaccion(e, selectedCategory.value); // Espera a que se complete la transacción
+      await agregarTransaccion(e, selectedCategory.value, isRecurrent);
     } catch (error) {
       console.error("Error al agregar transacción:", error);
     } finally {
       setIsLoading(false); // Desactivamos el spinner al finalizar
       closeModal();
       setModalError("");
+      setIsRecurrent(false);
     }
+  };
+
+  const handleDistributeAutomatically = async () => {
+    if (!isIngresoCategory || !canDistributeAutomatically) {
+      return;
+    }
+    setShowDistributionModal(true);
+  };
+
+  const handleConfirmDistribution = async (shouldDistribute) => {
+    setShowDistributionModal(false);
+
+    if (shouldDistribute) {
+      setIsLoading(true);
+      try {
+        const result = await distributeIncomeAutomatically(
+          parseFloat(valor),
+          fecha,
+          motivo || "Distribución automática"
+        );
+
+        if (result.success) {
+          alert(
+            `¡Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente según tus presupuestos.`
+          );
+        } else {
+          alert(`Error en la distribución: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("Error al distribuir ingreso:", error);
+        alert("Error de conexión al distribuir el ingreso");
+      } finally {
+        setIsLoading(false);
+        closeModal();
+        setModalError("");
+      }
+    }
+  };
+
+  const handleCancelDistribution = () => {
+    setShowDistributionModal(false);
   };
   const closeWindow = () => {
     setModalError("");
+    setIsRecurrent(false);
     closeModal();
   };
 
@@ -178,12 +257,12 @@ function ModalForm({
       style={customStyles}
       className="bg-card shadow-lg p-4 rounded-lg"
     >
-      <h2 className="text-2xl font-bold text-center mb-1 text-gray-100">
+      <h2 className="text-xl font-bold text-center mb-2 text-gray-100">
         {edit ? "Editar Transacción" : "Agregar Nueva Transacción"}
       </h2>
-      <form onSubmit={sendTransaccion} className="flex flex-col gap-3">
+      <form onSubmit={sendTransaccion} className="flex flex-col gap-2.5">
         <div>
-          <label className="text-center text-gray-100 mb-6">Motivo:</label>
+          <label className="text-sm text-gray-100 mb-1 block">Motivo:</label>
           <input
             type="text"
             value={motivo}
@@ -193,7 +272,7 @@ function ModalForm({
           />
         </div>
         <div>
-          <label className="text-center text-gray-100 mb-6">Valor:</label>
+          <label className="text-sm text-gray-100 mb-1 block">Valor:</label>
           <input
             type="number"
             value={valor}
@@ -203,7 +282,7 @@ function ModalForm({
           />
         </div>
         <div>
-          <label className="text-center text-gray-100 mb-6">
+          <label className="text-sm text-gray-100 mb-1 block">
             Medio de Pago:
           </label>
           <CreatableSelect
@@ -217,7 +296,7 @@ function ModalForm({
           />
         </div>
         <div>
-          <label className="text-center text-gray-100 mb-6">Categoria:</label>
+          <label className="text-sm text-gray-100 mb-1 block">Categoria:</label>
           {handleGroupChange ? (
             <div className="flex items-center">
               <Select
@@ -252,7 +331,7 @@ function ModalForm({
           )}
         </div>
         <div>
-          <label className="text-center text-gray-100 mb-6">Fecha:</label>
+          <label className="text-sm text-gray-100 mb-1 block">Fecha:</label>
           <input
             type="date"
             value={fecha}
@@ -262,11 +341,11 @@ function ModalForm({
           />
         </div>
         <div>
-          <label className="text-center text-gray-100 mb-6">
-            Si es un gasto grupal seleccione el grupo:
+          <label className="text-sm text-gray-100 mb-1 block">
+            Grupo (solo para gastos grupales):
           </label>
           {isGroupDisabled && (
-            <p className="text-yellow-500 text-sm text-center mb-2">
+            <p className="text-yellow-500 text-xs text-center mb-1">
               {edit && selectedCategory.label == "Gasto Grupal"
                 ? "(no se pueden agregar transacciones propias a grupos)"
                 : "(Opción habilitada únicamente para categoría: Gasto Grupal)"}
@@ -302,8 +381,81 @@ function ModalForm({
             />
           )}
         </div>
+        <div className="flex items-center bg-[#0a223a] rounded-lg p-3 mt-2 mb-2 border border-[#132c47]">
+          <div className="flex items-center mr-3">
+            <Repeat className="h-5 w-5 text-[#b5e0ff] mr-2" />
+            <div>
+              <span className="font-medium text-white text-sm block">
+                Transacción Recurrente
+              </span>
+              <p className="text-xs text-[#b5e0ff]">
+                Se registrará automáticamente cada mes
+              </p>
+            </div>
+          </div>
+          <div className="ml-auto">
+            <Switch
+              checked={isRecurrent}
+              onCheckedChange={() => setIsRecurrent(!isRecurrent)}
+            />
+          </div>
+        </div>
         {modalError && (
           <div className="text-red-500 text-sm text-center">{modalError}</div>
+        )}
+
+        {/* Mostrar opción de distribución automática solo para ingresos NUEVOS (no en edición) */}
+        {isIngresoCategory && canDistributeAutomatically && !edit && (
+          <div className="bg-[#0a223a] rounded-lg p-3 mt-2 mb-2 border border-[#132c47]">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center">
+                <Repeat className="h-5 w-5 text-[#b5e0ff] mr-2" />
+                <span className="font-medium text-white text-sm">
+                  Distribución Automática Disponible
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleDistributeAutomatically}
+                className="bg-[#ffd60a] text-black font-bold py-1.5 px-3 rounded-lg hover:bg-[#ffc300] transition-colors duration-300 text-sm"
+              >
+                Distribuir
+              </button>
+            </div>
+            <p className="text-xs text-[#b5e0ff]">
+              Distribuye proporcionalmente según tus presupuestos del mes
+            </p>
+          </div>
+        )}
+
+        {/* Información para ingresos en edición */}
+        {isIngresoCategory && edit && (
+          <div className="bg-[#001d3d] rounded-lg p-3 mt-2 mb-2 border border-[#003d82]">
+            <div className="flex items-center mb-1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="mr-2 text-blue-400"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
+              <span className="font-medium text-blue-200 text-sm">
+                Distribución Automática
+              </span>
+            </div>
+            <p className="text-xs text-blue-300">
+              Puedes usar la distribución automática desde la tabla de
+              transacciones después de guardar los cambios
+            </p>
+          </div>
         )}
 
         <div className="flex gap-2 mt-2">
@@ -354,6 +506,17 @@ function ModalForm({
         isOpen={isModalCategoriaOpen}
         onRequestClose={closeModalCategoria}
         handleCreateCat={handleCreateCat}
+      />
+
+      <AutomaticDistribution
+        isVisible={showDistributionModal}
+        transaction={{
+          valor: parseFloat(valor) || 0,
+          fecha: fecha,
+          motivo: motivo || "Distribución automática",
+        }}
+        onDistribute={handleConfirmDistribution}
+        onCancel={handleCancelDistribution}
       />
     </Modal>
   );

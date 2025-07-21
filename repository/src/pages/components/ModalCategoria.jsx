@@ -11,6 +11,8 @@ const ModalCategoria = ({
   handleEditCat = () => {},
   edit = false,
   editCat = {},
+  isLoadingAdd = false,
+  isLoadingEdit = false,
 }) => {
   library.add(fas);
   // Estilos del Modal
@@ -44,26 +46,38 @@ const ModalCategoria = ({
   const [categoriaNombre, setCategoriaNombre] = useState("");
   const [iconoSeleccionado, setIconoSeleccionado] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (edit) {
-      setCategoriaNombre(editCat.value || "");
+    if (edit && editCat) {
+      setCategoriaNombre(editCat.label || "");
       setIconoSeleccionado(editCat.iconPath || "");
-    } /*else {
+    } else if (!isOpen) {
+      // Limpiar el formulario cuando se cierre el modal
       setCategoriaNombre("");
-      console.log("222");
       setIconoSeleccionado("");
-    }*/
+      setError("");
+    }
   }, [editCat, edit, isOpen]);
 
   const handleSubmit = async () => {
-    setIsLoading(true); // Inicia el estado de carga
-
     if (!categoriaNombre || !iconoSeleccionado) {
       setError("Debes ingresar un nombre y seleccionar un icono.");
-      setIsLoading(false); // Aseguramos que se desactiva isLoading en caso de error
       return;
+    }
+
+    // En modo edición, verificar si realmente hay cambios
+    if (edit && editCat) {
+      const nameChanged = categoriaNombre !== editCat.label;
+      const iconChanged = iconoSeleccionado !== editCat.iconPath;
+
+      // Si no hay cambios, simplemente cerrar el modal
+      if (!nameChanged && !iconChanged) {
+        setCategoriaNombre("");
+        setIconoSeleccionado("");
+        setError("");
+        onRequestClose();
+        return;
+      }
     }
 
     let errorMessage = "";
@@ -81,29 +95,24 @@ const ModalCategoria = ({
         );
       }
 
-      if (errorMessage !== "") {
+      if (errorMessage && errorMessage !== "") {
         setError(errorMessage);
-        setIsLoading(false); // Desactivar loading en caso de error de API
         return;
       }
 
       // Si todo está bien, limpiamos el estado
       setCategoriaNombre("");
-      console.log("333");
       setIconoSeleccionado("");
       setError("");
       onRequestClose();
     } catch (error) {
       setError("Ocurrió un error al procesar la solicitud.");
-    } finally {
-      setIsLoading(false); // Aseguramos que siempre desactivamos isLoading
     }
   };
 
   const handleClose = () => {
     setError("");
     setCategoriaNombre("");
-    console.log("444");
     setIconoSeleccionado("");
     onRequestClose();
   };
@@ -118,6 +127,15 @@ const ModalCategoria = ({
     { alt: "faCar", faIcon: "fa-solid fa-car" },
     { alt: "faMugHot", faIcon: "fa-solid fa-mug-hot" },
     { alt: "faBook", faIcon: "fa-solid fa-book" },
+    { alt: "faShoppingCart", faIcon: "fa-solid fa-shopping-cart" },
+    { alt: "faHome", faIcon: "fa-solid fa-home" },
+    { alt: "faGamepad", faIcon: "fa-solid fa-gamepad" },
+    { alt: "faPlane", faIcon: "fa-solid fa-plane" },
+    { alt: "faPizzaSlice", faIcon: "fa-solid fa-pizza-slice" },
+    { alt: "faGift", faIcon: "fa-solid fa-gift" },
+    { alt: "faWallet", faIcon: "fa-solid fa-wallet" },
+    { alt: "faGasPump", faIcon: "fa-solid fa-gas-pump" },
+    { alt: "faUtensils", faIcon: "fa-solid fa-utensils" },
   ];
 
   return (
@@ -141,32 +159,32 @@ const ModalCategoria = ({
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
 
       <label className="mt-4 block">Selecciona un icono:</label>
-      <div className="grid grid-cols-3 gap-0 sm:grid-cols-3">
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 max-h-48 overflow-y-auto">
         {iconos.map((icono) => (
           <div
             key={icono.alt}
-            className={`p-1 border rounded-md cursor-pointer transition duration-200 ease-in-out flex items-center justify-center
+            className={`p-2 border rounded-md cursor-pointer transition duration-200 ease-in-out flex items-center justify-center h-12 w-12
                         ${
                           iconoSeleccionado === icono.faIcon
-                            ? "border-[#ffc300]"
+                            ? "border-[#ffc300] bg-[#ffc300]/20"
                             : "border-transparent"
                         } 
-                        hover:border-[#ffc300]`}
+                        hover:border-[#ffc300] hover:bg-[#ffc300]/10`}
             onClick={() => setIconoSeleccionado(icono.faIcon)}
           >
-            <FontAwesomeIcon icon={icono.faIcon} className="fa-2x sm:fa-2xs" />
+            <FontAwesomeIcon icon={icono.faIcon} className="text-lg" />
           </div>
         ))}
       </div>
 
       <button
         onClick={handleSubmit}
-        disabled={isLoading}
-        className="mt-4 mr-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300"
+        disabled={edit ? isLoadingEdit : isLoadingAdd}
+        className="mt-4 mr-2 w-full sm:w-auto bg-[#ffd60a] text-black font-bold py-2 px-4 rounded hover:bg-[#ffc300] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isLoading ? (
-          <div>
-            <span className="loading loading-spinner loading-sm"></span>
+        {(edit ? isLoadingEdit : isLoadingAdd) ? (
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
             Cargando...
           </div>
         ) : edit ? (

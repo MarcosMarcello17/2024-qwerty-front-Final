@@ -28,6 +28,7 @@ function MonthlyGraphic({
   payCategories = [],
   payOptions = [],
   filtroMes = "",
+  filtroAno = "",
   filtroCategoria,
   loading = true,
   transaccionesSinFiltroCat,
@@ -43,9 +44,30 @@ function MonthlyGraphic({
 
   useEffect(() => {
     const currentYear = new Date().getFullYear();
-    const transaccionesDelAnio = transacciones.filter(
-      (transaccion) => new Date(transaccion.fecha).getFullYear() === currentYear
-    );
+
+    // Determinar qué transacciones usar basado en los filtros
+    let transaccionesDelAnio;
+
+    if (filtroAno && filtroAno !== "00") {
+      // Si hay filtro de año específico, usar solo ese año
+      const selectedYear = parseInt(filtroAno, 10);
+      transaccionesDelAnio = transacciones.filter(
+        (transaccion) =>
+          new Date(transaccion.fecha).getFullYear() === selectedYear
+      );
+    } else {
+      // Si no hay filtro de año, usar todas las transacciones disponibles
+      transaccionesDelAnio = transacciones;
+    }
+
+    // Filtrar por mes si se especifica
+    if (filtroMes && filtroMes !== "00") {
+      const selectedMonth = parseInt(filtroMes, 10) - 1; // Convertir a índice de mes (0-11)
+      transaccionesDelAnio = transaccionesDelAnio.filter(
+        (transaccion) =>
+          new Date(transaccion.fecha).getUTCMonth() === selectedMonth
+      );
+    }
 
     const gastos =
       filtroCategoria !== "Ingreso de Dinero"
@@ -54,12 +76,31 @@ function MonthlyGraphic({
           )
         : transaccionesDelAnio;
 
-    // También filtrar transaccionesSinFiltroCat por año
-    const transaccionesSinFiltroCatDelAnio =
-      transaccionesSinFiltroCat?.filter(
-        (transaccion) =>
-          new Date(transaccion.fecha).getFullYear() === currentYear
-      ) || [];
+    // También filtrar transaccionesSinFiltroCat basado en el mismo criterio
+    let transaccionesSinFiltroCatDelAnio;
+
+    if (filtroAno && filtroAno !== "00") {
+      // Si hay filtro de año específico, usar solo ese año
+      const selectedYear = parseInt(filtroAno, 10);
+      transaccionesSinFiltroCatDelAnio =
+        transaccionesSinFiltroCat?.filter(
+          (transaccion) =>
+            new Date(transaccion.fecha).getFullYear() === selectedYear
+        ) || [];
+    } else {
+      // Si no hay filtro de año, usar todas las transacciones disponibles
+      transaccionesSinFiltroCatDelAnio = transaccionesSinFiltroCat || [];
+    }
+
+    // Filtrar por mes si se especifica
+    if (filtroMes && filtroMes !== "00") {
+      const selectedMonth = parseInt(filtroMes, 10) - 1; // Convertir a índice de mes (0-11)
+      transaccionesSinFiltroCatDelAnio =
+        transaccionesSinFiltroCatDelAnio.filter(
+          (transaccion) =>
+            new Date(transaccion.fecha).getUTCMonth() === selectedMonth
+        );
+    }
 
     let transaccionesConOtros = gastos;
 
@@ -126,15 +167,18 @@ function MonthlyGraphic({
 
     let newDataLine;
 
-    if (filtroMes) {
+    if (filtroMes && filtroMes !== "00" && filtroAno && filtroAno !== "00") {
+      // Mostrar por días del mes específico en el año específico
       const selectedMonth = parseInt(filtroMes, 10) - 1;
+      const selectedYear = parseInt(filtroAno, 10);
       const days = allDays(selectedMonth);
 
       const gastosPorDia = gastos.reduce((acc, transaccion) => {
         const fecha = new Date(transaccion.fecha);
-        const mes = fecha.getUTCMonth(); // Usar UTC para evitar errores de zona horaria
-        if (mes === selectedMonth) {
-          const dia = fecha.getUTCDate(); // Obtener el día usando UTC
+        const mes = fecha.getUTCMonth();
+        const año = fecha.getUTCFullYear();
+        if (mes === selectedMonth && año === selectedYear) {
+          const dia = fecha.getUTCDate();
           acc[dia] = (acc[dia] || 0) + transaccion.valor;
         }
         return acc;
@@ -144,9 +188,35 @@ function MonthlyGraphic({
         label: day.toString(),
         total: gastosPorDia[day] || 0,
       }));
+    } else if (
+      filtroMes &&
+      filtroMes !== "00" &&
+      (!filtroAno || filtroAno === "00")
+    ) {
+      // Mostrar evolución por años para el mes específico
+      const selectedMonth = parseInt(filtroMes, 10) - 1;
+
+      // Obtener todos los años únicos de las transacciones filtradas
+      const availableYears = [
+        ...new Set(
+          gastos.map((transaccion) => new Date(transaccion.fecha).getFullYear())
+        ),
+      ].sort();
+
+      const gastosPorAno = gastos.reduce((acc, transaccion) => {
+        const año = new Date(transaccion.fecha).getFullYear();
+        acc[año] = (acc[año] || 0) + transaccion.valor;
+        return acc;
+      }, {});
+
+      newDataLine = availableYears.map((year) => ({
+        label: year.toString(),
+        total: gastosPorAno[year] || 0,
+      }));
     } else {
+      // Mostrar evolución mensual (por defecto)
       const gastosPorMes = gastos.reduce((acc, transaccion) => {
-        const mes = new Date(transaccion.fecha).getUTCMonth(); // Usar UTC para el mes
+        const mes = new Date(transaccion.fecha).getUTCMonth();
         acc[mes] = (acc[mes] || 0) + transaccion.valor;
         return acc;
       }, {});
@@ -174,7 +244,7 @@ function MonthlyGraphic({
 
     setDataLine(newDataLine);
     setLoadingg(false);
-  }, [payCategories, transacciones, filtroMes, filtroCategoria]);
+  }, [payCategories, transacciones, filtroMes, filtroAno, filtroCategoria]);
 
   const COLORS = [
     "#0088FE",
