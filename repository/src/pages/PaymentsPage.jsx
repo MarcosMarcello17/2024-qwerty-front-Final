@@ -155,7 +155,7 @@ export default function PaymentsPage() {
       try {
         await Promise.all([
           fetchPersonalCategorias(),
-          showTransactionsPendientes()
+          showTransactionsPendientes(),
         ]);
       } catch (error) {
         console.error("Error loading initial data:", error);
@@ -164,7 +164,7 @@ export default function PaymentsPage() {
         setIsLoading(false);
       }
     };
-    
+
     loadInitialData();
   }, []);
 
@@ -190,7 +190,8 @@ export default function PaymentsPage() {
         if (response.ok) {
           const data = await response.json();
           toast.success("Transacción aceptada", {
-            description: "Puede observar la transacción en la página de transacciones",
+            description:
+              "Puede observar la transacción en la página de transacciones",
           });
         } else {
           throw new Error("Error al procesar la transacción");
@@ -201,7 +202,8 @@ export default function PaymentsPage() {
       }
     } else if (transaccion.id_reserva == "Pago") {
       toast.success("Transacción aceptada", {
-        description: "Puede observar la transacción en la página de transacciones",
+        description:
+          "Puede observar la transacción en la página de transacciones",
       });
     }
     setProcessingTransactionId(null);
@@ -240,7 +242,10 @@ export default function PaymentsPage() {
     setProcessingTransactionId(transaction.id);
     try {
       await eliminarTransaccionPendiente(transaction.id);
-      if (transaction.id_reserva != "Cobro" && transaction.id_reserva != "Pago") {
+      if (
+        transaction.id_reserva != "Cobro" &&
+        transaction.id_reserva != "Pago"
+      ) {
         // enviarRespuesta("rechazada", transaction.id_reserva); // Commented out as function not defined
       }
       await showTransactionsPendientes();
@@ -358,7 +363,7 @@ export default function PaymentsPage() {
               onOpenChange={setIsRequestFormOpen}
             >
               <DialogTrigger asChild>
-                <Button 
+                <Button
                   className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   disabled={isLoading}
                 >
@@ -389,7 +394,9 @@ export default function PaymentsPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Cargando información de pagos...</p>
+            <p className="text-muted-foreground">
+              Cargando información de pagos...
+            </p>
           </div>
         ) : (
           <Tabs defaultValue="incoming-requests" className="w-full">
@@ -413,7 +420,9 @@ export default function PaymentsPage() {
                   {isTransactionLoading && (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                      <span className="text-sm text-muted-foreground">Procesando transacción...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Procesando transacción...
+                      </span>
                     </div>
                   )}
                   {tranPendCobro.length > 0 ? (
@@ -451,7 +460,9 @@ export default function PaymentsPage() {
                   {isTransactionLoading && (
                     <div className="flex items-center justify-center py-4">
                       <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
-                      <span className="text-sm text-muted-foreground">Procesando transacción...</span>
+                      <span className="text-sm text-muted-foreground">
+                        Procesando transacción...
+                      </span>
                     </div>
                   )}
                   {tranPend.length > 0 ? (

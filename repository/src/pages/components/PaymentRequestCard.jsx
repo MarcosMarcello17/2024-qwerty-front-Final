@@ -213,7 +213,11 @@ export function PaymentRequestCard({
             <div className="flex gap-2">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button size="sm" variant="ghost" disabled={disabled || isProcessing}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={disabled || isProcessing}
+                  >
                     {isProcessing ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
@@ -282,7 +286,7 @@ export function PaymentRequestCard({
                   </div>
 
                   <AlertDialogFooter>
-                    <AlertDialogCancel 
+                    <AlertDialogCancel
                       onClick={() => onDecline(transaction)}
                       disabled={disabled || isProcessing}
                     >
