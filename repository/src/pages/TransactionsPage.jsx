@@ -146,6 +146,8 @@ export default function TransactionsPage() {
   const [grupos, setGrupos] = useState([]);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
+  onst[(achievementData, setAchievementData)] = useState(0);
+  const [showNotification, setShowNotification] = useState(false);
 
   // Estados para distribución automática
   const [showDistributionModal, setShowDistributionModal] = useState(false);
@@ -675,8 +677,8 @@ export default function TransactionsPage() {
       .then((response) => response.json())
       .then((data) => {
         if (data === 1 || data === 5 || data === 10) {
-          // Handle achievement notification if needed
-          console.log("Achievement unlocked:", data);
+          setAchievementData(data);
+          setShowNotification(true);
         } else {
           console.log(data);
         }
@@ -989,6 +991,13 @@ export default function TransactionsPage() {
         onDistribute={handleConfirmDistribution}
         onCancel={handleCancelDistribution}
       />
+
+      {showNotification && (
+        <AchievementNotification
+          achievement={achievementData}
+          onClose={() => setShowNotification(false)}
+        />
+      )}
     </AppLayout>
   );
 }
