@@ -146,7 +146,7 @@ function ProfilePage() {
       const response = await fetch(
         "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto/editar",
         {
-          method: "POST", // Cambiado a POST
+          method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -156,12 +156,17 @@ function ProfilePage() {
       );
 
       if (response.ok) {
-        setPayOptions([]); // Limpiar las opciones
-        await fetchPersonalTipoGastos(); // Volver a obtener los tipos de gasto actualizados
-        setIsModalOpen(false); // Cerrar el modal después de editar
+        setPayOptions([]);
+        await fetchPersonalTipoGastos();
+        setIsModalOpen(false);
+        return "";
+      } else {
+        const errorData = await response.text();
+        return errorData || "Error al editar el medio de pago";
       }
     } catch (err) {
       console.log(err);
+      return "Error de conexión. Intenta nuevamente.";
     }
   };
 
@@ -219,12 +224,18 @@ function ProfilePage() {
         const newOption = {
           label: newTipoGasto.nombre,
           value: newTipoGasto.nombre,
+          textColor: "mr-2 text-white",
         };
         setPayOptions((prevOptions) => [...prevOptions, newOption]);
-        setSelectedPayMethod(newOption);
+        setIsModalOpen(false);
+        return "";
+      } else {
+        const errorData = await response.text();
+        return errorData || "Error al crear el medio de pago";
       }
     } catch (error) {
       console.error("Error al agregar el tipo de gasto personalizado:", error);
+      return "Error de conexión. Intenta nuevamente.";
     }
   };
 
@@ -328,7 +339,11 @@ function ProfilePage() {
         </div>
         <ModalMedioDePago
           isOpen={isModalOpen}
-          onRequestClose={() => setIsModalOpen(false)}
+          onRequestClose={() => {
+            setIsModalOpen(false);
+            setEditPayOption({});
+            setIsEditMode(false);
+          }}
           handleCreateTP={handleCreateTP}
           handleEditTP={handleEdit}
           edit={isEditMode}

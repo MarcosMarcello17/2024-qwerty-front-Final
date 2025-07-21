@@ -117,7 +117,6 @@ export default function CategoryPage() {
         }
       );
       if (response.ok) {
-        console.log(`Categoría agregada: ${newName}`);
         setPayCategories([]);
         await fetchPersonalCategorias();
         setIsModalOpen(false);
@@ -125,11 +124,10 @@ export default function CategoryPage() {
       } else {
         const errorMessage = await response.text();
         console.error("Error al agregar categoria:", errorMessage);
-        console.log("la categoria existeeeeeeeeeee");
         return "La categoria ya existe";
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
     } finally {
       setIsLoadingAdd(false);
     }
@@ -221,7 +219,6 @@ export default function CategoryPage() {
         }
       }
 
-      console.log(`Categoría editada: ${newName}`);
       setPayCategories([]);
       await fetchPersonalCategorias();
       setIsModalOpen(false);
