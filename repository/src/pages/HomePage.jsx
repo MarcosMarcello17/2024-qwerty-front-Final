@@ -950,53 +950,53 @@ function HomePage() {
           </div>
         </div>
         {/* Mostrar suscripciones detectadas */}
-        {posibleSub.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">
-                Suscripciones Detectadas
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  if (!showSubscriptions) {
-                    setIsLoadingSubscriptions(true);
-                    setTimeout(() => {
-                      setShowSubscriptions(true);
-                      setIsLoadingSubscriptions(false);
-                    }, 300);
-                  } else {
-                    setShowSubscriptions(false);
-                  }
-                }}
-                className="text-white hover:text-primary"
-              >
-                {showSubscriptions ? (
-                  <>
-                    <EyeOff className="mr-2 h-4 w-4" />
-                    Ocultar
-                  </>
-                ) : (
-                  <>
-                    <Eye className="mr-2 h-4 w-4" />
-                    Mostrar
-                  </>
-                )}
-              </Button>
-            </div>
-            {isLoadingSubscriptions ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
-                <span className="text-white text-sm">
-                  Cargando suscripciones...
-                </span>
-              </div>
-            ) : (
-              showSubscriptions && <DetectedSubscriptions subs={posibleSub} />
-            )}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-white">
+              Suscripciones Detectadas
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!showSubscriptions) {
+                  setIsLoadingSubscriptions(true);
+                  setTimeout(() => {
+                    setShowSubscriptions(true);
+                    setIsLoadingSubscriptions(false);
+                  }, 300);
+                } else {
+                  setShowSubscriptions(false);
+                }
+              }}
+              className="text-white hover:text-primary"
+            >
+              {showSubscriptions ? (
+                <>
+                  <EyeOff className="mr-2 h-4 w-4" />
+                  Ocultar
+                </>
+              ) : (
+                <>
+                  <Eye className="mr-2 h-4 w-4" />
+                  Mostrar
+                </>
+              )}
+            </Button>
           </div>
-        )}
+          {isLoadingSubscriptions ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
+              <span className="text-white text-sm">
+                Cargando suscripciones...
+              </span>
+            </div>
+          ) : (
+            showSubscriptions && (
+              <DetectedSubscriptions subs={posibleSub || []} />
+            )
+          )}
+        </div>
         {isLoadingFilter ? (
           <div className="flex flex-col items-center justify-center py-12 text-white">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>

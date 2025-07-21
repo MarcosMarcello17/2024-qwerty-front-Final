@@ -33,19 +33,6 @@ export default function DetectedSubscriptions({ subs }) {
   const [recurrentToDelete, setRecurrentToDelete] = useState(null);
   const [payCategories, setPayCategories] = useState([]);
 
-  useEffect(() => {
-    const fetchRecurrents = async () => {
-      setLoadingRecurrents(true);
-      const data = await getApiRecurrents();
-      setRecurrents(data);
-      setLoadingRecurrents(false);
-    };
-    fetchRecurrents();
-    fetchPersonalCategorias();
-  }, []);
-
-  if (!subs || subs.length === 0) return null;
-
   const fetchPersonalCategorias = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -75,6 +62,17 @@ export default function DetectedSubscriptions({ subs }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchRecurrents = async () => {
+      setLoadingRecurrents(true);
+      const data = await getApiRecurrents();
+      setRecurrents(data);
+      setLoadingRecurrents(false);
+    };
+    fetchRecurrents();
+    fetchPersonalCategorias();
+  }, []);
 
   const onAdd = (sub) => {
     setSelectedSub(sub);
