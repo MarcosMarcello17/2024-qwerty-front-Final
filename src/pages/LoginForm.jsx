@@ -1,6 +1,6 @@
 import { faEye, faEyeSlash, faSignIn } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo-removebg-preview.png";
 import {
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+const BACK_URL = import.meta.env.BACK_SERVER_URL;
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -27,20 +29,7 @@ function LoginForm() {
   const onClick = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            email: email,
-            password: password,
-          }),
-        }
-      );
-      /*const response = await fetch("https://two024-qwerty-back-final-marcello.onrender.com/api/auth/login", {
+      const response = await fetch(`${BACK_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -49,9 +38,7 @@ function LoginForm() {
           email: email,
           password: password,
         }),
-        
       });
-      */
 
       if (response.ok) {
         const token = await response.text();

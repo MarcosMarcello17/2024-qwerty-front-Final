@@ -1,3 +1,6 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,90 +11,132 @@ body {
 
 @layer base {
   :root {
-    --background: 216 100% 4%; /* #000814 Dark Blue */
-    --foreground: 0 0% 98%; /* Light text for dark background */
+    --background: oklch(13.1% 0.034 246.6);
+    /* #000814 Dark Blue */
+    --foreground: oklch(0.145 0 0);
+    /* Light text for dark background */
 
-    --card: 210 100% 12%; /* #001D3D Medium Blue (Secondary Color) */
-    --card-foreground: 0 0% 98%;
+    --card: oklch(1 0 0);
+    /* #001D3D Medium Blue (Secondary Color) */
+    --card-foreground: oklch(0.145 0 0);
 
-    --popover: 210 100% 12%; /* #001D3D */
-    --popover-foreground: 0 0% 98%;
+    --popover: oklch(1 0 0);
+    /* #001D3D */
+    --popover-foreground: oklch(0.145 0 0);
 
-    --primary: 45 100% 50%; /* #FFC300 Vibrant Yellow */
-    --primary-foreground: 216 100% 4%; /* Dark text on yellow */
+    --primary: oklch(0.205 0 0);
+    /* #FFC300 Vibrant Yellow */
+    --primary-foreground: oklch(0.985 0 0);
+    /* Dark text on yellow */
 
-    --secondary: 210 100% 20%; /* #003566 Light Blue (Tertiary Color) */
-    --secondary-foreground: 0 0% 98%;
+    --secondary: oklch(0.97 0 0);
+    /* #003566 Light Blue (Tertiary Color) */
+    --secondary-foreground: oklch(0.205 0 0);
 
-    --muted: 210 100% 15%; /* Slightly lighter/muted blue */
-    --muted-foreground: 0 0% 60%; /* Lighter gray for muted text */
+    --muted: oklch(0.97 0 0);
+    /* Slightly lighter/muted blue */
+    --muted-foreground: oklch(0.556 0 0);
+    /* Lighter gray for muted text */
 
-    --accent: 50 100% 52%; /* #FFD60A Light Yellow */
-    --accent-foreground: 216 100% 4%; /* Dark text on accent */
+    --accent: oklch(0.97 0 0);
+    /* #FFD60A Light Yellow */
+    --accent-foreground: oklch(0.205 0 0);
+    /* Dark text on accent */
 
-    --destructive: 0 72% 51%; /* A vibrant red for destructive actions */
+    --destructive: oklch(0.577 0.245 27.325);
+    /* A vibrant red for destructive actions */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 210 100% 10%; /* Darker shade for borders */
-    --input: 210 100% 10%; /* Similar to border for input background */
-    --ring: 45 100% 50%; /* Primary color for focus rings */
+    --border: oklch(0.922 0 0);
+    /* Darker shade for borders */
+    --input: oklch(0.922 0 0);
+    /* Similar to border for input background */
+    --ring: oklch(0.708 0 0);
+    /* Primary color for focus rings */
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Chart colors - can be customized further if needed */
-    --chart-1: 45 100% 50%; /* Primary */
-    --chart-2: 50 100% 52%; /* Accent */
-    --chart-3: 210 100% 60%; /* A lighter blue */
-    --chart-4: 30 80% 60%; /* An orange/coral */
-    --chart-5: 150 60% 50%; /* A green */
+    --chart-1: oklch(0.87 0 0);
+    /* Primary */
+    --chart-2: oklch(0.556 0 0);
+    /* Accent */
+    --chart-3: oklch(0.439 0 0);
+    /* A lighter blue */
+    --chart-4: oklch(0.371 0 0);
+    /* An orange/coral */
+    --chart-5: oklch(0.269 0 0);
+    /* A green */
 
     /* Sidebar specific colors - ensure consistency with the theme */
-    --sidebar-background: 210 100% 8%; /* Slightly darker or distinct from card, e.g. #001429 */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 45 100% 50%; /* #FFC300 */
-    --sidebar-primary-foreground: 216 100% 4%;
-    --sidebar-accent: 50 100% 52%; /* #FFD60A */
-    --sidebar-accent-foreground: 216 100% 4%;
-    --sidebar-border: 210 100% 10%;
-    --sidebar-ring: 45 100% 50%;
+    --sidebar-background: 210 100% 8%;
+    /* Slightly darker or distinct from card, e.g. #001429 */
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.205 0 0);
+    /* #FFC300 */
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    /* #FFD60A */
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.985 0 0);
   }
 
   .dark {
     /* Dark theme variables can be the same as :root if default is dark */
-    --background: 216 100% 4%;
-    --foreground: 0 0% 98%;
-    --card: 210 100% 12%;
-    --card-foreground: 0 0% 98%;
-    --popover: 210 100% 12%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 45 100% 50%;
-    --primary-foreground: 216 100% 4%;
-    --secondary: 210 100% 20%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 210 100% 15%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 50 100% 52%;
-    --accent-foreground: 216 100% 4%;
-    --destructive: 0 72% 51%;
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.922 0 0);
+    --primary-foreground: oklch(0.205 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
     --destructive-foreground: 0 0% 98%;
-    --border: 210 100% 10%;
-    --input: 210 100% 10%;
-    --ring: 45 100% 50%;
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
 
-    --chart-1: 45 100% 50%;
-    --chart-2: 50 100% 52%;
-    --chart-3: 210 100% 60%;
-    --chart-4: 30 80% 60%;
-    --chart-5: 150 60% 50%;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
 
     --sidebar-background: 210 100% 8%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 45 100% 50%;
-    --sidebar-primary-foreground: 216 100% 4%;
-    --sidebar-accent: 50 100% 52%;
-    --sidebar-accent-foreground: 216 100% 4%;
-    --sidebar-border: 210 100% 10%;
-    --sidebar-ring: 45 100% 50%;
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar: oklch(0.205 0 0);
+  }
+
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Inter Variable', sans-serif;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    @apply font-sans;
   }
 }
 
@@ -99,6 +144,7 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     /* Apply dark theme by default if the background is dark */
@@ -112,76 +158,93 @@ body {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 @keyframes fade-in-up {
   0% {
     opacity: 0;
     transform: translateY(20px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 @keyframes fade-in {
   0% {
     opacity: 0;
   }
+
   100% {
     opacity: 1;
   }
 }
+
 @keyframes slide-in-left {
   0% {
     opacity: 0;
     transform: translateX(-30px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 @keyframes slide-in-center {
   0% {
     opacity: 0;
     transform: translateY(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 @keyframes slide-in-right {
   0% {
     opacity: 0;
     transform: translateX(30px);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 .animate-fade-in-down {
   animation: fade-in-down 0.5s ease-out forwards;
 }
+
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out 0.2s forwards;
 }
+
 .animate-fade-in {
   animation: fade-in 0.5s ease-out 0.4s forwards;
 }
+
 .animate-slide-in-left {
   animation: slide-in-left 0.6s ease-out 0.5s forwards;
   opacity: 0;
 }
+
 .animate-slide-in-center {
   animation: slide-in-center 0.6s ease-out 0.7s forwards;
   opacity: 0;
 }
+
 .animate-slide-in-right {
   animation: slide-in-right 0.6s ease-out 0.9s forwards;
   opacity: 0;
