@@ -256,7 +256,7 @@ function ProfilePage() {
           </div>
         </div>
 
-        <div className="flex flex-col flex-grow px-4">
+        <div className="flex flex-col grow px-4">
           <div className="m-4">
             <ActionButtons />
           </div>

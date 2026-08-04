@@ -236,7 +236,7 @@ export default function GroupsPage() {
           </Button>
         </div>
 
-        <div className="flex flex-col flex-grow px-4">
+        <div className="flex flex-col grow px-4">
           {/* Mostrar errores */}
           {error && (
             <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -359,7 +359,7 @@ export default function GroupsPage() {
         className="bg-card shadow-lg p-4 rounded-lg"
       >
         <h2 className="font-headline font-bold">Miembros del grupo</h2>
-        <div className="flex flex-col flex-grow px-4">
+        <div className="flex flex-col grow px-4">
           <ul>
             {miembros.length > 0 ? (
               <div className="mt-2 space-y-1">

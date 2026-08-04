@@ -531,7 +531,7 @@ function ModalVerDetallesGrupo({
       <div className="text-2xl font-bold text-gray-100 text-center mb-4">
         {grupo.nombre}
       </div>
-      <div className="flex flex-col flex-grow px-4">
+      <div className="flex flex-col grow px-4">
         {isLoading ? (
           <p>Cargando transacciones...</p>
         ) : transacciones.length > 0 ? (
