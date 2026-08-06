@@ -8,26 +8,23 @@
 export const distributeIncomeAutomatically = async (
   amount,
   date,
-  description = ""
+  description = "",
 ) => {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/automation/distribuir",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          montoIngreso: parseFloat(amount),
-          fechaIngreso: date,
-          motivoOriginal: description || "Distribución automática",
-        }),
-      }
-    );
+    const response = await fetch("${BACK_URL}/api/automation/distribuir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        montoIngreso: parseFloat(amount),
+        fechaIngreso: date,
+        motivoOriginal: description || "Distribución automática",
+      }),
+    });
 
     const data = await response.json();
     return data;
@@ -47,14 +44,14 @@ export const distributeExistingIncome = async (transactionId) => {
 
   try {
     const response = await fetch(
-      `https://two024-qwerty-back-final-marcello.onrender.com/api/automation/distribuir/${transactionId}`,
+      `${BACK_URL}/api/automation/distribuir/${transactionId}`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     const data = await response.json();
@@ -75,13 +72,13 @@ export const canDistributeForDate = async (date) => {
 
   try {
     const response = await fetch(
-      `https://two024-qwerty-back-final-marcello.onrender.com/api/automation/puede-distribuir?fecha=${date}`,
+      `${BACK_URL}/api/automation/puede-distribuir?fecha=${date}`,
       {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
 
     if (response.ok) {
@@ -105,26 +102,23 @@ export const canDistributeForDate = async (date) => {
 export const getDistributionPreview = async (
   amount,
   date,
-  description = ""
+  description = "",
 ) => {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/automation/previsualizar",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          montoIngreso: parseFloat(amount),
-          fechaIngreso: date,
-          motivoOriginal: description || "Ingreso de dinero",
-        }),
-      }
-    );
+    const response = await fetch("${BACK_URL}/api/automation/previsualizar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        montoIngreso: parseFloat(amount),
+        fechaIngreso: date,
+        motivoOriginal: description || "Ingreso de dinero",
+      }),
+    });
 
     const data = await response.json();
     return data;

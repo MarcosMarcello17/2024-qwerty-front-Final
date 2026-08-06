@@ -66,14 +66,11 @@ function ModalVerDetallesGrupo({
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -191,14 +188,11 @@ function ModalVerDetallesGrupo({
   const fetchPersonalTipoGastos = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-tipo-gasto", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -211,14 +205,14 @@ function ModalVerDetallesGrupo({
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
-        error
+        error,
       );
     }
   };
   const fetchTransaccionesDelGrupo = async () => {
     setIsLoading(true);
     const token = localStorage.getItem("token");
-    let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupo.id}/transacciones`;
+    let url = `${BACK_URL}/api/grupos/${grupo.id}/transacciones`;
     try {
       const response = await fetch(url, {
         method: "GET",
@@ -272,7 +266,7 @@ function ModalVerDetallesGrupo({
     });
     const totalGastos = Object.values(usuariosGastos).reduce(
       (a, b) => a + b,
-      0
+      0,
     );
     const gastoPorPersona = totalGastos / Object.keys(usuariosGastos).length;
     const deudasCalculadas = [];
@@ -299,7 +293,7 @@ function ModalVerDetallesGrupo({
         deudasCalculadas.push(
           `${deudor.usuario} le debe $${cantidadAPagar.toFixed(2)} a ${
             acreedor.usuario
-          }`
+          }`,
         );
         // Actualizar cantidades pendientes
         cantidadDeuda -= cantidadAPagar;
@@ -311,7 +305,7 @@ function ModalVerDetallesGrupo({
 
   const cerrarGrupo = async () => {
     const token = localStorage.getItem("token");
-    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupo.id}/cerrar`;
+    const url = `${BACK_URL}/api/grupos/${grupo.id}/cerrar`;
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -331,8 +325,8 @@ function ModalVerDetallesGrupo({
       });
       setGrupos((grupos) =>
         grupos.map((grupo) =>
-          grupo.id === grupo.id ? { ...grupo, estado: false } : grupo
-        )
+          grupo.id === grupo.id ? { ...grupo, estado: false } : grupo,
+        ),
       );
       getTransacciones();
     } catch (error) {
@@ -347,11 +341,11 @@ function ModalVerDetallesGrupo({
     setMotivo(row.motivo);
     setValor(row.valor);
     const selectedOption = payOptions.find(
-      (option) => option.value === row.tipoGasto
+      (option) => option.value === row.tipoGasto,
     );
     setSelectedPayMethod(selectedOption || null);
     const selectedPayCategory = payCategories.find(
-      (option) => option.value == row.categoria
+      (option) => option.value == row.categoria,
     );
     setSelectedCategory(selectedPayCategory || null);
     setFecha(row.fecha);
@@ -362,15 +356,12 @@ function ModalVerDetallesGrupo({
   const deleteRow = async (id) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/grupos/transaccion/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         setTransacciones(transacciones.filter((t) => t.id !== id));
@@ -400,7 +391,7 @@ function ModalVerDetallesGrupo({
   const agregarTransaccion = async (e, categoria) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`;
+    let url = `${BACK_URL}/api/grupos/transaccion/${transaccionId}`;
     let bodyJson = JSON.stringify({
       motivo,
       valor,
@@ -421,10 +412,10 @@ function ModalVerDetallesGrupo({
       if (response.ok) {
         const data = await response.json();
         const updatedTransacciones = transacciones.map((t) =>
-          t.id === data.id ? data : t
+          t.id === data.id ? data : t,
         );
         updatedTransacciones.sort(
-          (a, b) => new Date(b.fecha) - new Date(a.fecha)
+          (a, b) => new Date(b.fecha) - new Date(a.fecha),
         );
         setTransacciones(updatedTransacciones);
         closeModal();
@@ -458,17 +449,14 @@ function ModalVerDetallesGrupo({
         nombre: nombre,
         iconPath: icono,
       };
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(inputValue),
+      });
       if (response.ok) {
         const newCategoria = await response.json();
         const newOption = {
@@ -493,17 +481,14 @@ function ModalVerDetallesGrupo({
   const handleCreateTP = async (inputValue) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(inputValue),
+      });
 
       if (response.ok) {
         const newTipoGasto = await response.json();
@@ -575,7 +560,7 @@ function ModalVerDetallesGrupo({
                           >
                             {(() => {
                               const iconPath = payCategories.find(
-                                (cat) => cat.value === transaction.categoria
+                                (cat) => cat.value === transaction.categoria,
                               )?.iconPath;
 
                               return (

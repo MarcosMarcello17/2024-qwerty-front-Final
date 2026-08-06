@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 /**
  * Custom hook to manage authentication state and token validation
  * @param {number} interval - Interval in milliseconds to check token validity (default: 5 minutes)
@@ -18,15 +20,12 @@ export function useAuth(interval = 5 * 60 * 1000) {
     if (!token) return false;
 
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/transacciones/userTest`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok) {
         setIsAuthenticated(true);

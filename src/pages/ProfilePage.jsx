@@ -48,7 +48,7 @@ function ProfilePage() {
     setLoadingGraphic(true);
     const token = localStorage.getItem("token");
     if (await checkIfValidToken(token)) {
-      let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user/filter`;
+      let url = `${BACK_URL}/api/transacciones/user/filter`;
       try {
         const response = await fetch(url, {
           method: "GET",
@@ -75,15 +75,12 @@ function ProfilePage() {
   };
   const checkIfValidToken = async (token) => {
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/transacciones/userTest", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         //entra aca si pasa la autenticacion
         return true; //si esta activo tengo que devolver true
@@ -101,14 +98,11 @@ function ProfilePage() {
     const token = localStorage.getItem("token");
     if (await checkIfValidToken(token)) {
       try {
-        const response = await fetch(
-          "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch("${BACK_URL}/api/personal-tipo-gasto", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           const customOptions = data.map((tipo) => ({
@@ -121,7 +115,7 @@ function ProfilePage() {
       } catch (error) {
         console.error(
           "Error al obtener los tipos de gasto personalizados:",
-          error
+          error,
         );
       }
     } else {
@@ -143,7 +137,7 @@ function ProfilePage() {
 
     try {
       const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto/editar",
+        "${BACK_URL}/api/personal-tipo-gasto/editar",
         {
           method: "POST",
           headers: {
@@ -151,7 +145,7 @@ function ProfilePage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(jsonResp),
-        }
+        },
       );
 
       if (response.ok) {
@@ -175,7 +169,7 @@ function ProfilePage() {
     setLoadingGraphic(true);
     try {
       const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto/eliminar",
+        "${BACK_URL}/api/personal-tipo-gasto/eliminar",
         {
           method: "POST",
           headers: {
@@ -183,7 +177,7 @@ function ProfilePage() {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(medioPagoValue), // Enviamos directamente el nombre como string
-        }
+        },
       );
 
       if (response.ok) {
@@ -206,17 +200,14 @@ function ProfilePage() {
   const handleCreateTP = async (inputValue) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(inputValue),
+      });
 
       if (response.ok) {
         const newTipoGasto = await response.json();

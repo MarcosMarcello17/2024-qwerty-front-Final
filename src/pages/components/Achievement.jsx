@@ -6,16 +6,13 @@ const Achievement = ({ achievement }) => {
 
   const checkIfCompleted = async () => {
     const token = localStorage.getItem("token");
-    fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch("${BACK_URL}/api/users/userTransaction", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data >= achievement.goal) {
@@ -70,7 +67,7 @@ const Achievement = ({ achievement }) => {
             src={achievement.img}
             alt={`Achievement: ${title}`}
             className={`w-20 h-20 sm:w-24 sm:h-24 object-contain mx-auto border-4 rounded-full ${getBorderColor(
-              type
+              type,
             )} max-w-full`}
           />
         </figure>
@@ -80,10 +77,10 @@ const Achievement = ({ achievement }) => {
             {achievement.type === "Bronce"
               ? 1
               : achievement.type === "Plata"
-              ? 2
-              : achievement.type === "Oro"
-              ? 3
-              : 4}
+                ? 2
+                : achievement.type === "Oro"
+                  ? 3
+                  : 4}
           </h2>
           <p className="text-xs sm:text-sm text-gray-400">{description}</p>
 
@@ -102,7 +99,7 @@ const Achievement = ({ achievement }) => {
           <div className="mt-2 sm:mt-3">
             <span
               className={`inline-block px-2 py-1 sm:px-3 rounded-full text-xs font-bold ${getBadgeColor(
-                type
+                type,
               )}`}
             >
               {type}

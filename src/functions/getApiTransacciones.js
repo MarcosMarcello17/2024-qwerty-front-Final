@@ -1,10 +1,12 @@
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export const getApiTransacciones = async (filtrado = "Todas", mes, ano) => {
   const filtroMes = mes === "00" ? "" : mes;
   const filtroAno = ano === "00" ? "" : ano;
   let transacciones = [];
   let transaccionesSinFiltroCat = [];
   const token = localStorage.getItem("token");
-  let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user/filter`;
+  let url = `${BACK_URL}/api/transacciones/user/filter`;
 
   // Construir parámetros de query solo cuando hay filtros válidos
   const params = [];

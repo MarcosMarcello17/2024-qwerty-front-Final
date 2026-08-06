@@ -244,7 +244,7 @@ export default function TransactionsPage() {
         const apiTransacciones = await getApiTransacciones(
           filtrado,
           filtroMes,
-          filtroAno
+          filtroAno,
         );
         setTransacciones(apiTransacciones.transacciones);
       } catch (err) {
@@ -261,14 +261,11 @@ export default function TransactionsPage() {
   const fetchPersonalCategorias = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -299,15 +296,12 @@ export default function TransactionsPage() {
   };
   const checkIfValidToken = async (token) => {
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/transacciones/userTest", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         return true;
       } else {
@@ -324,15 +318,12 @@ export default function TransactionsPage() {
     setIsLoadingDelete(true);
     setTransaccionesCargadas(false);
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/transacciones/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         setTransacciones(transacciones.filter((t) => t.id !== id));
@@ -377,8 +368,8 @@ export default function TransactionsPage() {
     if (selectedGroup == null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
       url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+        ? `${BACK_URL}/api/transacciones/${transaccionId}`
+        : "${BACK_URL}/api/transacciones";
     } else {
       const grupo = selectedGroup.value;
       bodyJson = JSON.stringify({
@@ -390,8 +381,8 @@ export default function TransactionsPage() {
         grupo,
       });
       url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion";
+        ? `${BACK_URL}/api/grupos/transaccion/${transaccionId}`
+        : "${BACK_URL}/api/grupos/transaccion";
     }
     const method = edit ? "PUT" : "POST";
     try {
@@ -408,13 +399,13 @@ export default function TransactionsPage() {
         if (selectedGroup == null) {
           if (edit) {
             const updatedTransacciones = transacciones.map((t) =>
-              t.id === data.id ? data : t
+              t.id === data.id ? data : t,
             );
             setTransacciones(updatedTransacciones);
           } else {
             const updatedTransacciones = [...transacciones, data];
             updatedTransacciones.sort(
-              (a, b) => new Date(b.fecha) - new Date(a.fecha)
+              (a, b) => new Date(b.fecha) - new Date(a.fecha),
             );
             setTransacciones(updatedTransacciones);
           }
@@ -457,17 +448,14 @@ export default function TransactionsPage() {
           .toISOString()
           .split("T")[0],
       };
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/recurrents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
       if (response.ok) {
         console.log("Transaccion Recurrente creada");
       } else {
@@ -492,7 +480,7 @@ export default function TransactionsPage() {
       setTransaccionesCargadas(false);
       try {
         const result = await distributeExistingIncome(
-          transactionToDistribute.id
+          transactionToDistribute.id,
         );
 
         if (result.success) {
@@ -500,14 +488,14 @@ export default function TransactionsPage() {
           const updatedTransacciones = transacciones.map((t) =>
             t.id === transactionToDistribute.id
               ? { ...t, distribuida: true }
-              : t
+              : t,
           );
           setTransacciones(updatedTransacciones);
 
           // Recargar transacciones para mostrar las nuevas transacciones distribuidas
           await getTransacciones();
           alert(
-            `Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`
+            `Distribución exitosa! Se crearon ${result.transaccionesCreadas} transacciones automáticamente.`,
           );
         } else {
           alert(`Error en la distribución: ${result.error}`);
@@ -617,11 +605,11 @@ export default function TransactionsPage() {
     setMotivo(row.motivo);
     setValor(row.valor);
     const selectedOption = payOptions.find(
-      (option) => option.value === row.tipoGasto
+      (option) => option.value === row.tipoGasto,
     );
     setSelectedPayMethod(selectedOption || null);
     const selectedPayCategory = payCategories.find(
-      (option) => option.value == row.categoria
+      (option) => option.value == row.categoria,
     );
     setSelectedCategory(selectedPayCategory || null);
     setFecha(row.fecha);
@@ -634,15 +622,12 @@ export default function TransactionsPage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/mis-grupos",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/grupos/mis-grupos", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Error al obtener los grupos.");
@@ -664,16 +649,13 @@ export default function TransactionsPage() {
 
   const checkTransaccionAchievment = async () => {
     const token = localStorage.getItem("token");
-    fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch("${BACK_URL}/api/users/userTransaction", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data === 1 || data === 5 || data === 10) {
@@ -828,8 +810,8 @@ export default function TransactionsPage() {
                           {isLoadingDistribution
                             ? "Distribuyendo ingreso automáticamente..."
                             : isLoadingFilter
-                            ? "Aplicando filtros..."
-                            : "Cargando transacciones..."}
+                              ? "Aplicando filtros..."
+                              : "Cargando transacciones..."}
                         </span>
                       </div>
                     </TableCell>
@@ -864,7 +846,7 @@ export default function TransactionsPage() {
                           >
                             {(() => {
                               const iconPath = payCategories.find(
-                                (cat) => cat.value === transaction.categoria
+                                (cat) => cat.value === transaction.categoria,
                               )?.iconPath;
 
                               return (

@@ -32,14 +32,11 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
   const fetchPersonalTipoGastos = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-tipo-gasto", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         const customOptions = data.map((tipo) => ({
@@ -52,7 +49,7 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
-        error
+        error,
       );
     }
   };
@@ -79,9 +76,7 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
     return true;
   };
   const userExists = async (mail) => {
-    let url =
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/public/exists/" +
-      mail;
+    let url = "${BACK_URL}/api/public/exists/" + mail;
     const response = await fetch(url);
     if (response.ok) {
       const exists = await response.json();
@@ -106,8 +101,7 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
     if (await userExists(emailReceptor)) {
       if (validateForm()) {
         const response = await fetch(
-          "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/enviarPago/" +
-            emailReceptor,
+          "${BACK_URL}/api/transacciones/enviarPago/" + emailReceptor,
           {
             method: "POST",
             headers: {
@@ -115,7 +109,7 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(transaccion),
-          }
+          },
         );
         if (response.ok) {
           console.log("Pago enviado");
@@ -135,7 +129,7 @@ function ModalSendPayment({ closeModal = () => {}, payCategories }) {
     const selectedValue = e.target.value;
     setCategoria(selectedValue);
     setSelectedCategory(
-      payCategories.find((cat) => cat.value === selectedValue)
+      payCategories.find((cat) => cat.value === selectedValue),
     );
   };
 

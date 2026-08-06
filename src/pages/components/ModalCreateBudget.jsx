@@ -64,12 +64,9 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     const fetchPersonalCategorias = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch(
-          "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await fetch("${BACK_URL}/api/personal-categoria", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         if (response.ok) {
           const data = await response.json();
           const customOptions = data.map((cat) => ({
@@ -140,7 +137,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     }
     const totalCategoryBudget = Object.values(budgetValues).reduce(
       (acc, curr) => acc + (curr || 0),
-      0
+      0,
     );
     if (totalCategoryBudget >= totalBudget) {
       setErrors((prevErrors) => ({
@@ -153,14 +150,14 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
       setErrors((prevErrors) => ({ ...prevErrors, totalBudget: "" }));
     }
     const hasNegativeValues = Object.values(budgetValues).some(
-      (value) => value < 0
+      (value) => value < 0,
     );
     if (hasNegativeValues) {
       alert("Algunos valores de categorías son negativos. Revise los campos.");
       return;
     }
     const filteredBudgetValues = Object.fromEntries(
-      Object.entries(budgetValues).filter(([_, value]) => value > 0)
+      Object.entries(budgetValues).filter(([_, value]) => value > 0),
     );
     const formData = initialBudget
       ? {
@@ -183,8 +180,8 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
     const token = localStorage.getItem("token");
     setIsLoading(true);
     const url = initialBudget
-      ? "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto/editPresupuesto"
-      : "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto";
+      ? "${BACK_URL}/api/presupuesto/editPresupuesto"
+      : "${BACK_URL}/api/presupuesto";
     const method = initialBudget ? "PUT" : "POST";
     try {
       const response = await fetch(url, {
@@ -197,7 +194,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
       });
       if (response.ok) {
         setFormMessage(
-          initialBudget ? "Presupuesto actualizado!" : "Presupuesto creado!"
+          initialBudget ? "Presupuesto actualizado!" : "Presupuesto creado!",
         );
         closeModal();
       } else {
@@ -205,7 +202,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
         console.error(
           "Error en la respuesta del servidor",
           response.status,
-          errorMessage
+          errorMessage,
         );
       }
     } catch (error) {
@@ -213,7 +210,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
         initialBudget
           ? "Error al actualizar el presupuesto:"
           : "Error al crear el presupuesto:",
-        error
+        error,
       );
     } finally {
       setIsLoading(false);
@@ -283,7 +280,7 @@ function ModalCreateBudget({ closeModal = () => {}, initialBudget = null }) {
               className="mt-1 block w-full p-2 pr-10 bg-background text-white rounded-md shadow-sm border border-gray-600 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none appearance-none cursor-pointer"
               onChange={(e) => {
                 const selectedCategory = payCategories.find(
-                  (cat) => cat.value === e.target.value
+                  (cat) => cat.value === e.target.value,
                 );
                 if (selectedCategory) addCategory(selectedCategory);
                 e.target.value = "";

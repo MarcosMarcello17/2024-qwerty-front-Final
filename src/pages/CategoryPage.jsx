@@ -71,14 +71,11 @@ export default function CategoryPage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -105,17 +102,14 @@ export default function CategoryPage() {
       iconPath: newIcon,
     };
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(newValue),
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(newValue),
+      });
       if (response.ok) {
         setPayCategories([]);
         await fetchPersonalCategorias();
@@ -167,7 +161,7 @@ export default function CategoryPage() {
 
         // Paso 1: Cambiar temporalmente el nombre
         const tempResponse = await fetch(
-          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${oldValue.nombre}`,
+          `${BACK_URL}/api/personal-categoria/${oldValue.nombre}`,
           {
             method: "PUT",
             headers: {
@@ -175,7 +169,7 @@ export default function CategoryPage() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(tempValue),
-          }
+          },
         );
 
         if (!tempResponse.ok) {
@@ -184,7 +178,7 @@ export default function CategoryPage() {
 
         // Paso 2: Volver al nombre original con el nuevo icono
         const finalResponse = await fetch(
-          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${tempName}`,
+          `${BACK_URL}/api/personal-categoria/${tempName}`,
           {
             method: "PUT",
             headers: {
@@ -192,7 +186,7 @@ export default function CategoryPage() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(newValue),
-          }
+          },
         );
 
         if (!finalResponse.ok) {
@@ -201,7 +195,7 @@ export default function CategoryPage() {
       } else {
         // Si cambió el nombre o ambos, usar el método normal
         const response = await fetch(
-          `https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria/${oldValue.nombre}`,
+          `${BACK_URL}/api/personal-categoria/${oldValue.nombre}`,
           {
             method: "PUT",
             headers: {
@@ -209,7 +203,7 @@ export default function CategoryPage() {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(newValue),
-          }
+          },
         );
 
         if (!response.ok) {
@@ -251,7 +245,7 @@ export default function CategoryPage() {
   const handleDelete = async (categoryValue) => {
     setIsLoadingDelete(true);
     const filteredCategories = payCategories.filter(
-      (category) => category.value === categoryValue
+      (category) => category.value === categoryValue,
     );
     const token = localStorage.getItem("token");
     const inputValue = {
@@ -260,17 +254,14 @@ export default function CategoryPage() {
     };
     setConfirmDeleteOpen(false);
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(inputValue),
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(inputValue),
+      });
       if (response.ok) {
         setPayCategories([]);
         await fetchPersonalCategorias();

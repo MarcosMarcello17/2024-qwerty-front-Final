@@ -1,15 +1,12 @@
 export const deleteTransaction = async (id) => {
   const token = localStorage.getItem("token");
   try {
-    const response = await fetch(
-      `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await fetch(`${BACK_URL}/api/transacciones/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (response.ok) {
       return true;

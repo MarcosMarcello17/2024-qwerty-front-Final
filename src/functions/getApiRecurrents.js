@@ -1,6 +1,6 @@
 export const getApiRecurrents = async () => {
   const token = localStorage.getItem("token");
-  let url = `https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents`;
+  let url = `${BACK_URL}/api/recurrents`;
   try {
     const response = await fetch(url, {
       method: "GET",

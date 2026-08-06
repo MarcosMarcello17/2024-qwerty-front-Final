@@ -46,15 +46,12 @@ function BudgetPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/user",
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch("${BACK_URL}/api/transacciones/user", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         setTransacciones(data);
@@ -95,7 +92,7 @@ function BudgetPage() {
         acc[trans.categoria] = (acc[trans.categoria] || 0) + trans.valor;
         return acc;
       },
-      {}
+      {},
     );
 
     const previousMonthByCategory = previousMonthTransactions.reduce(
@@ -103,7 +100,7 @@ function BudgetPage() {
         acc[trans.categoria] = (acc[trans.categoria] || 0) + trans.valor;
         return acc;
       },
-      {}
+      {},
     );
 
     const suggestions = [];
@@ -120,7 +117,7 @@ function BudgetPage() {
         suggestions.push({
           category,
           message: `Has aumentado tu gasto en ${category} un ${difference.toFixed(
-            1
+            1,
           )}% respecto al mes anterior`,
         });
       }
@@ -134,22 +131,19 @@ function BudgetPage() {
 
   const handlePrevSlide = (totalPages) => {
     setCurrentSlide((prevSlide) =>
-      prevSlide === 0 ? totalPages - 1 : prevSlide - 1
+      prevSlide === 0 ? totalPages - 1 : prevSlide - 1,
     );
   };
 
   const handleDelete = async (budget) => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto/${budget.id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/presupuesto/${budget.id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         setPresupuestos(presupuestos.filter((t) => t.id !== budget.id));
@@ -174,14 +168,11 @@ function BudgetPage() {
     const token = localStorage.getItem("token");
     setLoadingPresupuestos(true);
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/presupuesto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/presupuesto", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -348,11 +339,11 @@ function BudgetPage() {
                         const suggestions =
                           analyzeSpendingPatterns(transacciones);
                         const totalPages = Math.ceil(
-                          suggestions.length / itemsPerPage
+                          suggestions.length / itemsPerPage,
                         );
                         const currentSuggestions = suggestions.slice(
                           currentSlide * itemsPerPage,
-                          currentSlide * itemsPerPage + itemsPerPage
+                          currentSlide * itemsPerPage + itemsPerPage,
                         );
                         if (suggestions.length !== 0) {
                           return (
@@ -369,7 +360,7 @@ function BudgetPage() {
                                           {suggestion.message}
                                         </p>
                                       </div>
-                                    )
+                                    ),
                                   )}
                                 </div>
                               </div>

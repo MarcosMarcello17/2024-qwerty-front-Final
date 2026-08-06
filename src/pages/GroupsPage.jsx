@@ -75,15 +75,12 @@ export default function GroupsPage() {
     setError(""); // Limpiar errores previos
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/mis-grupos",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/grupos/mis-grupos", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Error al obtener los grupos.");
@@ -112,7 +109,7 @@ export default function GroupsPage() {
     try {
       // Aquí iría la lógica para crear el grupo usando `grupoNombre` y `usuarios`
       const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupoAAgregar}/agregar-usuario`,
+        `${BACK_URL}/api/grupos/${grupoAAgregar}/agregar-usuario`,
         {
           // Ajusta la URL según tu endpoint
           method: "POST",
@@ -123,7 +120,7 @@ export default function GroupsPage() {
           body: JSON.stringify({
             usuarios: usuarios,
           }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -144,13 +141,13 @@ export default function GroupsPage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupo.id}/usuarios`,
+        `${BACK_URL}/api/grupos/${grupo.id}/usuarios`,
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -186,13 +183,13 @@ export default function GroupsPage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/${grupoAEliminar.id}`,
+        `${BACK_URL}/api/grupos/${grupoAEliminar.id}`,
         {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.ok) {

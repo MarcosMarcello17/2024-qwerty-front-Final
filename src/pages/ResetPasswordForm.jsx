@@ -32,19 +32,19 @@ function ResetPasswordForm() {
     e.preventDefault();
     if (!validatePassword(newPassword)) {
       setMessage(
-        "La contraseña debe tener al menos 8 caracteres, una mayuscula y minuscula, un número, un carácter especial y no puede contener comillas simples, dobles, barra vertical, barra inclinada o barra invertida."
+        "La contraseña debe tener al menos 8 caracteres, una mayuscula y minuscula, un número, un carácter especial y no puede contener comillas simples, dobles, barra vertical, barra inclinada o barra invertida.",
       );
       return;
     } else {
       setLoading(true);
       try {
         const response = await fetch(
-          `https://two024-qwerty-back-final-marcello.onrender.com/api/auth/reset-password?token=${token}&newPassword=${newPassword}`,
+          `${BACK_URL}/api/auth/reset-password?token=${token}&newPassword=${newPassword}`,
           {
             method: "POST",
-          }
+          },
         );
-        /*const response = await fetch(`https://two024-qwerty-back-final-marcello.onrender.com/api/auth/reset-password?token=${token}&newPassword=${newPassword}`, {
+        /*const response = await fetch(`${BACK_URL}/api/auth/reset-password?token=${token}&newPassword=${newPassword}`, {
           method: "POST"
         });*/
 

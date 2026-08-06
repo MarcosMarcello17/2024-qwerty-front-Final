@@ -19,6 +19,8 @@ const mediosPagoDefault = [
   { value: "Efectivo", label: "Efectivo" },
 ];
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export default function DetectedSubscriptions({ subs }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedSub, setSelectedSub] = useState(null);
@@ -37,14 +39,11 @@ export default function DetectedSubscriptions({ subs }) {
     setLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -104,7 +103,7 @@ export default function DetectedSubscriptions({ subs }) {
       const token = localStorage.getItem("token");
       const transacciones = selectedSub.transacciones;
       const transaccionMasReciente = transacciones.reduce((a, b) =>
-        new Date(a.fecha) > new Date(b.fecha) ? a : b
+        new Date(a.fecha) > new Date(b.fecha) ? a : b,
       );
       const body = {
         motivo: selectedSub.descripcion,
@@ -116,17 +115,14 @@ export default function DetectedSubscriptions({ subs }) {
           .toISOString()
           .split("T")[0],
       };
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/recurrents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
       if (response.ok) {
         setSuccess("Transacción recurrente creada con éxito.");
         handleClose();
@@ -152,14 +148,14 @@ export default function DetectedSubscriptions({ subs }) {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents/${recurrentToDelete.id}`,
+        `${BACK_URL}/api/recurrents/${recurrentToDelete.id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (response.ok) {
         setSuccess("Transacción recurrente eliminada con éxito.");
@@ -193,7 +189,7 @@ export default function DetectedSubscriptions({ subs }) {
               (r) =>
                 r.motivo &&
                 r.motivo.trim().toLowerCase() ===
-                  sub.descripcion.trim().toLowerCase()
+                  sub.descripcion.trim().toLowerCase(),
             );
           return !isRecurrent; // Solo mostrar suscripciones que NO son recurrentes
         });

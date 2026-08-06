@@ -9,6 +9,8 @@ import { SidebarNav } from "./components/SidebarNav";
 import { useAuth } from "@/hooks/useAuth";
 import { AuthenticationExpiredNotification } from "@/components/AuthenticationExpiredNotification";
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export default function AppLayout({ children }) {
   // Use the authentication hook to constantly verify token validity
   const {
@@ -22,14 +24,11 @@ export default function AppLayout({ children }) {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -67,11 +66,11 @@ export default function AppLayout({ children }) {
         const apiTransacciones = await getApiTransacciones(
           filtrado,
           filtroMes,
-          filtroAno
+          filtroAno,
         );
         setTransacciones(apiTransacciones.transacciones);
         setTransaccionesSinFiltroCat(
-          apiTransacciones.transaccionesSinFiltroCat
+          apiTransacciones.transaccionesSinFiltroCat,
         );
       } catch (err) {
         console.error("Error fetching transactions:", err);

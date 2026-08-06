@@ -21,19 +21,18 @@ function ForgotPasswordForm() {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/auth/forgot-password?email=" +
-          email,
+        "${BACK_URL}/api/auth/forgot-password?email=" + email,
         {
           method: "POST",
-        }
+        },
       );
-      /*const response = await fetch("https://two024-qwerty-back-final-marcello.onrender.com/api/auth/forgot-password?email=" + email, {
+      /*const response = await fetch("${BACK_URL}/api/auth/forgot-password?email=" + email, {
         method: "POST"
       });*/
 
       if (response.ok) {
         setMessage(
-          "Email enviado con éxito. Por favor revisa tu bandeja de entrada."
+          "Email enviado con éxito. Por favor revisa tu bandeja de entrada.",
         );
         setMessageColor("text-green-600 text-sm text-center");
       } else {

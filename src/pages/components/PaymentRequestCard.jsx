@@ -82,14 +82,11 @@ export function PaymentRequestCard({
   const fetchPersonalTipoGastos = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-tipo-gasto", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         const customOptions = data.map((tipo) => ({
@@ -102,7 +99,7 @@ export function PaymentRequestCard({
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
-        error
+        error,
       );
     }
   };
@@ -149,7 +146,7 @@ export function PaymentRequestCard({
             <span
               className={cn(
                 "text-lg font-bold",
-                type === "sent" ? "text-primary" : "text-green-500"
+                type === "sent" ? "text-primary" : "text-green-500",
               )}
             >
               ${transaction.valor.toFixed(2)}
@@ -371,5 +368,5 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );

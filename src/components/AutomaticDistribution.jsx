@@ -22,21 +22,18 @@ function AutomaticDistribution({
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/automation/previsualizar",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            montoIngreso: parseFloat(transaction.valor),
-            fechaIngreso: transaction.fecha,
-            motivoOriginal: transaction.motivo || "Ingreso de dinero",
-          }),
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/automation/previsualizar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          montoIngreso: parseFloat(transaction.valor),
+          fechaIngreso: transaction.fecha,
+          motivoOriginal: transaction.motivo || "Ingreso de dinero",
+        }),
+      });
 
       const data = await response.json();
 

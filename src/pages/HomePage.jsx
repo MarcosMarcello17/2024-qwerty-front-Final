@@ -62,6 +62,8 @@ const years = [
   { value: "2026", label: "2026" },
 ];
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 function HomePage() {
   const [transacciones, setTransacciones] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
@@ -131,7 +133,7 @@ function HomePage() {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [posibleSub, setPosibleSub] = useState([]);
   const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
-    []
+    [],
   );
   const [isLoading, setIsLoading] = useState(true);
   const [showSubscriptions, setShowSubscriptions] = useState(true);
@@ -170,7 +172,7 @@ function HomePage() {
     // Filtrar por categoría si no es "Todas"
     if (categoriaSeleccionada && categoriaSeleccionada !== "Todas") {
       filtradas = filtradas.filter(
-        (t) => t.categoria === categoriaSeleccionada
+        (t) => t.categoria === categoriaSeleccionada,
       );
     }
 
@@ -214,8 +216,8 @@ function HomePage() {
           setTransacciones(apiTransacciones.transacciones);
           setTransaccionesSinFiltroCat(
             apiTransacciones.transacciones.filter(
-              (transaccion) => transaccion.categoria !== "Ingreso de Dinero"
-            )
+              (transaccion) => transaccion.categoria !== "Ingreso de Dinero",
+            ),
           );
         }
       }
@@ -228,15 +230,12 @@ function HomePage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/mis-grupos",
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/grupos/mis-grupos`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (!response.ok) {
         throw new Error("Error al obtener los grupos.");
@@ -255,13 +254,13 @@ function HomePage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/user",
+        `${BACK_URL}/api/transaccionesPendientes/user`,
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -270,7 +269,7 @@ function HomePage() {
 
       let data = await response.json();
       data = data.filter(
-        (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro"
+        (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro",
       );
       if (data[0] !== null && data[0] !== undefined) {
         setTranPendiente(data[0]);
@@ -287,14 +286,11 @@ function HomePage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -307,7 +303,7 @@ function HomePage() {
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
-        error
+        error,
       );
     } finally {
       setIsLoading(false);
@@ -315,15 +311,12 @@ function HomePage() {
   };
   const checkIfValidToken = async (token) => {
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/userTest",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/transacciones/userTest`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (response.ok) {
         //entra aca si pasa la autenticacion
         return true; //si esta activo tengo que devolver true
@@ -345,11 +338,11 @@ function HomePage() {
         const apiTransacciones = await getApiTransacciones(
           filtrado,
           filtroMes,
-          filtroAno
+          filtroAno,
         );
         setTransacciones(apiTransacciones.transacciones);
         setTransaccionesSinFiltroCat(
-          apiTransacciones.transaccionesSinFiltroCat
+          apiTransacciones.transaccionesSinFiltroCat,
         );
       } catch (err) {
         console.error("Error fetching transactions:", err);
@@ -369,14 +362,11 @@ function HomePage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -445,8 +435,8 @@ function HomePage() {
     if (selectedGroup === null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
       url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+        ? `${BACK_URL}/api/transacciones/${transaccionId}`
+        : `${BACK_URL}/api/transacciones`;
     } else {
       const grupo = selectedGroup.value;
       bodyJson = JSON.stringify({
@@ -458,8 +448,8 @@ function HomePage() {
         grupo,
       });
       url = edit
-        ? `https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion/${transaccionId}`
-        : "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/transaccion";
+        ? `${BACK_URL}/api/grupos/transaccion/${transaccionId}`
+        : `${BACK_URL}/api/grupos/transaccion`;
     }
     const method = edit ? "PUT" : "POST";
     try {
@@ -476,13 +466,13 @@ function HomePage() {
         if (selectedGroup === null) {
           if (edit) {
             const updatedTransacciones = transacciones.map((t) =>
-              t.id === data.id ? data : t
+              t.id === data.id ? data : t,
             );
             setTransacciones(updatedTransacciones);
           } else {
             const updatedTransacciones = [...transacciones, data];
             updatedTransacciones.sort(
-              (a, b) => new Date(b.fecha) - new Date(a.fecha)
+              (a, b) => new Date(b.fecha) - new Date(a.fecha),
             );
             setTransacciones(updatedTransacciones);
           }
@@ -503,7 +493,7 @@ function HomePage() {
         console.error(
           "Error al crear transacción:",
           response.status,
-          response.statusText
+          response.statusText,
         );
         setError("Error al procesar la transacción.");
       }
@@ -528,17 +518,14 @@ function HomePage() {
         valor: bodyTrans.valor,
         frecuencia: "mensual",
       };
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(body),
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/recurrents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
       if (response.ok) {
         console.log("Transaccion Recurrente creada");
       } else {
@@ -551,16 +538,13 @@ function HomePage() {
 
   const checkTransaccionAchievment = async () => {
     const token = localStorage.getItem("token");
-    fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/users/userTransaction",
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
+    fetch(`${BACK_URL}/api/users/userTransaction`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => response.json())
       .then((data) => {
         if (data === 1 || data === 5 || data === 10) {
@@ -612,7 +596,7 @@ function HomePage() {
     const threeMonthsAgo = new Date(
       today.getFullYear(),
       today.getMonth() - 2,
-      1
+      1,
     ); // Inicio de hace 3 meses
 
     const monthlyTransactions = transacciones.reduce((acc, transaction) => {
@@ -636,13 +620,13 @@ function HomePage() {
           const date = new Date(
             today.getFullYear(),
             today.getMonth() - index,
-            1
+            1,
           );
           return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
         });
 
         const hasTransactionsInEachMonth = lastThreeMonths.every((monthKey) =>
-          monthKeys.includes(monthKey)
+          monthKeys.includes(monthKey),
         );
 
         if (hasTransactionsInEachMonth) {
@@ -650,7 +634,7 @@ function HomePage() {
             descripcion,
             meses: lastThreeMonths,
             transacciones: lastThreeMonths.flatMap(
-              (monthKey) => months[monthKey] || []
+              (monthKey) => months[monthKey] || [],
             ),
           };
         }
@@ -664,8 +648,7 @@ function HomePage() {
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
-    let url =
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+    let url = `${BACK_URL}/api/transacciones`;
     if (transaccion.id_reserva === "Cobro") {
       url += "/crearPago/" + transaccion.sentByEmail;
       const motivo = transaccion.motivo;
@@ -684,14 +667,14 @@ function HomePage() {
           const data = await response.json();
           const updatedTransacciones = [...transacciones, data];
           updatedTransacciones.sort(
-            (a, b) => new Date(b.fecha) - new Date(a.fecha)
+            (a, b) => new Date(b.fecha) - new Date(a.fecha),
           );
           setTransacciones(updatedTransacciones);
         } else {
           console.error(
             "Error al crear pago:",
             response.status,
-            response.statusText
+            response.statusText,
           );
           setError("Error al procesar la transacción de cobro.");
         }
@@ -704,8 +687,7 @@ function HomePage() {
     } else if (transaccion.id_reserva === "Pago") {
       console.log("Transaccion Aprobada");
     } else if (transaccion.id_reserva === "Grupo") {
-      url =
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/grupos/agregar-usuario";
+      url = `${BACK_URL}/api/grupos/agregar-usuario`;
       const grupoId = transaccion.grupoId;
       try {
         const response = await fetch(url, {
@@ -722,14 +704,14 @@ function HomePage() {
           console.error(
             "Error al agregar usuario al grupo:",
             response.status,
-            response.statusText
+            response.statusText,
           );
           setError("Hubo un problema al agregar el usuario al grupo.");
         }
       } catch (err) {
         console.error(
           "Error en la solicitud de agregar usuario al grupo:",
-          err
+          err,
         );
         setError("Error de red al procesar la solicitud de grupo.");
       } finally {
@@ -761,14 +743,14 @@ function HomePage() {
           const data = await response.json();
           const updatedTransacciones = [...transacciones, data];
           updatedTransacciones.sort(
-            (a, b) => new Date(b.fecha) - new Date(a.fecha)
+            (a, b) => new Date(b.fecha) - new Date(a.fecha),
           );
           setTransacciones(updatedTransacciones);
         } else {
           console.error(
             "Error al crear transacción:",
             response.status,
-            response.statusText
+            response.statusText,
           );
           setError("Error al procesar la transacción.");
         }
@@ -807,7 +789,7 @@ function HomePage() {
   const enviarRespuesta = async (resp, id_reserva) => {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
-    const url = `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
+    const url = `${BACK_URL}/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
     const method = "POST";
     try {
       //hacer chequeos de que pase bien las cosas en el back!
@@ -825,7 +807,7 @@ function HomePage() {
         console.error(
           "Error al enviar respuesta:",
           response.status,
-          response.statusText
+          response.statusText,
         );
         setError("Error al enviar la respuesta.");
       }

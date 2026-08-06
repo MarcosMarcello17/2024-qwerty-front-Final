@@ -171,8 +171,7 @@ export default function PaymentsPage() {
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
     setProcessingTransactionId(transaccion.id);
     const token = localStorage.getItem("token");
-    let url =
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/transacciones";
+    let url = "${BACK_URL}/api/transacciones";
     if (transaccion.id_reserva == "Cobro") {
       url += "/crearPago/" + transaccion.sentByEmail;
       const motivo = transaccion.motivo;
@@ -262,14 +261,11 @@ export default function PaymentsPage() {
   const fetchPersonalCategorias = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.ok) {
         const data = await response.json();
@@ -295,13 +291,13 @@ export default function PaymentsPage() {
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/user",
+        "${BACK_URL}/api/transaccionesPendientes/user",
         {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);

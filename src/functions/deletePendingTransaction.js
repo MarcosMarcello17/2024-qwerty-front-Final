@@ -1,14 +1,16 @@
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export const deletePendingTransaction = async (id) => {
   const token = localStorage.getItem("token");
   try {
     const response = await fetch(
-      `https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/${id}`,
+      `${BACK_URL}/api/transaccionesPendientes/${id}`,
       {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     if (response.ok) {
       return true;

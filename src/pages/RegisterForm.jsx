@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 function RegisterForm() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -43,33 +45,30 @@ function RegisterForm() {
 
     if (!validatePassword(password)) {
       setError(
-        "La contraseña debe tener al menos 8 caracteres, una mayuscula y minuscula, un número, un carácter especial y no puede contener comillas simples, dobles, barra vertical, barra inclinada o barra invertida."
+        "La contraseña debe tener al menos 8 caracteres, una mayuscula y minuscula, un número, un carácter especial y no puede contener comillas simples, dobles, barra vertical, barra inclinada o barra invertida.",
       );
       setLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: email,
-            password: password,
-          }),
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
+      });
 
       if (response.ok) {
         navigate("/");
       } else {
         if (response.status === 409) {
           setError(
-            "Email ya en uso. Intente iniciar sesión o utilizar otro e-mail."
+            "Email ya en uso. Intente iniciar sesión o utilizar otro e-mail.",
           );
         } else {
           setError("Ocurrió un error. Intenta nuevamente.");

@@ -35,21 +35,18 @@ function ChangePasswordForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/users/change-password",
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            currentPassword,
-            newPassword,
-          }),
-        }
-      );
-      /*const response = await fetch("https://two024-qwerty-back-final-marcello.onrender.com/api/users/change-password", {
+      const response = await fetch("${BACK_URL}/api/users/change-password", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+        }),
+      });
+      /*const response = await fetch("${BACK_URL}/api/users/change-password", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",

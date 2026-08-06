@@ -23,16 +23,13 @@ function ActionButtons() {
     }
 
     try {
-      const response = await fetch(
-        `https://two024-qwerty-back-final-marcello.onrender.com/api/auth`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/auth`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.ok || response.status === 204) {
         localStorage.removeItem("token");

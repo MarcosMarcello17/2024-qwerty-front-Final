@@ -1,3 +1,5 @@
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export const createCatAPI = async (nombre, icono) => {
   const token = localStorage.getItem("token");
   if (!nombre || !icono) {
@@ -9,17 +11,14 @@ export const createCatAPI = async (nombre, icono) => {
       nombre: nombre,
       iconPath: icono,
     };
-    const response = await fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-categoria",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(inputValue),
-      }
-    );
+    const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(inputValue),
+    });
     if (response.ok) {
       const newCategoria = await response.json();
       const newOption = {

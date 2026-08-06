@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import logo from "../../assets/logo-removebg-preview.png";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const mainNavItems = [
   {
@@ -115,21 +116,23 @@ export function SidebarNav() {
   const renderNavItem = (item) => (
     <SidebarMenuItem key={item.href}>
       <a onClick={() => moveToPage(item.href)} className="cursor-pointer">
-        <SidebarMenuButton
-          asChild
-          isActive={
-            pathname === item.href ||
-            (item.href !== "/dashboard" && pathname.startsWith(item.href))
-          }
-          disabled={item.disabled}
-          aria-current={pathname === item.href ? "page" : undefined}
-          tooltip={{ content: item.title, side: "right", align: "center" }}
-        >
-          <div>
-            <item.icon />
-            <span>{item.title}</span>
-          </div>
-        </SidebarMenuButton>
+        <TooltipProvider>
+          <SidebarMenuButton
+            asChild
+            isActive={
+              pathname === item.href ||
+              (item.href !== "/dashboard" && pathname.startsWith(item.href))
+            }
+            disabled={item.disabled}
+            aria-current={pathname === item.href ? "page" : undefined}
+            tooltip={{ content: item.title, side: "right", align: "center" }}
+          >
+            <div>
+              <item.icon />
+              <span>{item.title}</span>
+            </div>
+          </SidebarMenuButton>
+        </TooltipProvider>
       </a>
     </SidebarMenuItem>
   );

@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-const BACK_URL = import.meta.env.BACK_SERVER_URL;
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ function LoginForm() {
     setShowPassword(!showPassword);
   };
 
-  const onClick = async () => {
+  const handleLogin = async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${BACK_URL}/api/auth/login`, {
@@ -78,7 +78,7 @@ function LoginForm() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              onClick();
+              handleLogin();
             }}
             className="space-y-4"
           >

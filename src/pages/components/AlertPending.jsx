@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-modal";
 
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 function AlertPending({
   pendingTransaction,
   isOpen,
@@ -30,14 +32,11 @@ function AlertPending({
   const fetchPersonalTipoGastos = async () => {
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch(
-        "https://two024-qwerty-back-final-marcello.onrender.com/api/personal-tipo-gasto",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         const customOptions = data.map((tipo) => ({
@@ -50,7 +49,7 @@ function AlertPending({
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
-        error
+        error,
       );
     }
   };
@@ -81,7 +80,7 @@ function AlertPending({
     const selectedValue = e.target.value;
     setCategoria(selectedValue);
     setSelectedCategory(
-      payCategories.find((cat) => cat.value === selectedValue)
+      payCategories.find((cat) => cat.value === selectedValue),
     );
   };
   if (pendingTransaction.id_reserva == "Cobro") {

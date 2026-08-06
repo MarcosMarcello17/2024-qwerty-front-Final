@@ -1,16 +1,15 @@
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
 export const processRecurringTransactions = async () => {
   const token = localStorage.getItem("token");
   try {
-    const response = await fetch(
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/recurrents/process",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await fetch(`${BACK_URL}/api/recurrents/process`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);

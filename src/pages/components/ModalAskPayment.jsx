@@ -32,9 +32,7 @@ function ModalAskPayment({ closeModal = () => {} }) {
     return true;
   };
   const userExists = async (mail) => {
-    let url =
-      "https://two024-qwerty-back-final-marcello.onrender.com/api/public/exists/" +
-      mail;
+    let url = "${BACK_URL}/api/public/exists/" + mail;
     const response = await fetch(url);
     if (response.ok) {
       const exists = await response.json();
@@ -60,7 +58,7 @@ function ModalAskPayment({ closeModal = () => {} }) {
     if (await userExists(emailReceptor)) {
       if (validateForm()) {
         const response = await fetch(
-          "https://two024-qwerty-back-final-marcello.onrender.com/api/transaccionesPendientes/askPayUser",
+          "${BACK_URL}/api/transaccionesPendientes/askPayUser",
           {
             method: "POST",
             headers: {
@@ -68,7 +66,7 @@ function ModalAskPayment({ closeModal = () => {} }) {
               Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify(transaccion),
-          }
+          },
         );
         if (response.ok) {
           console.log("Pago enviado");
