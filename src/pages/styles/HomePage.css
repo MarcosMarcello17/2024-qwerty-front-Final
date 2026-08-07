@@ -7,41 +7,16 @@
 }
 
 /* Títulos principales */
-h1 {
+.container h1 {
   font-size: 2rem;
   font-weight: bold;
   margin-bottom: 1.5rem;
-  color: #ff6e56; /* Azul Primario */
+  color: #ff6e56;
   text-align: center;
 }
 
 .tabla {
   color: #1b1c31;
-}
-
-/* Caja de la tabla */
-.bg-white {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  border-radius: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Botón de agregar transacción */
-button {
-  background-color: #28a745; /* Verde Suave */
-  color: white;
-  font-weight: bold;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #218838; /* Verde más oscuro */
 }
 
 .modal-content {

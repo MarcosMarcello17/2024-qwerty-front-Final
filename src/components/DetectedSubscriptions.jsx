@@ -175,7 +175,7 @@ export default function DetectedSubscriptions({ subs }) {
   };
 
   return (
-    <div className="bg-card p-4 rounded-lg shadow-lg mb-6">
+    <div className="bg-card p-4 rounded-xl border border-border">
       {/* Suscripciones detectadas */}
       <h2 className="text-xl font-bold mb-2 flex items-center gap-2">
         <BadgeCheck className="text-primary" /> Suscripciones detectadas
@@ -220,7 +220,7 @@ export default function DetectedSubscriptions({ subs }) {
                 </span>
                 <div className="flex-1 flex justify-end">
                   <Button
-                    className="flex items-center text-black text-xs"
+                    className="flex items-center text-primary-foreground text-xs"
                     onClick={() => onAdd(sub)}
                     title="Agregar como recurrente"
                     style={{ marginTop: 4 }}
@@ -289,9 +289,9 @@ export default function DetectedSubscriptions({ subs }) {
 
       {/* Modal para crear transacción recurrente */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl relative">
-            <h3 className="text-lg font-bold mb-2 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-xl border border-border p-6 w-full max-w-md relative">
+            <h3 className="text-lg font-bold mb-2">
               Crear transacción recurrente
             </h3>
             <p className="text-sm text-muted-foreground mb-2">
@@ -354,9 +354,9 @@ export default function DetectedSubscriptions({ subs }) {
 
       {/* Modal de confirmación para eliminar transacción recurrente */}
       {showDeleteModal && recurrentToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl relative">
-            <h3 className="text-lg font-bold mb-2 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-card rounded-xl border border-border p-6 w-full max-w-md relative">
+            <h3 className="text-lg font-bold mb-2">
               Confirmar eliminación
             </h3>
             <p className="text-sm text-muted-foreground mb-4">

@@ -169,13 +169,13 @@ function PaymentMethodGraphic({
   }, [payCategories, transacciones, filtroMes, filtroCategoria, filtroAno, transaccionesSinFiltroCat]);
 
   const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#fe1900",
-    "#a500fe",
-    "#784315",
+    "#4cc9f0", // Chart Cyan
+    "#f77f00", // Chart Orange
+    "#06d6a0", // Chart Mint
+    "#ffc300", // Ledger Gold
+    "#ffd60a", // Signal Yellow
+    "#b5e0ff", // Muted Sky
+    "#e5484d", // Alert Red
   ];
 
   const getCategoryIcon = (categoryName) => {
@@ -192,11 +192,11 @@ function PaymentMethodGraphic({
   }, []);
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card>
       <CardHeader>
-        <CardTitle className="font-headline">Gasto por Medio de Pago</CardTitle>
+        <CardTitle className="font-headline">Gasto por medio de pago</CardTitle>
         <CardDescription>
-          Vista de los gastos por medio de pago en el periodo seleccionado
+          Vista de los gastos por medio de pago en el período seleccionado.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -222,6 +222,7 @@ function PaymentMethodGraphic({
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
+                        stroke="none"
                       />
                     )
                   )}

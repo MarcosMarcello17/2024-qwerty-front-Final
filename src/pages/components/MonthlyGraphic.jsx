@@ -247,13 +247,13 @@ function MonthlyGraphic({
   }, [payCategories, transacciones, filtroMes, filtroAno, filtroCategoria]);
 
   const COLORS = [
-    "#0088FE",
-    "#00C49F",
-    "#FFBB28",
-    "#FF8042",
-    "#fe1900",
-    "#a500fe",
-    "#784315",
+    "#4cc9f0", // Chart Cyan
+    "#f77f00", // Chart Orange
+    "#06d6a0", // Chart Mint
+    "#ffc300", // Ledger Gold
+    "#ffd60a", // Signal Yellow
+    "#b5e0ff", // Muted Sky
+    "#e5484d", // Alert Red
   ];
 
   const getCategoryIcon = (categoryName) => {
@@ -267,14 +267,14 @@ function MonthlyGraphic({
       {loadingg ? (
         <LoadingSpinner />
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 min-h-full">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <>
+          <Card>
             <CardHeader>
               <CardTitle className="font-headline">
-                Gasto por categoria
+                Gasto por categoría
               </CardTitle>
               <CardDescription>
-                Vista de los gastos por categoria en el periodo seleccionado.
+                Vista de los gastos por categoría en el período seleccionado.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -300,6 +300,7 @@ function MonthlyGraphic({
                             <Cell
                               key={`cell-${index}`}
                               fill={COLORS[index % COLORS.length]}
+                              stroke="none"
                             />
                           )
                         )}
@@ -351,14 +352,14 @@ function MonthlyGraphic({
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle className="font-headline">
-                  Evolucion Mensual
+                  Evolución mensual
                 </CardTitle>
                 <CardDescription>
-                  Evolucion de los gastos en los ultimos meses
+                  Evolución de los gastos en los últimos meses
                 </CardDescription>
               </div>
             </CardHeader>
@@ -368,24 +369,25 @@ function MonthlyGraphic({
                   <BarChart data={dataLine}>
                     <XAxis
                       dataKey="label"
-                      stroke="#ffffff"
+                      stroke="#003566"
                       height={40}
-                      tick={{ fill: "#ffffff" }}
-                      tickLine={{ stroke: "#ffffff" }}
+                      tick={{ fill: "#b5e0ff" }}
+                      tickLine={{ stroke: "#003566" }}
                     />
                     <YAxis
-                      stroke="#ffffff"
-                      tick={{ fill: "#ffffff" }}
-                      tickLine={{ stroke: "#ffffff" }}
+                      stroke="#003566"
+                      tick={{ fill: "#b5e0ff" }}
+                      tickLine={{ stroke: "#003566" }}
+                      tickFormatter={(value) => `$${value.toLocaleString("es-AR")}`}
                     />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: "#000814",
-                        border: "none",
-                        borderRadius: "4px",
-                        color: "#ffffff",
+                        border: "1px solid #003566",
+                        borderRadius: "0.625rem",
+                        color: "#e6f1ff",
                       }}
-                      formatter={(value) => `$${value.toFixed(2)}`}
+                      formatter={(value) => [`$${value.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`, "Total"]}
                     />
                     <Bar
                       type="monotone"
@@ -398,7 +400,7 @@ function MonthlyGraphic({
               </div>
             </CardContent>
           </Card>
-        </div>
+        </>
       )}
     </div>
   );

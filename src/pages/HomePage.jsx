@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import ModalForm from "./components/ModalForm";
-import "./styles/HomePage.css";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
 import DetectedSubscriptions from "../components/DetectedSubscriptions";
@@ -12,12 +11,11 @@ import { deletePendingTransaction } from "../functions/deletePendingTransaction"
 import { processRecurringTransactions } from "../functions/processRecurringTransactions";
 import {
   Filter,
-  LayoutDashboard,
   Loader2,
   PlusCircle,
   XCircle,
-  Eye,
-  EyeOff,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import {
   Select,
@@ -125,8 +123,8 @@ function HomePage() {
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [pendTran, setPendTran] = useState(false);
-  const [filtroMes, setFiltroMes] = useState("00"); // Ej: "10" para octubre
-  const [filtroAno, setFiltroAno] = useState("00"); //
+  const [filtroMes, setFiltroMes] = useState("00");
+  const [filtroAno, setFiltroAno] = useState("00");
   const [filterEmpty, setFilterEmpty] = useState(false);
   const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
@@ -136,13 +134,15 @@ function HomePage() {
     [],
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [showSubscriptions, setShowSubscriptions] = useState(true);
+  const [showSubscriptions, setShowSubscriptions] = useState(false);
   const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
+  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("all_time");
+
   const handleGroupChange = (selectedOption) => {
     if (selectedOption && selectedOption.value === null) {
-      setSelectedGroup(null); // Restablecer a null si se selecciona "Personal"
+      setSelectedGroup(null);
     } else {
-      setSelectedGroup(selectedOption); // Asignar el grupo seleccionado
+      setSelectedGroup(selectedOption);
     }
   };
 
@@ -169,7 +169,6 @@ function HomePage() {
         filtradas = transacciones;
     }
 
-    // Filtrar por categoría si no es "Todas"
     if (categoriaSeleccionada && categoriaSeleccionada !== "Todas") {
       filtradas = filtradas.filter(
         (t) => t.categoria === categoriaSeleccionada,
@@ -180,8 +179,8 @@ function HomePage() {
   };
 
   useEffect(() => {
-    setIsLoadingFilter(true); // Mostrar cargando cuando cambian los filtros
-    getTransacciones(categoriaSeleccionada); //aplicar un filtro local
+    setIsLoadingFilter(true);
+    getTransacciones(categoriaSeleccionada);
     setLoadGraphic(false);
   }, [categoriaSeleccionada, filtroMes, filtroAno]);
   useEffect(() => {
@@ -204,9 +203,8 @@ function HomePage() {
       const recurringTransactions = detectRecurringTransactions(transacciones);
       setPosibleSub(recurringTransactions);
     }
-  }, [transacciones]); // Se ejecuta cuando transacciones cambia
+  }, [transacciones]);
 
-  // Función para procesar transacciones recurrentes al cargar la página
   const processRecurringOnLoad = async () => {
     try {
       const createdTransactions = await processRecurringTransactions();
@@ -242,9 +240,9 @@ function HomePage() {
       }
 
       const data = await response.json();
-      setGrupos(data); // Guardar los grupos en el estado
+      setGrupos(data);
     } catch (error) {
-      setError("Ocurrió un error al obtener los grupos.");
+      setError("Ocurrio un error al obtener los grupos.");
     } finally {
       setIsLoading(false);
     }
@@ -318,8 +316,7 @@ function HomePage() {
         },
       });
       if (response.ok) {
-        //entra aca si pasa la autenticacion
-        return true; //si esta activo tengo que devolver true
+        return true;
       } else {
         localStorage.removeItem("token");
         return false;
@@ -392,7 +389,7 @@ function HomePage() {
         ]);
       }
     } catch (error) {
-      console.error("Error al obtener las categorías personalizadas:", error);
+      console.error("Error al obtener las categorias personalizadas:", error);
     }
   };
 
@@ -407,7 +404,7 @@ function HomePage() {
   };
 
   const resetFilters = () => {
-    setIsLoadingFilter(true); // Mostrar cargando al resetear filtros
+    setIsLoadingFilter(true);
     setCategoriaSeleccionada("Todas");
     setFiltroAno("00");
     setFiltroMes("00");
@@ -479,7 +476,7 @@ function HomePage() {
         }
         closeModal();
         setSelectedGroup(null);
-        setShowSubscriptions(false); // Ocultar suscripciones al crear transacción
+        setShowSubscriptions(false);
         if (isRecurrent) {
           await agregarTransaccionRecurrente({
             motivo,
@@ -491,15 +488,15 @@ function HomePage() {
         }
       } else {
         console.error(
-          "Error al crear transacción:",
+          "Error al crear transaccion:",
           response.status,
           response.statusText,
         );
-        setError("Error al procesar la transacción.");
+        setError("Error al procesar la transaccion.");
       }
     } catch (err) {
       console.error("Error en la solicitud:", err);
-      setError("Error de red al procesar la transacción.");
+      setError("Error de red al procesar la transaccion.");
     } finally {
       setTransaccionesCargadas(true);
       if (!edit) {
@@ -529,7 +526,7 @@ function HomePage() {
       if (response.ok) {
         console.log("Transaccion Recurrente creada");
       } else {
-        setError("Error al crear la transacción recurrente.");
+        setError("Error al crear la transaccion recurrente.");
       }
     } catch (err) {
       setError("Error de red.");
@@ -589,7 +586,6 @@ function HomePage() {
     setPeriodoSeleccionado(value);
     setIsLoadingFilter(true);
   };
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("all_time");
 
   const detectRecurringTransactions = (transacciones) => {
     const today = new Date();
@@ -597,7 +593,7 @@ function HomePage() {
       today.getFullYear(),
       today.getMonth() - 2,
       1,
-    ); // Inicio de hace 3 meses
+    );
 
     const monthlyTransactions = transacciones.reduce((acc, transaction) => {
       const transactionDate = new Date(transaction.fecha);
@@ -615,7 +611,7 @@ function HomePage() {
     }, {});
     return Object.entries(monthlyTransactions)
       .map(([descripcion, months]) => {
-        const monthKeys = Object.keys(months).sort(); // Aseguramos que los meses estén ordenados
+        const monthKeys = Object.keys(months).sort();
         const lastThreeMonths = Array.from({ length: 3 }, (_, index) => {
           const date = new Date(
             today.getFullYear(),
@@ -676,11 +672,11 @@ function HomePage() {
             response.status,
             response.statusText,
           );
-          setError("Error al procesar la transacción de cobro.");
+          setError("Error al procesar la transaccion de cobro.");
         }
       } catch (err) {
         console.error("Error en la solicitud de cobro:", err);
-        setError("Error de red al procesar la transacción.");
+        setError("Error de red al procesar la transaccion.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -724,7 +720,6 @@ function HomePage() {
       let fecha = transaccion.fecha;
       let categoriaTransaccion = categoria || "Clase";
       try {
-        //hacer chequeos de que pase bien las cosas en el back!
         const response = await fetch(url, {
           method: method,
           headers: {
@@ -748,15 +743,15 @@ function HomePage() {
           setTransacciones(updatedTransacciones);
         } else {
           console.error(
-            "Error al crear transacción:",
+            "Error al crear transaccion:",
             response.status,
             response.statusText,
           );
-          setError("Error al procesar la transacción.");
+          setError("Error al procesar la transaccion.");
         }
       } catch (err) {
-        console.error("Error en la solicitud de transacción:", err);
-        setError("Error de red al procesar la transacción.");
+        console.error("Error en la solicitud de transaccion:", err);
+        setError("Error de red al procesar la transaccion.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -792,7 +787,6 @@ function HomePage() {
     const url = `${BACK_URL}/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
     const method = "POST";
     try {
-      //hacer chequeos de que pase bien las cosas en el back!
       const response = await fetch(url, {
         method: method,
         headers: {
@@ -824,31 +818,58 @@ function HomePage() {
     tranEliminada ? showTransactionsPendientes() : console.error("Error");
   };
 
+  // Summary metrics computed from current transaction set
+  const summary = useMemo(() => {
+    const expenses = transacciones.filter(
+      (t) => t.categoria !== "Ingreso de Dinero",
+    );
+    const totalSpent = expenses.reduce((sum, t) => sum + (t.valor || 0), 0);
+    const count = expenses.length;
+
+    const categoryTotals = expenses.reduce((acc, t) => {
+      acc[t.categoria] = (acc[t.categoria] || 0) + t.valor;
+      return acc;
+    }, {});
+    const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+    const topCategory = sorted[0]?.[0] || null;
+
+    return { totalSpent, count, topCategory };
+  }, [transacciones]);
+
+  const hasActiveFilters =
+    categoriaSeleccionada !== "Todas" ||
+    filtroMes !== "00" ||
+    filtroAno !== "00";
+
   return (
     <AppLayout>
-      <div className="space-y-8 min-h-full min-w-full">
-        <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-          <div className="flex items-center space-x-2">
-            <LayoutDashboard className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold font-headline text-white">
-              Dashboard
-            </h1>
-          </div>
-          <div className="flex flex-col gap-2 justify-end w-full sm:flex-row sm:items-center sm:space-x-2 sm:gap-0">
+      <div className="space-y-6 min-h-full min-w-full">
+        {/* Page header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <h1 className="text-[2rem] font-bold font-headline leading-tight">
+            Dashboard
+          </h1>
+          <div className="flex gap-2 w-full sm:w-auto">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="mr-2 h-4 w-4" /> Filtrar
+                <Button variant="outline" className={hasActiveFilters ? "border-primary/50" : ""}>
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filtrar
+                  {hasActiveFilters && (
+                    <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.625rem] font-semibold text-primary-foreground">
+                      !
+                    </span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 bg-card" align="end">
                 <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none font-headline">
-                      Filters
+                  <div className="space-y-1">
+                    <h4 className="font-medium leading-none font-headline text-sm">
+                      Filtros
                     </h4>
-                    <p className="text-sm text-muted-foreground">
-                      Filter transactions by date.
+                    <p className="text-xs text-muted-foreground">
+                      Filtra las transacciones por categoría y fecha.
                     </p>
                   </div>
                   <div className="grid gap-2">
@@ -860,7 +881,7 @@ function HomePage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar Categoría" />
+                        <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
                         {categoriasConTodas.map((cat) => (
@@ -878,7 +899,7 @@ function HomePage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Month" />
+                        <SelectValue placeholder="Seleccionar mes" />
                       </SelectTrigger>
                       <SelectContent>
                         {months.map((month) => (
@@ -896,7 +917,7 @@ function HomePage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select Year" />
+                        <SelectValue placeholder="Seleccionar año" />
                       </SelectTrigger>
                       <SelectContent>
                         {years.map((year) => (
@@ -907,87 +928,126 @@ function HomePage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <Button
-                    variant="ghost"
-                    className="bg-primary text-black"
-                    onClick={resetFilters}
-                  >
-                    <XCircle className="mr-2 h-4 w-4" /> Limpiar Filtros
-                  </Button>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetFilters}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <XCircle className="mr-2 h-3.5 w-3.5" /> Limpiar filtros
+                    </Button>
+                  )}
                 </div>
               </PopoverContent>
             </Popover>
             <Button
-              asChild
-              className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={openModal}
+              className="w-full sm:w-auto"
             >
-              <a
-                href="#"
-                className="text-sm text-muted-foreground hover:text-primary text-center hover:text-black"
-                onClick={() => openModal()}
-              >
-                <PlusCircle className="mr-1 h-4 w-4" /> Agregar Transaccion
-              </a>
+              <PlusCircle className="mr-1.5 h-4 w-4" /> Agregar transacción
             </Button>
           </div>
         </div>
-        {/* Mostrar suscripciones detectadas */}
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">
-              Suscripciones Detectadas
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                if (!showSubscriptions) {
-                  setIsLoadingSubscriptions(true);
-                  setTimeout(() => {
-                    setShowSubscriptions(true);
-                    setIsLoadingSubscriptions(false);
-                  }, 300);
-                } else {
-                  setShowSubscriptions(false);
-                }
-              }}
-              className="text-white hover:text-primary"
-            >
-              {showSubscriptions ? (
-                <>
-                  <EyeOff className="mr-2 h-4 w-4" />
-                  Ocultar
-                </>
-              ) : (
-                <>
-                  <Eye className="mr-2 h-4 w-4" />
-                  Mostrar
-                </>
-              )}
-            </Button>
+
+        {/* Summary strip */}
+        {transaccionesCargadas && transacciones.length > 0 && (
+          <div className="flex flex-wrap gap-x-10 gap-y-3 pb-4 border-b border-border">
+            <div>
+              <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
+                Total gastado
+              </span>
+              <p className="text-xl font-semibold tabular-nums leading-tight">
+                ${summary.totalSpent.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div>
+              <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
+                Transacciones
+              </span>
+              <p className="text-xl font-semibold tabular-nums leading-tight">
+                {summary.count}
+              </p>
+            </div>
+            {summary.topCategory && (
+              <div>
+                <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
+                  Mayor gasto
+                </span>
+                <p className="text-xl font-semibold leading-tight">
+                  {summary.topCategory}
+                </p>
+              </div>
+            )}
           </div>
-          {isLoadingSubscriptions ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-3"></div>
-              <span className="text-white text-sm">
-                Cargando suscripciones...
+        )}
+
+        {/* Subscriptions - collapsible */}
+        <div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!showSubscriptions) {
+                setIsLoadingSubscriptions(true);
+                setTimeout(() => {
+                  setShowSubscriptions(true);
+                  setIsLoadingSubscriptions(false);
+                }, 300);
+              } else {
+                setShowSubscriptions(false);
+              }
+            }}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showSubscriptions ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
+            Suscripciones y recurrentes
+          </button>
+          {isLoadingSubscriptions && (
+            <div className="flex items-center gap-2 py-4">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                Cargando...
               </span>
             </div>
-          ) : (
-            showSubscriptions && (
+          )}
+          {showSubscriptions && !isLoadingSubscriptions && (
+            <div className="mt-3">
               <DetectedSubscriptions subs={posibleSub || []} />
-            )
+            </div>
           )}
         </div>
+
+        {/* Main content: charts or loading skeleton or empty state */}
         {isLoadingFilter ? (
-          <div className="flex flex-col items-center justify-center py-12 text-white">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mb-4"></div>
-            <span className="text-lg text-white font-semibold">
-              Cargando...
-            </span>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl bg-card border border-border p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 w-36 bg-secondary rounded" />
+                <div className="h-3 w-56 bg-secondary/60 rounded" />
+                <div className="h-[280px] bg-secondary/30 rounded-lg" />
+              </div>
+            </div>
+            <div className="rounded-xl bg-card border border-border p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 w-40 bg-secondary rounded" />
+                <div className="h-3 w-48 bg-secondary/60 rounded" />
+                <div className="h-[280px] bg-secondary/30 rounded-lg" />
+              </div>
+            </div>
+            <div className="rounded-xl bg-card border border-border p-6">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 w-44 bg-secondary rounded" />
+                <div className="h-3 w-52 bg-secondary/60 rounded" />
+                <div className="h-[280px] bg-secondary/30 rounded-lg" />
+              </div>
+            </div>
           </div>
         ) : transacciones.length > 0 ? (
-          <div className="flex flex-col gap-6 w-full  mx-auto">
+          <div className="grid gap-6 md:grid-cols-2 w-full">
             {transacciones && !loadGraphic && transacciones.length > 0 && (
               <MonthlyGraphic
                 type="categorias"
@@ -1016,63 +1076,58 @@ function HomePage() {
               )}
           </div>
         ) : (
-          <div>
-            <div className="text-center text-muted-foreground mt-8 text-red-500 font-extrabold">
-              No hay transacciones en el periodo seleccionado.
-            </div>
-            <div className="flex justify-center mt-4">
-              <Button
-                asChild
-                className="bg-primary text-center hover:bg-primary/90 text-primary-foreground"
-              >
-                <a
-                  href="#"
-                  className="text-sm text-muted-foreground text-center hover:text-black"
-                  onClick={() => openModal()}
-                >
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
-                </a>
-              </Button>
-            </div>
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <p className="text-muted-foreground mb-1">
+              No hay transacciones en este período.
+            </p>
+            <p className="text-sm text-muted-foreground/70 mb-6">
+              {hasActiveFilters
+                ? "Prueba ajustando los filtros o registra una nueva transacción."
+                : "Registra tu primera transacción para ver tus gastos."}
+            </p>
+            <Button onClick={openModal}>
+              <PlusCircle className="mr-1.5 h-4 w-4" /> Agregar transacción
+            </Button>
           </div>
         )}
-        <ModalForm
-          isModalOpen={isModalOpen}
-          closeModal={closeModal}
-          agregarTransaccion={agregarTransaccion}
-          edit={edit}
-          motivo={motivo}
-          valor={valor}
-          fecha={fecha}
-          handleMotivoChange={handleMotivoChange}
-          setValor={setValor}
-          selectedCategory={selectedCategory}
-          payCategories={payCategories}
-          handleCategoryChange={handleCategoryChange}
-          handleCreateCat={handleCreateCat}
-          setFecha={setFecha}
-          handlePayChange={handlePayChange}
-          selectedPayMethod={selectedPayMethod}
-          payOptions={payOptions}
-          handleCreateTP={handleCreateTP}
-          handleGroupChange={handleGroupChange}
-          selectedGroup={selectedGroup}
-          grupos={grupos}
-        />
-        <AlertPending
-          isOpen={pendTran}
-          pendingTransaction={tranPendiente}
-          isAccepted={isAccepted}
-          isRejected={isRejected}
-          payCategories={payCategories}
-        />
-        {showNotification && (
-          <AchievementNotification
-            achievement={achievementData}
-            onClose={() => setShowNotification(false)}
-          />
-        )}
       </div>
+
+      <ModalForm
+        isModalOpen={isModalOpen}
+        closeModal={closeModal}
+        agregarTransaccion={agregarTransaccion}
+        edit={edit}
+        motivo={motivo}
+        valor={valor}
+        fecha={fecha}
+        handleMotivoChange={handleMotivoChange}
+        setValor={setValor}
+        selectedCategory={selectedCategory}
+        payCategories={payCategories}
+        handleCategoryChange={handleCategoryChange}
+        handleCreateCat={handleCreateCat}
+        setFecha={setFecha}
+        handlePayChange={handlePayChange}
+        selectedPayMethod={selectedPayMethod}
+        payOptions={payOptions}
+        handleCreateTP={handleCreateTP}
+        handleGroupChange={handleGroupChange}
+        selectedGroup={selectedGroup}
+        grupos={grupos}
+      />
+      <AlertPending
+        isOpen={pendTran}
+        pendingTransaction={tranPendiente}
+        isAccepted={isAccepted}
+        isRejected={isRejected}
+        payCategories={payCategories}
+      />
+      {showNotification && (
+        <AchievementNotification
+          achievement={achievementData}
+          onClose={() => setShowNotification(false)}
+        />
+      )}
     </AppLayout>
   );
 }

@@ -1,23 +1,25 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Eye, EyeOff, UserPlus, Loader2, Check, X } from "lucide-react";
 import logo from "../assets/logo-removebg-preview.png";
-import {
-  faEye,
-  faEyeSlash,
-  faUserPlus,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+
+const PASSWORD_RULES = [
+  { key: "length", label: "Al menos 8 caracteres", test: (p) => p.length >= 8 },
+  { key: "upper", label: "Una letra mayuscula", test: (p) => /[A-Z]/.test(p) },
+  { key: "lower", label: "Una letra minuscula", test: (p) => /[a-z]/.test(p) },
+  { key: "number", label: "Un numero", test: (p) => /\d/.test(p) },
+  { key: "special", label: "Un caracter especial (@$!%*?&)", test: (p) => /[@$!%*?&]/.test(p) },
+  {
+    key: "forbidden",
+    label: "Sin comillas, barras ni barra vertical",
+    test: (p) => !/['"\\/|]/.test(p),
+  },
+];
 
 function RegisterForm() {
   const navigate = useNavigate();
@@ -25,176 +27,204 @@ function RegisterForm() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const allRulesPass = password.length > 0 && PASSWORD_RULES.every((r) => r.test(password));
 
-  const validatePassword = (password) => {
-    // Contraseña mínima de 8 caracteres, al menos un número, un carácter especial,
-    // una letra mayúscula, una letra minúscula y que no contenga caracteres prohibidos.
-    const passwordRegex =
-      /^(?!.*['"\\/|])(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    return passwordRegex.test(password);
-  };
+  const handleRegister = async () => {
+    setError(null);
 
-  const onRegister = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    if (!validatePassword(password)) {
-      setError(
-        "La contraseña debe tener al menos 8 caracteres, una mayuscula y minuscula, un número, un carácter especial y no puede contener comillas simples, dobles, barra vertical, barra inclinada o barra invertida.",
-      );
-      setLoading(false);
+    if (!allRulesPass) {
+      setError("La contraseña no cumple con todos los requisitos.");
       return;
     }
 
+    setIsLoading(true);
     try {
       const response = await fetch(`${BACK_URL}/api/auth/register`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password: password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
       if (response.ok) {
         navigate("/");
+      } else if (response.status === 409) {
+        setError("Email ya en uso. Intenta iniciar sesion o usa otro e-mail.");
       } else {
-        if (response.status === 409) {
-          setError(
-            "Email ya en uso. Intente iniciar sesión o utilizar otro e-mail.",
-          );
-        } else {
-          setError("Ocurrió un error. Intenta nuevamente.");
-        }
+        setError("Ocurrio un error. Intenta nuevamente.");
       }
     } catch (err) {
       console.error("Error during registration:", err);
-      setError("Ocurrió un error. Intenta nuevamente.");
+      setError("Ocurrio un error. Intenta nuevamente.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="flex justify-center">
-            <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-[#ffc300] text-4xl font-bold text-primary font-headline">
-              <img
-                src={logo}
-                alt="logo"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <p className="text-muted-foreground mt-2">
-            Crea tu cuenta para poder empezar a usar la aplicacion.
+    <div className="flex min-h-screen bg-background">
+      {/* Left panel: brand presence (hidden on mobile) */}
+      <div className="hidden lg:flex lg:w-[45%] flex-col items-center justify-center bg-card relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage:
+              "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
+          }}
+        />
+        <div className="relative z-10 flex flex-col items-center gap-6 px-12">
+          <img
+            src={logo}
+            alt="CashFlowPro"
+            className="w-40 h-40 object-contain"
+          />
+          <p className="text-muted-foreground text-sm text-center max-w-[28ch] leading-relaxed">
+            Tus finanzas personales, organizadas y bajo control.
           </p>
         </div>
-        <Card className="w-full bg-card shadow-xl">
+      </div>
+
+      {/* Right panel: register form */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 sm:px-12">
+        {/* Mobile-only compact brand */}
+        <div className="lg:hidden flex flex-col items-center gap-3 mb-10">
+          <img
+            src={logo}
+            alt="CashFlowPro"
+            className="w-20 h-20 object-contain"
+          />
+        </div>
+
+        <div className="w-full max-w-sm">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">
+              Crear cuenta
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              Registrate para empezar a organizar tus finanzas.
+            </p>
+          </div>
+
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              onRegister(e);
+              handleRegister();
             }}
-            className="space-y-4"
+            className="space-y-5"
           >
-            <CardHeader>
-              <CardTitle className="text-2xl font-headline text-center">
-                Registrarse
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-100">
-                  Email
-                </label>
+            <div className="space-y-1.5">
+              <Label htmlFor="register-email">Email</Label>
+              <Input
+                id="register-email"
+                type="email"
+                value={email}
+                placeholder="tu@email.com"
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                aria-invalid={error ? "true" : undefined}
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="register-password">Contraseña</Label>
+              <div className="relative">
                 <Input
-                  type="email"
-                  className="mt-1 block w-full p-3 bg-background text-white rounded-md shadow-sm"
-                  value={email}
-                  placeholder="Email"
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="register-password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  placeholder="Contraseña"
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
                   required
+                  className="pr-9"
+                  aria-invalid={error ? "true" : undefined}
                 />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-3.5" />
+                  ) : (
+                    <Eye className="size-3.5" />
+                  )}
+                </Button>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-100">
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    className="mt-1 block w-full p-3 bg-background text-white rounded-md shadow-sm"
-                    value={password}
-                    placeholder="Contraseña"
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-primary"
-                  >
-                    <FontAwesomeIcon
-                      color="#FFFFFF"
-                      icon={showPassword ? faEyeSlash : faEye}
-                    />
-                  </button>
-                </div>
-              </div>
-              <div className="text-gray-400 text-sm text-center">
-                La contraseña debe tener:
-              </div>
-              <ul className="text-gray-400 text-sm text-left">
-                <li>Al menos 8 caracteres</li>
-                <li>Una mayuscula y minuscula</li>
-                <li>Un número</li>
-                <li>Un carácter especial</li>
-                <li>
-                  No puede contener comillas simples, dobles, barra vertical,
-                  barra inclinada o barra invertida.
-                </li>
+            </div>
+
+            {/* Password requirements checklist */}
+            {password.length > 0 && (
+              <ul className="space-y-1 text-xs">
+                {PASSWORD_RULES.map((rule) => {
+                  const passes = rule.test(password);
+                  return (
+                    <li
+                      key={rule.key}
+                      className={`flex items-center gap-1.5 ${
+                        passes ? "text-chart-5" : "text-muted-foreground"
+                      }`}
+                    >
+                      {passes ? (
+                        <Check className="size-3 shrink-0" />
+                      ) : (
+                        <X className="size-3 shrink-0" />
+                      )}
+                      {rule.label}
+                    </li>
+                  );
+                })}
               </ul>
-              {error && (
-                <div className="text-red-500 text-sm text-center">{error}</div>
-              )}
-            </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            )}
+
+            {error && (
+              <p
+                role="alert"
+                className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2"
               >
-                {loading ? (
-                  <>
-                    <div className="loading-circle border-4 border-t-yellow-600 border-gray-200 rounded-full w-6 h-6 animate-spin mr-2"></div>
-                    Cargando...
-                  </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faUserPlus} />
-                    Crear cuenta
-                  </>
-                )}
-              </Button>
-            </CardFooter>
+                {error}
+              </p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={isLoading || !allRulesPass}
+              className="w-full"
+              size="lg"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Creando cuenta...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="size-4" />
+                  Crear cuenta
+                </>
+              )}
+            </Button>
           </form>
-        </Card>
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Ya tenes una cuenta?{" "}
-          <a href="/" className="font-medium text-primary hover:underline">
-            Inicia Sesion
-          </a>
-        </p>
+
+          <div className="mt-8 flex flex-col items-center gap-4 text-sm">
+            <span className="text-muted-foreground">
+              Ya tenes una cuenta?{" "}
+              <a
+                href="/"
+                className="font-medium text-primary hover:underline"
+              >
+                Iniciar sesion
+              </a>
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
