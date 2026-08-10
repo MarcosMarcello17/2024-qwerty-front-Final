@@ -1,25 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, UserPlus, Loader2, Check, X } from "lucide-react";
-import logo from "../assets/logo-removebg-preview.png";
+import AuthLayout from "../components/AuthLayout";
+import { PASSWORD_RULES, passwordMeetsRules } from "@/lib/passwordRules";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
 const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
-
-const PASSWORD_RULES = [
-  { key: "length", label: "Al menos 8 caracteres", test: (p) => p.length >= 8 },
-  { key: "upper", label: "Una letra mayuscula", test: (p) => /[A-Z]/.test(p) },
-  { key: "lower", label: "Una letra minuscula", test: (p) => /[a-z]/.test(p) },
-  { key: "number", label: "Un numero", test: (p) => /\d/.test(p) },
-  { key: "special", label: "Un caracter especial (@$!%*?&)", test: (p) => /[@$!%*?&]/.test(p) },
-  {
-    key: "forbidden",
-    label: "Sin comillas, barras ni barra vertical",
-    test: (p) => !/['"\\/|]/.test(p),
-  },
-];
 
 function RegisterForm() {
   const navigate = useNavigate();
@@ -29,7 +17,7 @@ function RegisterForm() {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const allRulesPass = password.length > 0 && PASSWORD_RULES.every((r) => r.test(password));
+  const allRulesPass = passwordMeetsRules(password);
 
   const handleRegister = async () => {
     setError(null);
@@ -63,42 +51,8 @@ function RegisterForm() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Left panel: brand presence (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col items-center justify-center bg-card relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-        <div className="relative z-10 flex flex-col items-center gap-6 px-12">
-          <img
-            src={logo}
-            alt="CashFlowPro"
-            className="w-40 h-40 object-contain"
-          />
-          <p className="text-muted-foreground text-sm text-center max-w-[28ch] leading-relaxed">
-            Tus finanzas personales, organizadas y bajo control.
-          </p>
-        </div>
-      </div>
-
-      {/* Right panel: register form */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 sm:px-12">
-        {/* Mobile-only compact brand */}
-        <div className="lg:hidden flex flex-col items-center gap-3 mb-10">
-          <img
-            src={logo}
-            alt="CashFlowPro"
-            className="w-20 h-20 object-contain"
-          />
-        </div>
-
-        <div className="w-full max-w-sm">
-          <div className="mb-8">
+    <AuthLayout>
+      <div className="mb-8">
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
               Crear cuenta
             </h1>
@@ -222,11 +176,9 @@ function RegisterForm() {
               >
                 Iniciar sesion
               </a>
-            </span>
-          </div>
-        </div>
+        </span>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

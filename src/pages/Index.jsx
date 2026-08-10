@@ -3,16 +3,21 @@ import { useNavigate } from "react-router-dom";
 import ModalForm from "./components/ModalForm";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
+import RecentTransactions from "./components/RecentTransactions";
 import DetectedSubscriptions from "../components/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
 import { deletePendingTransaction } from "../functions/deletePendingTransaction";
 import { processRecurringTransactions } from "../functions/processRecurringTransactions";
+import { formatARS } from "@/lib/format";
 import {
+  AlertTriangle,
+  Check,
   Filter,
-  Loader2,
   PlusCircle,
+  RotateCw,
+  X,
   XCircle,
   ChevronDown,
   ChevronUp,
@@ -50,26 +55,64 @@ const months = [
   { value: "12", label: "Diciembre" },
 ];
 
+// Generado desde el primer año con datos hasta el año en curso: una lista fija
+// hace desaparecer el año siguiente del filtro sin aviso.
+const FIRST_YEAR = 2021;
 const years = [
   { value: "00", label: "Todos los años" },
-  { value: "2021", label: "2021" },
-  { value: "2022", label: "2022" },
-  { value: "2023", label: "2023" },
-  { value: "2024", label: "2024" },
-  { value: "2025", label: "2025" },
-  { value: "2026", label: "2026" },
+  ...Array.from(
+    { length: Math.max(new Date().getFullYear() - FIRST_YEAR + 1, 1) },
+    (_, i) => {
+      const year = String(new Date().getFullYear() - i);
+      return { value: year, label: year };
+    },
+  ),
+];
+
+const CATEGORIAS_DEFAULT = [
+  {
+    value: "Impuestos y Servicios",
+    label: "Impuestos y Servicios",
+    iconPath: "fa-solid fa-file-invoice-dollar",
+  },
+  {
+    value: "Entretenimiento y Ocio",
+    label: "Entretenimiento y Ocio",
+    iconPath: "fa-solid fa-ticket",
+  },
+  {
+    value: "Hogar y Mercado",
+    label: "Hogar y Mercado",
+    iconPath: "fa-solid fa-house",
+  },
+  { value: "Antojos", label: "Antojos", iconPath: "fa-solid fa-candy-cane" },
+  {
+    value: "Electrodomesticos",
+    label: "Electrodomesticos",
+    iconPath: "fa-solid fa-blender",
+  },
+  { value: "Clase", label: "Clase", iconPath: "fa-solid fa-chalkboard-user" },
+  {
+    value: "Ingreso de Dinero",
+    label: "Ingreso de Dinero",
+    iconPath: "fa-solid fa-money-bill",
+  },
+];
+
+const MEDIOS_PAGO_DEFAULT = [
+  { value: "Tarjeta de credito", label: "Tarjeta de credito" },
+  { value: "Tarjeta de Debito", label: "Tarjeta de debito" },
+  { value: "Efectivo", label: "Efectivo" },
 ];
 
 const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 
-function HomePage() {
+function IndexPage() {
   const [transacciones, setTransacciones] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [motivo, setMotivo] = useState("");
-  const [showNoTransactions, setShowNoTransactions] = useState(false);
   const [valor, setValor] = useState("");
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
-  const [error, setError] = useState(null);
   const [edit, setEdit] = useState(false);
   const [tipoGasto, setTipoGasto] = useState("Efectivo");
   const [tranPendiente, setTranPendiente] = useState({});
@@ -77,40 +120,7 @@ function HomePage() {
   const [payCategories, setPayCategories] = useState([]);
   const [transaccionesCargadas, setTransaccionesCargadas] = useState(false);
   const [achievementData, setAchievementData] = useState(0);
-  const [payCategoriesDefault, setPayCategoriesDefault] = useState([
-    {
-      value: "Impuestos y Servicios",
-      label: "Impuestos y Servicios",
-      iconPath: "fa-solid fa-file-invoice-dollar",
-    },
-    {
-      value: "Entretenimiento y Ocio",
-      label: "Entretenimiento y Ocio",
-      iconPath: "fa-solid fa-ticket",
-    },
-    {
-      value: "Hogar y Mercado",
-      label: "Hogar y Mercado",
-      iconPath: "fa-solid fa-house",
-    },
-    { value: "Antojos", label: "Antojos", iconPath: "fa-solid fa-candy-cane" },
-    {
-      value: "Electrodomesticos",
-      label: "Electrodomesticos",
-      iconPath: "fa-solid fa-blender",
-    },
-    { value: "Clase", label: "Clase", iconPath: "fa-solid fa-chalkboard-user" },
-    {
-      value: "Ingreso de Dinero",
-      label: "Ingreso de Dinero",
-      iconPath: "fa-solid fa-money-bill",
-    },
-  ]);
-  const [payOptions, setPayOptions] = useState([
-    { value: "Tarjeta de credito", label: "Tarjeta de credito" },
-    { value: "Tarjeta de Debito", label: "Tarjeta de debito" },
-    { value: "Efectivo", label: "Efectivo" },
-  ]);
+  const [payOptions, setPayOptions] = useState(MEDIOS_PAGO_DEFAULT);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedPayMethod, setSelectedPayMethod] = useState({
     value: "Efectivo",
@@ -125,18 +135,23 @@ function HomePage() {
   const [pendTran, setPendTran] = useState(false);
   const [filtroMes, setFiltroMes] = useState("00");
   const [filtroAno, setFiltroAno] = useState("00");
-  const [filterEmpty, setFilterEmpty] = useState(false);
-  const [loadGraphic, setLoadGraphic] = useState(true);
   const [grupos, setGrupos] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [posibleSub, setPosibleSub] = useState([]);
-  const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
-    [],
-  );
-  const [isLoading, setIsLoading] = useState(true);
+  const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState([]);
   const [showSubscriptions, setShowSubscriptions] = useState(false);
-  const [isLoadingSubscriptions, setIsLoadingSubscriptions] = useState(false);
-  const [periodoSeleccionado, setPeriodoSeleccionado] = useState("all_time");
+
+  // Tres canales distintos: un fallo de carga no es lo mismo que un fallo de
+  // escritura, y ninguno de los dos es lo mismo que "no hay datos".
+  const [actionError, setActionError] = useState(null);
+  const [loadError, setLoadError] = useState(null);
+  const [statusMessage, setStatusMessage] = useState(null);
+
+  useEffect(() => {
+    if (!statusMessage) return;
+    const timer = setTimeout(() => setStatusMessage(null), 4000);
+    return () => clearTimeout(timer);
+  }, [statusMessage]);
 
   const handleGroupChange = (selectedOption) => {
     if (selectedOption && selectedOption.value === null) {
@@ -146,43 +161,11 @@ function HomePage() {
     }
   };
 
-  const getTransaccionesFiltradas = () => {
-    const hoy = new Date();
-    let desde;
-    let filtradas = [];
-
-    switch (periodoSeleccionado) {
-      case "monthly":
-        desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "quarterly":
-        desde = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "yearly":
-        desde = new Date(hoy.getFullYear(), 0, 1);
-        filtradas = transacciones.filter((t) => new Date(t.fecha) >= desde);
-        break;
-      case "all_time":
-      default:
-        filtradas = transacciones;
-    }
-
-    if (categoriaSeleccionada && categoriaSeleccionada !== "Todas") {
-      filtradas = filtradas.filter(
-        (t) => t.categoria === categoriaSeleccionada,
-      );
-    }
-
-    return filtradas;
-  };
-
   useEffect(() => {
     setIsLoadingFilter(true);
     getTransacciones(categoriaSeleccionada);
-    setLoadGraphic(false);
   }, [categoriaSeleccionada, filtroMes, filtroAno]);
+
   useEffect(() => {
     if (payCategories.length > 0) {
       setCategoriasConTodas([
@@ -190,8 +173,8 @@ function HomePage() {
         ...payCategories,
       ]);
     }
-    setIsLoading(false);
   }, [payCategories]);
+
   useEffect(() => {
     fetchPersonalTipoGastos();
     fetchGrupos();
@@ -200,8 +183,7 @@ function HomePage() {
 
   useEffect(() => {
     if (transacciones.length > 0) {
-      const recurringTransactions = detectRecurringTransactions(transacciones);
-      setPosibleSub(recurringTransactions);
+      setPosibleSub(detectRecurringTransactions(transacciones));
     }
   }, [transacciones]);
 
@@ -225,7 +207,6 @@ function HomePage() {
   };
 
   const fetchGrupos = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${BACK_URL}/api/grupos/mis-grupos`, {
@@ -242,9 +223,9 @@ function HomePage() {
       const data = await response.json();
       setGrupos(data);
     } catch (error) {
-      setError("Ocurrio un error al obtener los grupos.");
-    } finally {
-      setIsLoading(false);
+      setActionError(
+        "No pudimos cargar tus grupos. Podés registrar gastos propios igual.",
+      );
     }
   };
 
@@ -275,13 +256,10 @@ function HomePage() {
       }
     } catch (err) {
       console.error("Error fetching transactions:", err);
-    } finally {
-      setIsLoadingFilter(false);
     }
   };
 
   const fetchPersonalTipoGastos = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
@@ -296,17 +274,16 @@ function HomePage() {
           label: tipo.nombre,
           value: tipo.nombre,
         }));
-        setPayOptions([...payOptions, ...customOptions]);
+        setPayOptions([...MEDIOS_PAGO_DEFAULT, ...customOptions]);
       }
     } catch (error) {
       console.error(
         "Error al obtener los tipos de gasto personalizados:",
         error,
       );
-    } finally {
-      setIsLoading(false);
     }
   };
+
   const checkIfValidToken = async (token) => {
     try {
       const response = await fetch(`${BACK_URL}/api/transacciones/userTest`, {
@@ -326,8 +303,8 @@ function HomePage() {
       return false;
     }
   };
+
   const getTransacciones = async (filtrado = "Todas") => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
     if (await checkIfValidToken(token)) {
@@ -341,8 +318,14 @@ function HomePage() {
         setTransaccionesSinFiltroCat(
           apiTransacciones.transaccionesSinFiltroCat,
         );
+        setLoadError(null);
       } catch (err) {
         console.error("Error fetching transactions:", err);
+        // Sin esto la pantalla diria "no hay transacciones" cuando en realidad
+        // no las pudo traer, que es exactamente el mensaje opuesto.
+        setLoadError(
+          "No pudimos cargar tus transacciones. Esto no significa que no existan.",
+        );
       } finally {
         setIsLoadingFilter(false);
         setTransaccionesCargadas(true);
@@ -352,11 +335,9 @@ function HomePage() {
     } else {
       navigate("/");
     }
-    setIsLoading(false);
   };
 
   const fetchPersonalCategorias = async () => {
-    setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
       const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
@@ -384,7 +365,7 @@ function HomePage() {
             label: "Gasto Grupal",
             iconPath: "fa-solid fa-people-group",
           },
-          ...payCategoriesDefault,
+          ...CATEGORIAS_DEFAULT,
           ...customOptions,
         ]);
       }
@@ -397,6 +378,7 @@ function HomePage() {
     fetchGrupos();
     setIsModalOpen(true);
   };
+
   const closeModal = () => {
     setIsModalOpen(false);
     clearForm();
@@ -404,11 +386,9 @@ function HomePage() {
   };
 
   const resetFilters = () => {
-    setIsLoadingFilter(true);
     setCategoriaSeleccionada("Todas");
     setFiltroAno("00");
     setFiltroMes("00");
-    setIsLoadingFilter(false);
   };
 
   const clearForm = () => {
@@ -423,11 +403,14 @@ function HomePage() {
     });
   };
 
+  // Devuelve true solo si el backend confirmo. ModalForm usa ese valor para
+  // decidir si cierra: cerrar siempre hacia desaparecer el error con el form.
   const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     let bodyJson = "";
     let url = "";
+    setActionError(null);
     setTransaccionesCargadas(false);
     if (selectedGroup === null) {
       bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
@@ -477,6 +460,11 @@ function HomePage() {
         closeModal();
         setSelectedGroup(null);
         setShowSubscriptions(false);
+        setStatusMessage(
+          edit
+            ? "Cambios guardados."
+            : `Transacción registrada: ${motivo} · ${formatARS(valor)}`,
+        );
         if (isRecurrent) {
           await agregarTransaccionRecurrente({
             motivo,
@@ -486,17 +474,24 @@ function HomePage() {
             tipoGasto,
           });
         }
-      } else {
-        console.error(
-          "Error al crear transaccion:",
-          response.status,
-          response.statusText,
-        );
-        setError("Error al procesar la transaccion.");
+        return true;
       }
+
+      console.error(
+        "Error al crear transaccion:",
+        response.status,
+        response.statusText,
+      );
+      setActionError(
+        "No pudimos guardar la transacción. Revisá los datos y volvé a intentar.",
+      );
+      return false;
     } catch (err) {
       console.error("Error en la solicitud:", err);
-      setError("Error de red al procesar la transaccion.");
+      setActionError(
+        "No hay conexión con el servidor. La transacción no se guardó.",
+      );
+      return false;
     } finally {
       setTransaccionesCargadas(true);
       if (!edit) {
@@ -523,56 +518,59 @@ function HomePage() {
         },
         body: JSON.stringify(body),
       });
-      if (response.ok) {
-        console.log("Transaccion Recurrente creada");
-      } else {
-        setError("Error al crear la transaccion recurrente.");
+      if (!response.ok) {
+        setActionError(
+          "La transacción se guardó, pero no pudimos marcarla como recurrente.",
+        );
       }
     } catch (err) {
-      setError("Error de red.");
+      setActionError(
+        "La transacción se guardó, pero no pudimos marcarla como recurrente.",
+      );
     }
   };
 
   const checkTransaccionAchievment = async () => {
     const token = localStorage.getItem("token");
-    fetch(`${BACK_URL}/api/users/userTransaction`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data === 1 || data === 5 || data === 10) {
-          setAchievementData(data);
-          setShowNotification(true);
-        } else {
-          console.log(data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error checking achievements:", error);
+    try {
+      const response = await fetch(`${BACK_URL}/api/users/userTransaction`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
+      const data = await response.json();
+      if (data === 1 || data === 5 || data === 10) {
+        setAchievementData(data);
+        setShowNotification(true);
+      }
+    } catch (error) {
+      console.error("Error checking achievements:", error);
+    }
   };
 
   const handleMotivoChange = (e) => {
     setMotivo(e.target.value);
   };
+
   const handleCategoryChange = (value) => {
     setCategoria(value ? value.value : "");
     setSelectedCategory(value);
   };
+
   const handlePayChange = (value) => {
     setTipoGasto(value ? value.value : "");
     setSelectedPayMethod(value);
   };
+
   const handleCreateTP = async (inputValue) => {
     const newOption = createPaymentMethodAPI(inputValue);
     setPayOptions((prevOptions) => [...prevOptions, newOption]);
     setSelectedPayMethod(newOption);
     setTipoGasto(newOption.label);
   };
+
   const handleCreateCat = async (nombre, icono) => {
     const ret = await createCatAPI(nombre, icono);
     if (ret.newCat != null) {
@@ -581,10 +579,6 @@ function HomePage() {
       setCategoria(ret.newCat.value);
     }
     return ret.error;
-  };
-  const handleChange = (value) => {
-    setPeriodoSeleccionado(value);
-    setIsLoadingFilter(true);
   };
 
   const detectRecurringTransactions = (transacciones) => {
@@ -639,10 +633,9 @@ function HomePage() {
       .filter((result) => result !== null);
   };
 
-  const transaccionesFiltradas = getTransaccionesFiltradas();
-
   const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
     const token = localStorage.getItem("token");
+    setActionError(null);
     setTransaccionesCargadas(false);
     let url = `${BACK_URL}/api/transacciones`;
     if (transaccion.id_reserva === "Cobro") {
@@ -666,22 +659,24 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha),
           );
           setTransacciones(updatedTransacciones);
+          setStatusMessage("Cobro registrado.");
         } else {
           console.error(
             "Error al crear pago:",
             response.status,
             response.statusText,
           );
-          setError("Error al procesar la transaccion de cobro.");
+          setActionError("No pudimos registrar el cobro. Volvé a intentar.");
         }
       } catch (err) {
         console.error("Error en la solicitud de cobro:", err);
-        setError("Error de red al procesar la transaccion.");
+        setActionError("No hay conexión con el servidor. El cobro no se registró.");
       } finally {
         setTransaccionesCargadas(true);
       }
     } else if (transaccion.id_reserva === "Pago") {
-      console.log("Transaccion Aprobada");
+      setStatusMessage("Pago aprobado.");
+      setTransaccionesCargadas(true);
     } else if (transaccion.id_reserva === "Grupo") {
       url = `${BACK_URL}/api/grupos/agregar-usuario`;
       const grupoId = transaccion.grupoId;
@@ -695,21 +690,21 @@ function HomePage() {
           body: JSON.stringify({ grupo_id: grupoId }),
         });
         if (response.ok) {
-          console.log("Usuario agregado al grupo exitosamente.");
+          setStatusMessage("Te sumaste al grupo.");
         } else {
           console.error(
             "Error al agregar usuario al grupo:",
             response.status,
             response.statusText,
           );
-          setError("Hubo un problema al agregar el usuario al grupo.");
+          setActionError("No pudimos sumarte al grupo. Volvé a intentar.");
         }
       } catch (err) {
         console.error(
           "Error en la solicitud de agregar usuario al grupo:",
           err,
         );
-        setError("Error de red al procesar la solicitud de grupo.");
+        setActionError("No hay conexión con el servidor. No te sumamos al grupo.");
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -741,17 +736,22 @@ function HomePage() {
             (a, b) => new Date(b.fecha) - new Date(a.fecha),
           );
           setTransacciones(updatedTransacciones);
+          setStatusMessage("Transacción aceptada.");
         } else {
           console.error(
             "Error al crear transaccion:",
             response.status,
             response.statusText,
           );
-          setError("Error al procesar la transaccion.");
+          setActionError(
+            "No pudimos aceptar la transacción. Volvé a intentar.",
+          );
         }
       } catch (err) {
         console.error("Error en la solicitud de transaccion:", err);
-        setError("Error de red al procesar la transaccion.");
+        setActionError(
+          "No hay conexión con el servidor. La transacción no se aceptó.",
+        );
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -785,29 +785,30 @@ function HomePage() {
     const token = localStorage.getItem("token");
     setTransaccionesCargadas(false);
     const url = `${BACK_URL}/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
-    const method = "POST";
     try {
       const response = await fetch(url, {
-        method: method,
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.ok) {
-        console.log("Respuesta enviada exitosamente");
-      } else {
+      if (!response.ok) {
         console.error(
           "Error al enviar respuesta:",
           response.status,
           response.statusText,
         );
-        setError("Error al enviar la respuesta.");
+        setActionError(
+          "Registramos tu decisión localmente, pero no pudimos avisarle a la otra persona.",
+        );
       }
     } catch (err) {
       console.error("Error en la solicitud de respuesta:", err);
-      setError("Error de red al enviar la respuesta.");
+      setActionError(
+        "Registramos tu decisión localmente, pero no pudimos avisarle a la otra persona.",
+      );
     } finally {
       setTransaccionesCargadas(true);
     }
@@ -815,10 +816,14 @@ function HomePage() {
 
   const eliminarTransaccionPendiente = async (id) => {
     const tranEliminada = await deletePendingTransaction(id);
-    tranEliminada ? showTransactionsPendientes() : console.error("Error");
+    if (tranEliminada) {
+      showTransactionsPendientes();
+    } else {
+      setActionError("No pudimos cerrar la solicitud pendiente.");
+    }
   };
 
-  // Summary metrics computed from current transaction set
+  // Metricas del conjunto de transacciones actualmente filtrado.
   const summary = useMemo(() => {
     const expenses = transacciones.filter(
       (t) => t.categoria !== "Ingreso de Dinero",
@@ -831,33 +836,88 @@ function HomePage() {
       return acc;
     }, {});
     const sorted = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
-    const topCategory = sorted[0]?.[0] || null;
 
-    return { totalSpent, count, topCategory };
+    return {
+      totalSpent,
+      count,
+      topCategory: sorted[0]?.[0] || null,
+      topCategoryTotal: sorted[0]?.[1] || 0,
+    };
   }, [transacciones]);
 
-  const hasActiveFilters =
-    categoriaSeleccionada !== "Todas" ||
-    filtroMes !== "00" ||
-    filtroAno !== "00";
+  const periodLabel = useMemo(() => {
+    const mesLabel =
+      filtroMes === "00"
+        ? null
+        : months.find((m) => m.value === filtroMes)?.label;
+    const anoLabel = filtroAno === "00" ? null : filtroAno;
+    if (mesLabel && anoLabel) return `${mesLabel} ${anoLabel}`;
+    if (mesLabel) return `${mesLabel}, todos los años`;
+    if (anoLabel) return anoLabel;
+    return "Todo el período";
+  }, [filtroMes, filtroAno]);
+
+  const activeFilters = [];
+  if (categoriaSeleccionada !== "Todas") {
+    activeFilters.push({
+      key: "categoria",
+      label: categoriaSeleccionada,
+      clear: () => setCategoriaSeleccionada("Todas"),
+    });
+  }
+  if (filtroMes !== "00") {
+    activeFilters.push({
+      key: "mes",
+      label: months.find((m) => m.value === filtroMes)?.label,
+      clear: () => setFiltroMes("00"),
+    });
+  }
+  if (filtroAno !== "00") {
+    activeFilters.push({
+      key: "ano",
+      label: filtroAno,
+      clear: () => setFiltroAno("00"),
+    });
+  }
+  const hasActiveFilters = activeFilters.length > 0;
+
+  const chartSkeleton = (
+    <div className="rounded-xl border border-border bg-card p-6">
+      <div className="animate-pulse space-y-4">
+        <div className="h-4 w-40 rounded bg-secondary" />
+        <div className="h-3 w-52 rounded bg-secondary/60" />
+        <div className="h-75 rounded-lg bg-secondary/30" />
+      </div>
+    </div>
+  );
 
   return (
     <AppLayout>
-      <div className="space-y-6 min-h-full min-w-full">
+      <div className="min-h-full min-w-full space-y-6">
         {/* Page header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-          <h1 className="text-[2rem] font-bold font-headline leading-tight">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+          <h1 className="font-headline text-[1.25rem] font-semibold leading-tight">
             Dashboard
           </h1>
-          <div className="flex gap-2 w-full sm:w-auto">
+          <div className="flex w-full gap-2 sm:w-auto">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={hasActiveFilters ? "border-primary/50" : ""}>
+                <Button
+                  variant="outline"
+                  aria-label={
+                    hasActiveFilters
+                      ? `Filtrar. ${activeFilters.length} filtros activos: ${activeFilters
+                          .map((f) => f.label)
+                          .join(", ")}`
+                      : "Filtrar transacciones"
+                  }
+                  className={hasActiveFilters ? "border-primary/50" : ""}
+                >
                   <Filter className="mr-2 h-4 w-4" />
                   Filtrar
                   {hasActiveFilters && (
-                    <span className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.625rem] font-semibold text-primary-foreground">
-                      !
+                    <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[0.8rem] font-semibold leading-none text-primary-foreground">
+                      {activeFilters.length}
                     </span>
                   )}
                 </Button>
@@ -865,7 +925,7 @@ function HomePage() {
               <PopoverContent className="w-80 bg-card" align="end">
                 <div className="grid gap-4">
                   <div className="space-y-1">
-                    <h4 className="font-medium leading-none font-headline text-sm">
+                    <h4 className="font-headline text-sm font-medium leading-none">
                       Filtros
                     </h4>
                     <p className="text-xs text-muted-foreground">
@@ -875,12 +935,9 @@ function HomePage() {
                   <div className="grid gap-2">
                     <Select
                       value={categoriaSeleccionada}
-                      onValueChange={(value) => {
-                        setIsLoadingFilter(true);
-                        setCategoriaSeleccionada(value);
-                      }}
+                      onValueChange={setCategoriaSeleccionada}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger aria-label="Categoría">
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
@@ -891,14 +948,8 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select
-                      value={filtroMes}
-                      onValueChange={(value) => {
-                        setIsLoadingFilter(true);
-                        setFiltroMes(value);
-                      }}
-                    >
-                      <SelectTrigger>
+                    <Select value={filtroMes} onValueChange={setFiltroMes}>
+                      <SelectTrigger aria-label="Mes">
                         <SelectValue placeholder="Seleccionar mes" />
                       </SelectTrigger>
                       <SelectContent>
@@ -909,14 +960,8 @@ function HomePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select
-                      value={filtroAno}
-                      onValueChange={(value) => {
-                        setIsLoadingFilter(true);
-                        setFiltroAno(value);
-                      }}
-                    >
-                      <SelectTrigger>
+                    <Select value={filtroAno} onValueChange={setFiltroAno}>
+                      <SelectTrigger aria-label="Año">
                         <SelectValue placeholder="Seleccionar año" />
                       </SelectTrigger>
                       <SelectContent>
@@ -941,41 +986,94 @@ function HomePage() {
                 </div>
               </PopoverContent>
             </Popover>
-            <Button
-              onClick={openModal}
-              className="w-full sm:w-auto"
-            >
+            <Button onClick={openModal} className="w-full sm:w-auto">
               <PlusCircle className="mr-1.5 h-4 w-4" /> Agregar transacción
             </Button>
           </div>
         </div>
 
+        {/* Filtros activos, en palabras */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap items-center gap-2">
+            {activeFilters.map((filter) => (
+              <button
+                key={filter.key}
+                type="button"
+                onClick={filter.clear}
+                aria-label={`Quitar filtro ${filter.label}`}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary/40 py-1 pl-2.5 pr-1.5 text-[0.8rem] font-medium transition-colors hover:border-primary/50 hover:bg-secondary"
+              >
+                {filter.label}
+                <X className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="text-[0.8rem] text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+            >
+              Limpiar todo
+            </button>
+          </div>
+        )}
+
+        {/* Confirmaciones y errores de acción */}
+        {statusMessage && (
+          <div
+            role="status"
+            className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm"
+          >
+            <Check className="h-4 w-4 shrink-0 text-primary" />
+            {statusMessage}
+          </div>
+        )}
+        {actionError && (
+          <div
+            role="alert"
+            className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span className="flex-1">{actionError}</span>
+            <button
+              type="button"
+              onClick={() => setActionError(null)}
+              aria-label="Descartar aviso"
+              className="shrink-0 rounded p-0.5 transition-colors hover:bg-destructive/20"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
         {/* Summary strip */}
-        {transaccionesCargadas && transacciones.length > 0 && (
-          <div className="flex flex-wrap gap-x-10 gap-y-3 pb-4 border-b border-border">
+        {transaccionesCargadas && !loadError && transacciones.length > 0 && (
+          <div className="flex flex-wrap gap-x-10 gap-y-3 border-b border-border pb-4">
             <div>
-              <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
-                Total gastado
+              <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
+                Total gastado · {periodLabel}
               </span>
-              <p className="text-xl font-semibold tabular-nums leading-tight">
-                ${summary.totalSpent.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <p className="text-2xl font-semibold leading-tight tabular-nums">
+                {formatARS(summary.totalSpent)}
               </p>
             </div>
             <div>
-              <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
-                Transacciones
+              <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
+                Gastos registrados
               </span>
-              <p className="text-xl font-semibold tabular-nums leading-tight">
+              <p className="text-2xl font-semibold leading-tight tabular-nums">
                 {summary.count}
               </p>
             </div>
             {summary.topCategory && (
               <div>
-                <span className="text-[0.7rem] font-medium text-muted-foreground uppercase tracking-[0.05em]">
-                  Mayor gasto
+                <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
+                  Categoría principal
                 </span>
-                <p className="text-xl font-semibold leading-tight">
-                  {summary.topCategory}
+                <p className="text-2xl font-semibold leading-tight">
+                  {summary.topCategory}{" "}
+                  <span className="text-base font-medium tabular-nums text-muted-foreground">
+                    {formatARS(summary.topCategoryTotal)}
+                  </span>
                 </p>
               </div>
             )}
@@ -986,18 +1084,10 @@ function HomePage() {
         <div>
           <button
             type="button"
-            onClick={() => {
-              if (!showSubscriptions) {
-                setIsLoadingSubscriptions(true);
-                setTimeout(() => {
-                  setShowSubscriptions(true);
-                  setIsLoadingSubscriptions(false);
-                }, 300);
-              } else {
-                setShowSubscriptions(false);
-              }
-            }}
-            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => setShowSubscriptions((prev) => !prev)}
+            aria-expanded={showSubscriptions}
+            aria-controls="panel-suscripciones"
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             {showSubscriptions ? (
               <ChevronUp className="h-4 w-4" />
@@ -1006,49 +1096,53 @@ function HomePage() {
             )}
             Suscripciones y recurrentes
           </button>
-          {isLoadingSubscriptions && (
-            <div className="flex items-center gap-2 py-4">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                Cargando...
-              </span>
-            </div>
-          )}
-          {showSubscriptions && !isLoadingSubscriptions && (
-            <div className="mt-3">
+          {showSubscriptions && (
+            <div id="panel-suscripciones" className="mt-3">
               <DetectedSubscriptions subs={posibleSub || []} />
             </div>
           )}
         </div>
 
-        {/* Main content: charts or loading skeleton or empty state */}
+        {/* Contenido principal: cargando / error de carga / datos / vacío */}
         {isLoadingFilter ? (
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="rounded-xl bg-card border border-border p-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 w-36 bg-secondary rounded" />
-                <div className="h-3 w-56 bg-secondary/60 rounded" />
-                <div className="h-[280px] bg-secondary/30 rounded-lg" />
-              </div>
+          <div
+            role="status"
+            aria-live="polite"
+            aria-label="Cargando transacciones"
+            className="grid gap-6 md:grid-cols-2"
+          >
+            {/* Espeja la estructura real: dos tarjetas apiladas a la izquierda,
+                una a la derecha. Si no, cada filtro provoca un salto. */}
+            <div className="space-y-6">
+              {chartSkeleton}
+              {chartSkeleton}
             </div>
-            <div className="rounded-xl bg-card border border-border p-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 w-40 bg-secondary rounded" />
-                <div className="h-3 w-48 bg-secondary/60 rounded" />
-                <div className="h-[280px] bg-secondary/30 rounded-lg" />
-              </div>
-            </div>
-            <div className="rounded-xl bg-card border border-border p-6">
-              <div className="animate-pulse space-y-4">
-                <div className="h-4 w-44 bg-secondary rounded" />
-                <div className="h-3 w-52 bg-secondary/60 rounded" />
-                <div className="h-[280px] bg-secondary/30 rounded-lg" />
-              </div>
-            </div>
+            {chartSkeleton}
+          </div>
+        ) : loadError ? (
+          <div
+            role="alert"
+            className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-16 text-center"
+          >
+            <AlertTriangle className="mb-3 h-6 w-6 text-destructive" />
+            <p className="mb-1 font-medium">{loadError}</p>
+            <p className="mb-6 text-sm text-muted-foreground">
+              Puede ser la conexión o el servidor. Volvé a intentar en unos
+              segundos.
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsLoadingFilter(true);
+                getTransacciones(categoriaSeleccionada);
+              }}
+            >
+              <RotateCw className="mr-1.5 h-4 w-4" /> Reintentar
+            </Button>
           </div>
         ) : transacciones.length > 0 ? (
-          <div className="grid gap-6 md:grid-cols-2 w-full">
-            {transacciones && !loadGraphic && transacciones.length > 0 && (
+          <div className="space-y-6">
+            <div className="grid w-full gap-6 md:grid-cols-2">
               <MonthlyGraphic
                 type="categorias"
                 transacciones={transacciones}
@@ -1056,31 +1150,25 @@ function HomePage() {
                 filtroMes={filtroMes}
                 filtroAno={filtroAno}
                 filtroCategoria={categoriaSeleccionada}
-                loading={loadGraphic}
                 transaccionesSinFiltroCat={transaccionesSinFiltroCat}
               />
-            )}
-
-            {transaccionesCargadas &&
-              !loadGraphic &&
-              transacciones.length > 0 && (
-                <PaymentMethodGraphic
-                  type="tipoGasto"
-                  transacciones={transacciones}
-                  payCategories={payOptions}
-                  loading={loadGraphic}
-                  filtroMes={filtroMes}
-                  filtroAno={filtroAno}
-                  filtroCategoria={categoriaSeleccionada}
-                />
-              )}
+              <PaymentMethodGraphic
+                type="tipoGasto"
+                transacciones={transacciones}
+                payCategories={payOptions}
+                filtroMes={filtroMes}
+                filtroAno={filtroAno}
+                filtroCategoria={categoriaSeleccionada}
+              />
+            </div>
+            <RecentTransactions transacciones={transacciones} />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <p className="text-muted-foreground mb-1">
-              No hay transacciones en este período.
+            <p className="mb-1 text-muted-foreground">
+              No hay transacciones en {periodLabel.toLowerCase()}.
             </p>
-            <p className="text-sm text-muted-foreground/70 mb-6">
+            <p className="mb-6 text-sm text-muted-foreground/70">
               {hasActiveFilters
                 ? "Prueba ajustando los filtros o registra una nueva transacción."
                 : "Registra tu primera transacción para ver tus gastos."}
@@ -1132,4 +1220,4 @@ function HomePage() {
   );
 }
 
-export default HomePage;
+export default IndexPage;

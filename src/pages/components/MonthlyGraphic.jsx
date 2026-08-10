@@ -246,15 +246,34 @@ function MonthlyGraphic({
     setLoadingg(false);
   }, [payCategories, transacciones, filtroMes, filtroAno, filtroCategoria]);
 
+  // Solo la familia de datos: Ledger Gold y Signal Yellow pertenecen al chrome,
+  // y una porción en Alert Red se lee como un error, no como una categoría.
   const COLORS = [
     "#4cc9f0", // Chart Cyan
     "#f77f00", // Chart Orange
     "#06d6a0", // Chart Mint
-    "#ffc300", // Ledger Gold
-    "#ffd60a", // Signal Yellow
+    "#9ad9f7", // Cyan claro
+    "#ffb366", // Naranja claro
+    "#5fe8c0", // Mint claro
     "#b5e0ff", // Muted Sky
-    "#e5484d", // Alert Red
   ];
+
+  // El eje cambia segun los filtros; el titulo tiene que cambiar con el.
+  const evolucion =
+    filtroMes !== "00" && filtroAno !== "00"
+      ? {
+          titulo: "Evolución diaria",
+          descripcion: "Gastos por día del mes seleccionado",
+        }
+      : filtroMes !== "00"
+        ? {
+            titulo: "Evolución por año",
+            descripcion: "Gastos de ese mes en cada año registrado",
+          }
+        : {
+            titulo: "Evolución mensual",
+            descripcion: "Evolución de los gastos mes a mes",
+          };
 
   const getCategoryIcon = (categoryName) => {
     const category = payCategories.find((cat) => cat.value === categoryName);
@@ -318,7 +337,7 @@ function MonthlyGraphic({
                       return (
                         <div
                           key={`legend-item-${index}`}
-                          className="flex items-center mb-2 text-white"
+                          className="mb-2 flex items-center text-foreground"
                         >
                           {iconPath && (
                             <FontAwesomeIcon
@@ -335,7 +354,7 @@ function MonthlyGraphic({
                     dataPay.map((entry, index) => (
                       <div
                         key={`legend-item-${index}`}
-                        className="flex items-center mb-2 text-white"
+                        className="mb-2 flex items-center text-foreground"
                       >
                         <div
                           style={{
@@ -356,11 +375,9 @@ function MonthlyGraphic({
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div>
                 <CardTitle className="font-headline">
-                  Evolución mensual
+                  {evolucion.titulo}
                 </CardTitle>
-                <CardDescription>
-                  Evolución de los gastos en los últimos meses
-                </CardDescription>
+                <CardDescription>{evolucion.descripcion}</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
@@ -428,7 +445,10 @@ const renderCustomizedLabel = ({
     <text
       x={x}
       y={y}
-      fill="white"
+      // Midnight Ink sobre las porciones saturadas: el blanco puro no llega a
+      // contraste AA sobre cyan y mint, y ademas esta prohibido en el sistema.
+      fill="#000814"
+      fontWeight={600}
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
     >

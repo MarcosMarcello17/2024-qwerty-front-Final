@@ -1,196 +1,309 @@
-import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Eye,
+  EyeOff,
+  KeyRound,
+  Loader2,
+  Check,
+  X,
+  CheckCircle2,
+} from "lucide-react";
+import AuthLayout from "../components/AuthLayout";
+import { PASSWORD_RULES, passwordMeetsRules } from "@/lib/passwordRules";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+
+const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 
 function ChangePasswordForm() {
+  const navigate = useNavigate();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [showNewPassword, setShowNewPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const toggleCurrentPasswordVisibility = () => {
-    setShowCurrentPassword(!showCurrentPassword);
-  };
-  const toggleNewPasswordVisibility = () => {
-    setShowNewPassword(!showNewPassword);
-  };
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
+  const [isLoading, setIsLoading] = useState(false);
+  const [changed, setChanged] = useState(false);
+
+  const allRulesPass = passwordMeetsRules(newPassword);
+  const passwordsMatch =
+    confirmPassword.length > 0 && newPassword === confirmPassword;
+  const canSubmit =
+    currentPassword.length > 0 && allRulesPass && passwordsMatch;
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
+    setError(null);
 
-    if (newPassword !== confirmPassword) {
-      setError("Las nuevas contraseñas no coinciden");
+    if (!allRulesPass) {
+      setError("La nueva contraseña no cumple con todos los requisitos.");
+      return;
+    }
+    if (!passwordsMatch) {
+      setError("Las nuevas contraseñas no coinciden.");
       return;
     }
 
-    const token = localStorage.getItem("token");
-    setLoading(true);
-
+    setIsLoading(true);
     try {
-      const response = await fetch("${BACK_URL}/api/users/change-password", {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BACK_URL}/api/users/change-password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
+        body: JSON.stringify({ currentPassword, newPassword }),
       });
-      /*const response = await fetch("${BACK_URL}/api/users/change-password", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    currentPassword,
-                    newPassword
-                })
-            });*/
 
       if (response.ok) {
-        alert("Contraseña cambiada con éxito");
-        navigate("/index");
+        setChanged(true);
+      } else if (response.status === 400) {
+        setError("La contraseña actual es incorrecta.");
+      } else if (response.status === 401 || response.status === 403) {
+        setError("Tu sesión expiró. Volvé a iniciar sesión e intentá de nuevo.");
+      } else if (response.status === 429) {
+        setError("Demasiados intentos. Intenta en unos minutos.");
       } else {
-        setError("Error al cambiar la contraseña");
+        setError("Error en el servidor. Intenta más tarde.");
       }
-    } catch (err) {
-      setError("Ocurrió un error. Intenta nuevamente.");
+    } catch {
+      setError("Sin conexión. Revisa tu internet e intenta de nuevo.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[#000000] p-6">
-      <div className="bg-[#000814] shadow-md rounded-lg p-8 max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-6 text-gray-100">
-          Cambiar Contraseña
-        </h1>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-100">
-              Contraseña Actual:
-            </label>
-            <div className="relative">
-              <input
-                type={showCurrentPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
-                value={currentPassword}
-                placeholder="Contraseña Actual"
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                onClick={toggleCurrentPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
-              >
-                <FontAwesomeIcon
-                  color="#FFD60A"
-                  icon={showCurrentPassword ? faEyeSlash : faEye}
-                />
-              </button>
-            </div>
+  if (changed) {
+    return (
+      <AuthLayout>
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="rounded-full bg-primary/10 p-3">
+            <CheckCircle2 className="size-8 text-primary" />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-100">
-              Nueva Contraseña:
-            </label>
-            <div className="relative">
-              <input
-                type={showNewPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
-                value={newPassword}
-                placeholder="Nueva Contraseña"
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-              />
+          <h1 className="text-2xl font-bold text-foreground tracking-tight">
+            Contraseña actualizada
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-[34ch]">
+            Usa la nueva contraseña la próxima vez que inicies sesión. Si la
+            guardas en un gestor de contraseñas, actualizala ahora.
+          </p>
+          <p className="text-xs text-muted-foreground max-w-[34ch]">
+            Las sesiones abiertas en otros dispositivos siguen activas. Si
+            sospechas que alguien más tiene acceso, cerrá sesión en esos
+            dispositivos.
+          </p>
+          <Button className="mt-4" onClick={() => navigate("/index")}>
+            Volver al inicio
+          </Button>
+        </div>
+      </AuthLayout>
+    );
+  }
 
-              <button
-                type="button"
-                onClick={toggleNewPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
-              >
-                <FontAwesomeIcon
-                  color="#F8C104"
-                  icon={showNewPassword ? faEyeSlash : faEye}
-                />
-              </button>
-            </div>
+  return (
+    <AuthLayout>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+          Cambiar contraseña
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Confirma tu contraseña actual y elegí una nueva.
+        </p>
+      </div>
+
+      <form onSubmit={handleChangePassword} className="space-y-5">
+        <div className="space-y-1.5">
+          <Label htmlFor="current-password">Contraseña actual</Label>
+          <div className="relative">
+            <Input
+              id="current-password"
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              placeholder="Tu contraseña de siempre"
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+              autoFocus
+              required
+              className="pr-9"
+              aria-invalid={error ? "true" : undefined}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+              aria-label={
+                showCurrentPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
+            >
+              {showCurrentPassword ? (
+                <EyeOff className="size-3.5" />
+              ) : (
+                <Eye className="size-3.5" />
+              )}
+            </Button>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-100">
-              Confirmar Nueva Contraseña:
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                className="mt-1 block w-full p-2 border bg-[#001d3d] text-white border-[#ffc300] rounded-md shadow-sm"
-                value={confirmPassword}
-                placeholder="Repetir Contraseña"
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                onClick={toggleConfirmPasswordVisibility}
-                className="absolute inset-y-0 right-0 flex items-center px-2 hover:bg-[#003566]"
-              >
-                <FontAwesomeIcon
-                  color="#F8C104"
-                  icon={showConfirmPassword ? faEyeSlash : faEye}
-                />
-              </button>
-            </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="new-password">Nueva contraseña</Label>
+          <div className="relative">
+            <Input
+              id="new-password"
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              placeholder="Nueva contraseña"
+              onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+              className="pr-9"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+              aria-label={
+                showNewPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
+            >
+              {showNewPassword ? (
+                <EyeOff className="size-3.5" />
+              ) : (
+                <Eye className="size-3.5" />
+              )}
+            </Button>
           </div>
-          <ul className="text-gray-400 text-sm text-left">
-            <li>Al menos 8 caracteres</li>
-            <li>Una mayuscula y minuscula</li>
-            <li>Un número</li>
-            <li>Un carácter especial</li>
-            <li>
-              No puede contener comillas simples, dobles, barra vertical, barra
-              inclinada o barra invertida.
-            </li>
+        </div>
+
+        {/* Requisitos: se revelan recien cuando hay algo que verificar */}
+        {newPassword.length > 0 && (
+          <ul className="space-y-1 text-xs">
+            {PASSWORD_RULES.map((rule) => {
+              const passes = rule.test(newPassword);
+              return (
+                <li
+                  key={rule.key}
+                  className={`flex items-center gap-1.5 ${
+                    passes ? "text-chart-5" : "text-muted-foreground"
+                  }`}
+                >
+                  {passes ? (
+                    <Check className="size-3 shrink-0" />
+                  ) : (
+                    <X className="size-3 shrink-0" />
+                  )}
+                  {rule.label}
+                </li>
+              );
+            })}
           </ul>
-          <button
-            type="submit"
-            className="w-full bg-[#ffd60a] bg-opacity-85 text-gray-950 py-2 px-4 rounded-lg hover:bg-[#ffc300] flex justify-center items-center"
-            disabled={loading}
+        )}
+
+        <div className="space-y-1.5">
+          <Label htmlFor="confirm-password">Confirmar nueva contraseña</Label>
+          <div className="relative">
+            <Input
+              id="confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              placeholder="Confirmar nueva contraseña"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+              className="pr-9"
+              aria-invalid={
+                confirmPassword.length > 0 && !passwordsMatch ? "true" : undefined
+              }
+              aria-describedby="confirm-password-status"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              tabIndex={-1}
+              aria-label={
+                showConfirmPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+              }
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="size-3.5" />
+              ) : (
+                <Eye className="size-3.5" />
+              )}
+            </Button>
+          </div>
+          <p
+            id="confirm-password-status"
+            aria-live="polite"
+            className={`flex items-center gap-1.5 text-xs ${
+              passwordsMatch ? "text-chart-5" : "text-muted-foreground"
+            }`}
           >
-            {loading ? (
+            {confirmPassword.length === 0 ? null : passwordsMatch ? (
               <>
-                <div className="loading-circle border-4 border-t-yellow-600 border-gray-200 rounded-full w-6 h-6 animate-spin mr-2"></div>
-                Cargando...
+                <Check className="size-3 shrink-0" />
+                Las contraseñas coinciden
               </>
             ) : (
-              "Cambiar Contraseña"
+              <>
+                <X className="size-3 shrink-0" />
+                Las contraseñas no coinciden
+              </>
             )}
-          </button>
-        </form>
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-        <div className="flex justify-center pt-3">
-          <a
-            href="/"
-            className="text-[#ffd60a] hover:underline"
-            onClick={() => navigate("/")}
-          >
-            Volver
-          </a>
+          </p>
         </div>
+
+        {error && (
+          <p
+            role="alert"
+            className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2"
+          >
+            {error}
+          </p>
+        )}
+
+        <Button
+          type="submit"
+          disabled={isLoading || !canSubmit}
+          className="w-full"
+          size="lg"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="size-4 animate-spin" />
+              Cambiando...
+            </>
+          ) : (
+            <>
+              <KeyRound className="size-4" />
+              Cambiar contraseña
+            </>
+          )}
+        </Button>
+      </form>
+
+      <div className="mt-8 flex flex-col items-center gap-4 text-sm">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="text-muted-foreground hover:text-primary transition-colors"
+        >
+          Volver
+        </button>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

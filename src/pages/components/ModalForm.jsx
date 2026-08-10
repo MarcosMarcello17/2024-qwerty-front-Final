@@ -71,7 +71,7 @@ function ModalForm({
       backgroundColor: "#000814",
       color: "white",
       borderColor: "#000814",
-      borderRadius: "calc(0.5rem - 2px)",
+      borderRadius: "calc(0.625rem - 2px)",
     }),
     menu: (provided) => ({
       ...provided,
@@ -169,16 +169,33 @@ function ModalForm({
       setModalError("Ingrese un valor positivo");
       return;
     }
+    if (!selectedCategory) {
+      setModalError("Elegí una categoría para la transacción");
+      return;
+    }
     setIsLoading(true);
     try {
-      await agregarTransaccion(e, selectedCategory.value, isRecurrent);
-    } catch (error) {
-      console.error("Error al agregar transacción:", error);
-    } finally {
-      setIsLoading(false); // Desactivamos el spinner al finalizar
-      closeModal();
+      // Solo cerramos si el backend confirmo. Cerrar siempre hacia que el
+      // error se fuera junto con el formulario y los datos cargados.
+      const guardada = await agregarTransaccion(
+        e,
+        selectedCategory.value,
+        isRecurrent
+      );
+      if (guardada === false) {
+        setModalError(
+          "No pudimos guardar la transacción. Tus datos siguen acá: volvé a intentar."
+        );
+        return;
+      }
       setModalError("");
       setIsRecurrent(false);
+      closeModal();
+    } catch (error) {
+      console.error("Error al agregar transacción:", error);
+      setModalError("Error inesperado al guardar. Volvé a intentar.");
+    } finally {
+      setIsLoading(false);
     }
   };
 

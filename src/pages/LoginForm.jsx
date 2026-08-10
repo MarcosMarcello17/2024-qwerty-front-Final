@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
-import logo from "../assets/logo-removebg-preview.png";
+import AuthLayout from "../components/AuthLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -48,44 +48,8 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Left panel: brand presence (hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-[45%] flex-col items-center justify-center bg-card relative overflow-hidden">
-        {/* Subtle atmospheric grid */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage:
-              "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
-
-        <div className="relative z-10 flex flex-col items-center gap-6 px-12">
-          <img
-            src={logo}
-            alt="CashFlowPro"
-            className="w-40 h-40 object-contain"
-          />
-          <p className="text-muted-foreground text-sm text-center max-w-[28ch] leading-relaxed">
-            Tus finanzas personales, organizadas y bajo control.
-          </p>
-        </div>
-      </div>
-
-      {/* Right panel: login form */}
-      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 sm:px-12">
-        {/* Mobile-only compact brand */}
-        <div className="lg:hidden flex flex-col items-center gap-3 mb-10">
-          <img
-            src={logo}
-            alt="CashFlowPro"
-            className="w-20 h-20 object-contain"
-          />
-        </div>
-
-        <div className="w-full max-w-sm">
-          <div className="mb-8">
+    <AuthLayout>
+      <div className="mb-8">
             <h1 className="text-2xl font-bold text-foreground tracking-tight">
               Iniciar sesión
             </h1>
@@ -192,11 +156,9 @@ function LoginForm() {
               >
                 Crear cuenta
               </a>
-            </span>
-          </div>
-        </div>
+        </span>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
 

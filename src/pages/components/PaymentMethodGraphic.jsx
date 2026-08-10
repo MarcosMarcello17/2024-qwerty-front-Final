@@ -13,7 +13,6 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { fas } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import LoadingSpinner from "./LoadingSpinner";
 import {
   Card,
   CardContent,
@@ -21,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatARS } from "@/lib/format";
 
 function PaymentMethodGraphic({
   transacciones = [],
@@ -172,10 +172,10 @@ function PaymentMethodGraphic({
     "#4cc9f0", // Chart Cyan
     "#f77f00", // Chart Orange
     "#06d6a0", // Chart Mint
-    "#ffc300", // Ledger Gold
-    "#ffd60a", // Signal Yellow
+    "#9ad9f7", // Cyan claro
+    "#ffb366", // Naranja claro
+    "#5fe8c0", // Mint claro
     "#b5e0ff", // Muted Sky
-    "#e5484d", // Alert Red
   ];
 
   const getCategoryIcon = (categoryName) => {
@@ -229,11 +229,12 @@ function PaymentMethodGraphic({
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    borderColor: "hsl(var(--border))",
-                    borderRadius: "var(--radius)",
+                    backgroundColor: "#000814",
+                    border: "1px solid #003566",
+                    borderRadius: "0.625rem",
+                    color: "#e6f1ff",
                   }}
-                  formatter={(value) => [`${value}%`, "Usage"]}
+                  formatter={(value, name) => [formatARS(value), name]}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -242,7 +243,7 @@ function PaymentMethodGraphic({
             {dataPay.map((entry, index) => (
               <div
                 key={`legend-item-${index}`}
-                className="flex items-center mb-2 text-white"
+                className="mb-2 flex items-center text-foreground"
               >
                 <div
                   style={{
@@ -284,7 +285,8 @@ const renderCustomizedLabel = ({
     <text
       x={x}
       y={y}
-      fill="white"
+      fill="#000814"
+      fontWeight={600}
       textAnchor={x > cx ? "start" : "end"}
       dominantBaseline="central"
     >
