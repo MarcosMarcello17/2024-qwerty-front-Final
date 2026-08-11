@@ -4,7 +4,7 @@ import ModalForm from "./components/ModalForm";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
 import RecentTransactions from "./components/RecentTransactions";
-import DetectedSubscriptions from "../components/DetectedSubscriptions";
+import DetectedSubscriptions from "@/features/IndexPage/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
 import { createCatAPI } from "../functions/createCatAPI";
 import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
@@ -13,7 +13,6 @@ import { processRecurringTransactions } from "../functions/processRecurringTrans
 import { formatARS } from "@/lib/format";
 import {
   AlertTriangle,
-  Check,
   Filter,
   PlusCircle,
   RotateCw,
@@ -38,6 +37,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import ConfirmationMessage from "@/components/ConfirmationMessage";
+import ErrorMessage from "@/components/ErrorMessage";
+import IndexSummary from "@/features/IndexPage/IndexSummary";
 
 const months = [
   { value: "00", label: "Todos" },
@@ -67,36 +69,6 @@ const years = [
       return { value: year, label: year };
     },
   ),
-];
-
-const CATEGORIAS_DEFAULT = [
-  {
-    value: "Impuestos y Servicios",
-    label: "Impuestos y Servicios",
-    iconPath: "fa-solid fa-file-invoice-dollar",
-  },
-  {
-    value: "Entretenimiento y Ocio",
-    label: "Entretenimiento y Ocio",
-    iconPath: "fa-solid fa-ticket",
-  },
-  {
-    value: "Hogar y Mercado",
-    label: "Hogar y Mercado",
-    iconPath: "fa-solid fa-house",
-  },
-  { value: "Antojos", label: "Antojos", iconPath: "fa-solid fa-candy-cane" },
-  {
-    value: "Electrodomesticos",
-    label: "Electrodomesticos",
-    iconPath: "fa-solid fa-blender",
-  },
-  { value: "Clase", label: "Clase", iconPath: "fa-solid fa-chalkboard-user" },
-  {
-    value: "Ingreso de Dinero",
-    label: "Ingreso de Dinero",
-    iconPath: "fa-solid fa-money-bill",
-  },
 ];
 
 const MEDIOS_PAGO_DEFAULT = [
@@ -138,7 +110,9 @@ function IndexPage() {
   const [grupos, setGrupos] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [posibleSub, setPosibleSub] = useState([]);
-  const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState([]);
+  const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
+    [],
+  );
   const [showSubscriptions, setShowSubscriptions] = useState(false);
 
   // Tres canales distintos: un fallo de carga no es lo mismo que un fallo de
@@ -365,7 +339,6 @@ function IndexPage() {
             label: "Gasto Grupal",
             iconPath: "fa-solid fa-people-group",
           },
-          ...CATEGORIAS_DEFAULT,
           ...customOptions,
         ]);
       }
@@ -670,7 +643,9 @@ function IndexPage() {
         }
       } catch (err) {
         console.error("Error en la solicitud de cobro:", err);
-        setActionError("No hay conexión con el servidor. El cobro no se registró.");
+        setActionError(
+          "No hay conexión con el servidor. El cobro no se registró.",
+        );
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -704,7 +679,9 @@ function IndexPage() {
           "Error en la solicitud de agregar usuario al grupo:",
           err,
         );
-        setActionError("No hay conexión con el servidor. No te sumamos al grupo.");
+        setActionError(
+          "No hay conexión con el servidor. No te sumamos al grupo.",
+        );
       } finally {
         setTransaccionesCargadas(true);
       }
@@ -1017,67 +994,15 @@ function IndexPage() {
           </div>
         )}
 
-        {/* Confirmaciones y errores de acción */}
-        {statusMessage && (
-          <div
-            role="status"
-            className="flex items-center gap-2 rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm"
-          >
-            <Check className="h-4 w-4 shrink-0 text-primary" />
-            {statusMessage}
-          </div>
-        )}
-        {actionError && (
-          <div
-            role="alert"
-            className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
-          >
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span className="flex-1">{actionError}</span>
-            <button
-              type="button"
-              onClick={() => setActionError(null)}
-              aria-label="Descartar aviso"
-              className="shrink-0 rounded p-0.5 transition-colors hover:bg-destructive/20"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-        )}
+        <ConfirmationMessage statusMessage={statusMessage} />
+        <ErrorMessage
+          actionError={actionError}
+          onDismiss={() => setActionError(null)}
+        />
 
         {/* Summary strip */}
         {transaccionesCargadas && !loadError && transacciones.length > 0 && (
-          <div className="flex flex-wrap gap-x-10 gap-y-3 border-b border-border pb-4">
-            <div>
-              <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
-                Total gastado · {periodLabel}
-              </span>
-              <p className="text-2xl font-semibold leading-tight tabular-nums">
-                {formatARS(summary.totalSpent)}
-              </p>
-            </div>
-            <div>
-              <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
-                Gastos registrados
-              </span>
-              <p className="text-2xl font-semibold leading-tight tabular-nums">
-                {summary.count}
-              </p>
-            </div>
-            {summary.topCategory && (
-              <div>
-                <span className="text-[0.8rem] font-medium uppercase tracking-wider text-muted-foreground">
-                  Categoría principal
-                </span>
-                <p className="text-2xl font-semibold leading-tight">
-                  {summary.topCategory}{" "}
-                  <span className="text-base font-medium tabular-nums text-muted-foreground">
-                    {formatARS(summary.topCategoryTotal)}
-                  </span>
-                </p>
-              </div>
-            )}
-          </div>
+          <IndexSummary periodLabel={periodLabel} summary={summary} />
         )}
 
         {/* Subscriptions - collapsible */}
@@ -1097,9 +1022,7 @@ function IndexPage() {
             Suscripciones y recurrentes
           </button>
           {showSubscriptions && (
-            <div id="panel-suscripciones" className="mt-3">
-              <DetectedSubscriptions subs={posibleSub || []} />
-            </div>
+            <DetectedSubscriptions subs={posibleSub || []} />
           )}
         </div>
 
@@ -1111,8 +1034,6 @@ function IndexPage() {
             aria-label="Cargando transacciones"
             className="grid gap-6 md:grid-cols-2"
           >
-            {/* Espeja la estructura real: dos tarjetas apiladas a la izquierda,
-                una a la derecha. Si no, cada filtro provoca un salto. */}
             <div className="space-y-6">
               {chartSkeleton}
               {chartSkeleton}
@@ -1127,8 +1048,7 @@ function IndexPage() {
             <AlertTriangle className="mb-3 h-6 w-6 text-destructive" />
             <p className="mb-1 font-medium">{loadError}</p>
             <p className="mb-6 text-sm text-muted-foreground">
-              Puede ser la conexión o el servidor. Volvé a intentar en unos
-              segundos.
+              Hubo un error en la carga de transacciones. Intente nuevamente
             </p>
             <Button
               variant="outline"

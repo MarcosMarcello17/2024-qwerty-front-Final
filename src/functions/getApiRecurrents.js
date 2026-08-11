@@ -1,3 +1,5 @@
+import { BACK_URL } from "@/lib/backendUrl";
+
 export const getApiRecurrents = async () => {
   const token = localStorage.getItem("token");
   let url = `${BACK_URL}/api/recurrents`;
