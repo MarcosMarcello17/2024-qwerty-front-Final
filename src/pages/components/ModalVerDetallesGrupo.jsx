@@ -4,7 +4,7 @@
 import Modal from "react-modal";
 import "./styles/ModalForm.css";
 import { useEffect, useState } from "react";
-import ModalForm from "./ModalForm";
+import ModalForm from "../../components/modals/AddTransactionModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import ModalForm from "./components/ModalForm";
+import ModalForm from "../components/modals/AddTransactionModal";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
 import RecentTransactions from "./components/RecentTransactions";
@@ -82,22 +82,14 @@ const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 function IndexPage() {
   const [transacciones, setTransacciones] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
-  const [motivo, setMotivo] = useState("");
-  const [valor, setValor] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [edit, setEdit] = useState(false);
-  const [tipoGasto, setTipoGasto] = useState("Efectivo");
   const [tranPendiente, setTranPendiente] = useState({});
-  const [categoria, setCategoria] = useState("");
+
   const [payCategories, setPayCategories] = useState([]);
   const [transaccionesCargadas, setTransaccionesCargadas] = useState(false);
   const [achievementData, setAchievementData] = useState(0);
   const [payOptions, setPayOptions] = useState(MEDIOS_PAGO_DEFAULT);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedPayMethod, setSelectedPayMethod] = useState({
-    value: "Efectivo",
-    label: "Efectivo",
-  });
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transaccionId, setTransaccionId] = useState(null);
   const navigate = useNavigate();
@@ -107,8 +99,6 @@ function IndexPage() {
   const [pendTran, setPendTran] = useState(false);
   const [filtroMes, setFiltroMes] = useState("00");
   const [filtroAno, setFiltroAno] = useState("00");
-  const [grupos, setGrupos] = useState([]);
-  const [selectedGroup, setSelectedGroup] = useState(null);
   const [posibleSub, setPosibleSub] = useState([]);
   const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
     [],
@@ -127,14 +117,6 @@ function IndexPage() {
     return () => clearTimeout(timer);
   }, [statusMessage]);
 
-  const handleGroupChange = (selectedOption) => {
-    if (selectedOption && selectedOption.value === null) {
-      setSelectedGroup(null);
-    } else {
-      setSelectedGroup(selectedOption);
-    }
-  };
-
   useEffect(() => {
     setIsLoadingFilter(true);
     getTransacciones(categoriaSeleccionada);
@@ -151,7 +133,6 @@ function IndexPage() {
 
   useEffect(() => {
     fetchPersonalTipoGastos();
-    fetchGrupos();
     processRecurringOnLoad();
   }, []);
 
@@ -177,29 +158,6 @@ function IndexPage() {
       }
     } catch (error) {
       console.error("Error al procesar transacciones recurrentes:", error);
-    }
-  };
-
-  const fetchGrupos = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`${BACK_URL}/api/grupos/mis-grupos`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al obtener los grupos.");
-      }
-
-      const data = await response.json();
-      setGrupos(data);
-    } catch (error) {
-      setActionError(
-        "No pudimos cargar tus grupos. Podés registrar gastos propios igual.",
-      );
     }
   };
 
@@ -347,14 +305,8 @@ function IndexPage() {
     }
   };
 
-  const openModal = () => {
-    fetchGrupos();
-    setIsModalOpen(true);
-  };
-
   const closeModal = () => {
     setIsModalOpen(false);
-    clearForm();
     setEdit(false);
   };
 
@@ -362,115 +314,6 @@ function IndexPage() {
     setCategoriaSeleccionada("Todas");
     setFiltroAno("00");
     setFiltroMes("00");
-  };
-
-  const clearForm = () => {
-    setMotivo("");
-    setValor("");
-    setFecha(new Date().toISOString().split("T")[0]);
-    setSelectedCategory(null);
-    setTipoGasto("Efectivo");
-    setSelectedPayMethod({
-      value: "Efectivo",
-      label: "Efectivo",
-    });
-  };
-
-  // Devuelve true solo si el backend confirmo. ModalForm usa ese valor para
-  // decidir si cierra: cerrar siempre hacia desaparecer el error con el form.
-  const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
-    e.preventDefault();
-    const token = localStorage.getItem("token");
-    let bodyJson = "";
-    let url = "";
-    setActionError(null);
-    setTransaccionesCargadas(false);
-    if (selectedGroup === null) {
-      bodyJson = JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto });
-      url = edit
-        ? `${BACK_URL}/api/transacciones/${transaccionId}`
-        : `${BACK_URL}/api/transacciones`;
-    } else {
-      const grupo = selectedGroup.value;
-      bodyJson = JSON.stringify({
-        motivo,
-        valor,
-        fecha,
-        categoria,
-        tipoGasto,
-        grupo,
-      });
-      url = edit
-        ? `${BACK_URL}/api/grupos/transaccion/${transaccionId}`
-        : `${BACK_URL}/api/grupos/transaccion`;
-    }
-    const method = edit ? "PUT" : "POST";
-    try {
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: bodyJson,
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (selectedGroup === null) {
-          if (edit) {
-            const updatedTransacciones = transacciones.map((t) =>
-              t.id === data.id ? data : t,
-            );
-            setTransacciones(updatedTransacciones);
-          } else {
-            const updatedTransacciones = [...transacciones, data];
-            updatedTransacciones.sort(
-              (a, b) => new Date(b.fecha) - new Date(a.fecha),
-            );
-            setTransacciones(updatedTransacciones);
-          }
-        }
-        closeModal();
-        setSelectedGroup(null);
-        setShowSubscriptions(false);
-        setStatusMessage(
-          edit
-            ? "Cambios guardados."
-            : `Transacción registrada: ${motivo} · ${formatARS(valor)}`,
-        );
-        if (isRecurrent) {
-          await agregarTransaccionRecurrente({
-            motivo,
-            valor,
-            fecha,
-            categoria,
-            tipoGasto,
-          });
-        }
-        return true;
-      }
-
-      console.error(
-        "Error al crear transaccion:",
-        response.status,
-        response.statusText,
-      );
-      setActionError(
-        "No pudimos guardar la transacción. Revisá los datos y volvé a intentar.",
-      );
-      return false;
-    } catch (err) {
-      console.error("Error en la solicitud:", err);
-      setActionError(
-        "No hay conexión con el servidor. La transacción no se guardó.",
-      );
-      return false;
-    } finally {
-      setTransaccionesCargadas(true);
-      if (!edit) {
-        checkTransaccionAchievment();
-      }
-    }
   };
 
   const agregarTransaccionRecurrente = async (bodyTrans) => {
@@ -525,33 +368,6 @@ function IndexPage() {
 
   const handleMotivoChange = (e) => {
     setMotivo(e.target.value);
-  };
-
-  const handleCategoryChange = (value) => {
-    setCategoria(value ? value.value : "");
-    setSelectedCategory(value);
-  };
-
-  const handlePayChange = (value) => {
-    setTipoGasto(value ? value.value : "");
-    setSelectedPayMethod(value);
-  };
-
-  const handleCreateTP = async (inputValue) => {
-    const newOption = createPaymentMethodAPI(inputValue);
-    setPayOptions((prevOptions) => [...prevOptions, newOption]);
-    setSelectedPayMethod(newOption);
-    setTipoGasto(newOption.label);
-  };
-
-  const handleCreateCat = async (nombre, icono) => {
-    const ret = await createCatAPI(nombre, icono);
-    if (ret.newCat != null) {
-      setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
-      setSelectedCategory(ret.newCat);
-      setCategoria(ret.newCat.value);
-    }
-    return ret.error;
   };
 
   const detectRecurringTransactions = (transacciones) => {
@@ -868,6 +684,20 @@ function IndexPage() {
     </div>
   );
 
+  const handleNewTransaction = (newTransaction) => {
+    const updatedTransacciones = [...transacciones, newTransaction];
+    updatedTransacciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    setTransacciones(updatedTransacciones);
+    setTransaccionesCargadas(true);
+    if (!edit) {
+      checkTransaccionAchievment();
+    }
+    console.log(newTransaction);
+    setStatusMessage(
+      `Transacción registrada: ${newTransaction.motivo} · ${formatARS(newTransaction.valor)}`,
+    );
+  };
+
   return (
     <AppLayout>
       <div className="min-h-full min-w-full space-y-6">
@@ -963,7 +793,10 @@ function IndexPage() {
                 </div>
               </PopoverContent>
             </Popover>
-            <Button onClick={openModal} className="w-full sm:w-auto">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full sm:w-auto"
+            >
               <PlusCircle className="mr-1.5 h-4 w-4" /> Agregar transacción
             </Button>
           </div>
@@ -1093,7 +926,7 @@ function IndexPage() {
                 ? "Prueba ajustando los filtros o registra una nueva transacción."
                 : "Registra tu primera transacción para ver tus gastos."}
             </p>
-            <Button onClick={openModal}>
+            <Button onClick={() => setIsModalOpen(true)}>
               <PlusCircle className="mr-1.5 h-4 w-4" /> Agregar transacción
             </Button>
           </div>
@@ -1103,25 +936,9 @@ function IndexPage() {
       <ModalForm
         isModalOpen={isModalOpen}
         closeModal={closeModal}
-        agregarTransaccion={agregarTransaccion}
-        edit={edit}
-        motivo={motivo}
-        valor={valor}
-        fecha={fecha}
-        handleMotivoChange={handleMotivoChange}
-        setValor={setValor}
-        selectedCategory={selectedCategory}
-        payCategories={payCategories}
-        handleCategoryChange={handleCategoryChange}
-        handleCreateCat={handleCreateCat}
-        setFecha={setFecha}
-        handlePayChange={handlePayChange}
-        selectedPayMethod={selectedPayMethod}
         payOptions={payOptions}
-        handleCreateTP={handleCreateTP}
-        handleGroupChange={handleGroupChange}
-        selectedGroup={selectedGroup}
-        grupos={grupos}
+        payCategories={payCategories}
+        onNewTransaction={(data) => handleNewTransaction(data)}
       />
       <AlertPending
         isOpen={pendTran}

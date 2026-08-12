@@ -1,4 +1,4 @@
-const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
+import { BACK_URL } from "@/lib/backendUrl";
 
 export const createCatAPI = async (nombre, icono) => {
   const token = localStorage.getItem("token");
@@ -28,21 +28,21 @@ export const createCatAPI = async (nombre, icono) => {
       };
       return {
         newCat: newOption,
-        error: "",
+        error: null,
       };
     } else {
       const errorMessage = await response.text();
       console.error("Error al agregar categoria:", errorMessage);
       return {
         newCat: null,
-        error: "La categoria ya existe",
+        error: errorMessage,
       };
     }
   } catch (error) {
     console.error("Error al agregar categoria personalizada:", error);
     return {
       newCat: null,
-      error: "",
+      error: null,
     };
   }
 };

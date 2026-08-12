@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, Edit3, Trash2, LayoutList } from "lucide-react";
-import { useEffect, useState } from "react";
-import ModalCategoria from "./components/ModalCategoria";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useEffect, useMemo, useState } from "react";
+import CategoryModal from "@/components/modals/CategoryModal";
+import { CategoryIcon } from "@/lib/categoryIcons";
+import { BACK_URL } from "@/lib/backendUrl";
 import AppLayout from "./AppLayout";
 import ConfirmDeleteCategory from "./components/ConfirmDeleteCategory";
 
@@ -12,43 +13,36 @@ const defaultCategories = [
     value: "Impuestos y Servicios",
     label: "Impuestos y Servicios",
     iconPath: "fa-solid fa-file-invoice-dollar",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Entretenimiento y Ocio",
     label: "Entretenimiento y Ocio",
     iconPath: "fa-solid fa-ticket",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Hogar y Mercado",
     label: "Hogar y Mercado",
     iconPath: "fa-solid fa-house",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Antojos",
     label: "Antojos",
     iconPath: "fa-solid fa-candy-cane",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Electrodomesticos",
     label: "Electrodomesticos",
     iconPath: "fa-solid fa-blender",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Clase",
     label: "Clase",
     iconPath: "fa-solid fa-chalkboard-user",
-    textColor: "mr-2 text-[#ffd60a]",
   },
   {
     value: "Ingreso de Dinero",
     label: "Ingreso de Dinero",
     iconPath: "fa-solid fa-money-bill",
-    textColor: "mr-2 text-[#ffd60a]",
   },
 ];
 
@@ -64,6 +58,19 @@ export default function CategoryPage() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState({});
 
+  /*
+    El modal necesita los nombres ya usados para avisar del duplicado antes de
+    ir al servidor. Las fijas cuentan: dos "Antojos" en la misma grilla no se
+    distinguen.
+  */
+  const nombresTomados = useMemo(
+    () => [
+      ...defaultCategories.map((categoria) => categoria.label),
+      ...payCategories.map((categoria) => categoria.label),
+    ],
+    [payCategories],
+  );
+
   useEffect(() => {
     fetchPersonalCategorias();
   }, []);
@@ -71,7 +78,7 @@ export default function CategoryPage() {
     setIsLoading(true);
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -102,7 +109,7 @@ export default function CategoryPage() {
       iconPath: newIcon,
     };
     try {
-      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -254,7 +261,7 @@ export default function CategoryPage() {
     };
     setConfirmDeleteOpen(false);
     try {
-      const response = await fetch("${BACK_URL}/api/personal-categoria", {
+      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -291,10 +298,11 @@ export default function CategoryPage() {
             <PlusCircle className="mr-2 h-4 w-4" />
             {isLoadingAdd ? "Agregando..." : "Agregar Categoría"}
           </Button>
-          <ModalCategoria
+          <CategoryModal
             isOpen={isModalOpen}
             onRequestClose={() => {
               setEditCategory({});
+              setIsEditMode(false);
               setIsModalOpen(false);
             }}
             handleCreateCat={handleAddCategory}
@@ -303,6 +311,7 @@ export default function CategoryPage() {
             editCat={editCategory}
             isLoadingAdd={isLoadingAdd}
             isLoadingEdit={isLoadingEdit}
+            existingNames={nombresTomados}
           />
         </div>
 
@@ -321,9 +330,9 @@ export default function CategoryPage() {
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <FontAwesomeIcon
-                        icon={category.iconPath}
-                        className={`${category.textColor} h-8 w-8 text-primary`}
+                      <CategoryIcon
+                        iconPath={category.iconPath}
+                        className="size-8 text-primary"
                       />
                     </div>
                     <CardTitle className="font-headline pt-2">
@@ -340,9 +349,9 @@ export default function CategoryPage() {
                 >
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <FontAwesomeIcon
-                        icon={category.iconPath}
-                        className="h-8 w-8"
+                      <CategoryIcon
+                        iconPath={category.iconPath}
+                        className="size-8 text-primary"
                       />
                       <div className="flex space-x-1">
                         <Button

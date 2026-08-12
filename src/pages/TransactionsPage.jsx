@@ -38,7 +38,7 @@ import AppLayout from "./AppLayout";
 import { getApiTransacciones } from "@/functions/getApiTransacciones";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import ModalForm from "./components/ModalForm";
+import ModalForm from "../components/modals/AddTransactionModal";
 import AutomaticDistribution from "../components/AutomaticDistribution";
 import { createCatAPI } from "@/functions/createCatAPI";
 import {
