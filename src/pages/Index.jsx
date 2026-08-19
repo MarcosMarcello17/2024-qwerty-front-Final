@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import ModalForm from "../components/modals/AddTransactionModal";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import AchievementNotification from "./components/AchievementNotification";
 import RecentTransactions from "./components/RecentTransactions";
@@ -40,6 +39,9 @@ import {
 import ConfirmationMessage from "@/components/ConfirmationMessage";
 import ErrorMessage from "@/components/ErrorMessage";
 import IndexSummary from "@/features/IndexPage/IndexSummary";
+import AddTransactionModal from "@/components/modals/AddTransactionModal";
+import { useQuery } from "@tanstack/react-query";
+import { getPersonalCategorias } from "@/functions/getPersonalCategorias";
 
 const months = [
   { value: "00", label: "Todos" },
@@ -83,9 +85,6 @@ function IndexPage() {
   const [transacciones, setTransacciones] = useState([]);
   const [showNotification, setShowNotification] = useState(false);
   const [edit, setEdit] = useState(false);
-  const [tranPendiente, setTranPendiente] = useState({});
-
-  const [payCategories, setPayCategories] = useState([]);
   const [transaccionesCargadas, setTransaccionesCargadas] = useState(false);
   const [achievementData, setAchievementData] = useState(0);
   const [payOptions, setPayOptions] = useState(MEDIOS_PAGO_DEFAULT);
@@ -96,7 +95,6 @@ function IndexPage() {
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
   const [isLoadingFilter, setIsLoadingFilter] = useState(true);
-  const [pendTran, setPendTran] = useState(false);
   const [filtroMes, setFiltroMes] = useState("00");
   const [filtroAno, setFiltroAno] = useState("00");
   const [posibleSub, setPosibleSub] = useState([]);
@@ -110,6 +108,10 @@ function IndexPage() {
   const [actionError, setActionError] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
+
+  const { data: payCategories = [], error: personalCategoriasError } = useQuery(
+    getPersonalCategorias(),
+  );
 
   useEffect(() => {
     if (!statusMessage) return;
@@ -262,46 +264,9 @@ function IndexPage() {
         setIsLoadingFilter(false);
         setTransaccionesCargadas(true);
       }
-      fetchPersonalCategorias();
       showTransactionsPendientes();
     } else {
       navigate("/");
-    }
-  };
-
-  const fetchPersonalCategorias = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`${BACK_URL}/api/personal-categoria`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const customOptions = data.map((cat) => ({
-          label: cat.nombre,
-          value: cat.nombre,
-          iconPath: cat.iconPath,
-        }));
-
-        setPayCategories([
-          {
-            value: "Otros",
-            label: "Otros",
-            iconPath: "fa-solid fa-circle-dot",
-          },
-          {
-            value: "Gasto Grupal",
-            label: "Gasto Grupal",
-            iconPath: "fa-solid fa-people-group",
-          },
-          ...customOptions,
-        ]);
-      }
-    } catch (error) {
-      console.error("Error al obtener las categorias personalizadas:", error);
     }
   };
 
@@ -346,25 +311,6 @@ function IndexPage() {
     }
   };
 
-  const checkTransaccionAchievment = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`${BACK_URL}/api/users/userTransaction`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await response.json();
-      if (data === 1 || data === 5 || data === 10) {
-        setAchievementData(data);
-        setShowNotification(true);
-      }
-    } catch (error) {
-      console.error("Error checking achievements:", error);
-    }
-  };
 
   const handleMotivoChange = (e) => {
     setMotivo(e.target.value);
@@ -549,29 +495,6 @@ function IndexPage() {
         setTransaccionesCargadas(true);
       }
     }
-  };
-
-  const isAccepted = async (transaction, categoria, tipoGasto) => {
-    await aceptarTransaccion(transaction, categoria, tipoGasto);
-    eliminarTransaccionPendiente(transaction.id);
-    if (
-      transaction.id_reserva !== "Cobro" &&
-      transaction.id_reserva !== "Pago"
-    ) {
-      enviarRespuesta("aceptada", transaction.id_reserva);
-    }
-    setPendTran(false);
-  };
-
-  const isRejected = (transaction) => {
-    eliminarTransaccionPendiente(transaction.id);
-    if (
-      transaction.id_reserva !== "Cobro" &&
-      transaction.id_reserva !== "Pago"
-    ) {
-      enviarRespuesta("rechazada", transaction.id_reserva);
-    }
-    setPendTran(false);
   };
 
   const enviarRespuesta = async (resp, id_reserva) => {
@@ -933,26 +856,13 @@ function IndexPage() {
         )}
       </div>
 
-      <ModalForm
+      <AddTransactionModal
         isModalOpen={isModalOpen}
         closeModal={closeModal}
         payOptions={payOptions}
         payCategories={payCategories}
         onNewTransaction={(data) => handleNewTransaction(data)}
       />
-      <AlertPending
-        isOpen={pendTran}
-        pendingTransaction={tranPendiente}
-        isAccepted={isAccepted}
-        isRejected={isRejected}
-        payCategories={payCategories}
-      />
-      {showNotification && (
-        <AchievementNotification
-          achievement={achievementData}
-          onClose={() => setShowNotification(false)}
-        />
-      )}
     </AppLayout>
   );
 }
