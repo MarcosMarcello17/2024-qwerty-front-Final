@@ -16,6 +16,18 @@ export const fieldClass = (invalid) =>
   }`;
 
 /*
+  Equivalente de fieldClass para el trigger de shadcn/Radix: mismo alto y mismos
+  bordes que un input, sin el margen (los selects viven en layouts distintos).
+  data-[size=default] gana sobre el h-8 que trae el trigger por defecto.
+*/
+export const selectTriggerClass = (invalid) =>
+  `w-full rounded-lg border bg-background px-3 text-base text-foreground transition-colors duration-200 data-[size=default]:h-11 focus-visible:ring-3 ${
+    invalid
+      ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/50"
+      : "border-border focus-visible:border-ring focus-visible:ring-ring/50"
+  }`;
+
+/*
   Componente a nivel de módulo, no definido dentro de un render: si se declara
   adentro, React le cambia la identidad en cada pasada y remonta el nodo.
 */

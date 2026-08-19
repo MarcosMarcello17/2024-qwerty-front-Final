@@ -1,8 +1,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Modal from "react-modal";
-import Select from "react-select";
 import CategoryModal from "./CategoryModal";
-import { FieldError, fieldClass, labelClass } from "./modal-fields";
+import {
+  FieldError,
+  fieldClass,
+  labelClass,
+  selectTriggerClass,
+} from "./modal-fields";
 import CreatableSelect from "react-select/creatable";
 import {
   AlertCircle,
@@ -16,6 +20,13 @@ import {
   Users,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import AutomaticDistribution from "../AutomaticDistribution";
 import { checkCanDistributeAutomatically } from "../../functions/automaticDistributionAPI";
 import { distributeIncomeAutomatically } from "../../functions/distributeIncomeAPI";
@@ -34,6 +45,10 @@ const CATEGORIA_GRUPAL = { value: "Gasto Grupal", label: "Gasto Grupal" };
   en ModalForm.css apuntando a hashes (`.css-1s2u09g-control`) que react-select
   v5 ya no emite, así que los selects quedaban sin estilo. Los tokens del tema
   se aplican acá, que es el único lugar donde react-select los respeta.
+
+  Solo queda el medio de pago: categoría y grupo ya usan el Select de shadcn.
+  react-select sigue acá porque el medio de pago permite crear opciones nuevas
+  (CreatableSelect), algo que el Select de Radix no hace.
 */
 const selectStyles = {
   control: (base, state) => ({
@@ -500,6 +515,7 @@ export default function AddTransactionModal({
       overlayClassName="fixed inset-0 z-50 overflow-y-auto bg-background/85 p-4"
       className="mx-auto my-4 w-full max-w-md rounded-xl border border-border bg-card p-5 outline-none sm:my-10"
     >
+      {/* TODO: Reemplazar por el Dialog de shadcn*/}
       <h2
         id="modal-form-title"
         className="text-xl font-semibold text-card-foreground"
@@ -555,7 +571,7 @@ export default function AddTransactionModal({
               inputMode="decimal"
               min="0.01"
               step="0.01"
-              placeholder="0,00"
+              placeholder="0.00"
               value={valor}
               onChange={(e) => {
                 setValor(e.target.value);
@@ -593,32 +609,50 @@ export default function AddTransactionModal({
           />
           <FieldError id="tx-motivo-error" message={fieldErrors.motivo} />
         </div>
-
+        {/* TODO: Check group handling */}
         {esGrupal ? (
           <div>
             <label htmlFor="tx-grupo" className={labelClass}>
               Grupo
             </label>
             <Select
-              inputId="tx-grupo"
-              options={activeGroups.map((grupo) => ({
-                value: grupo.id,
-                label: grupo.nombre,
-              }))}
-              onChange={handleGroupSelect}
-              value={selectedGroup}
-              placeholder="Elegí un grupo"
-              noOptionsMessage={() => "No tenés grupos activos"}
-              styles={selectStyles}
-              menuPortalTarget={
-                typeof document !== "undefined" ? document.body : null
-              }
-              aria-invalid={Boolean(fieldErrors.grupo)}
-              aria-describedby={
-                fieldErrors.grupo ? "tx-grupo-error" : undefined
-              }
-              className="mt-1.5"
-            />
+              value={selectedGroup ? String(selectedGroup.value) : ""}
+              onValueChange={(value) => {
+                /*
+                  Radix solo maneja strings; el id del grupo vuelve a su tipo
+                  original acá para que el POST siga mandando lo mismo que antes.
+                */
+                const grupo = activeGroups.find(
+                  (g) => String(g.id) === value,
+                );
+                if (grupo)
+                  handleGroupSelect({ value: grupo.id, label: grupo.nombre });
+              }}
+            >
+              <SelectTrigger
+                id="tx-grupo"
+                className={`mt-1.5 ${selectTriggerClass(fieldErrors.grupo)}`}
+                aria-invalid={Boolean(fieldErrors.grupo)}
+                aria-describedby={
+                  fieldErrors.grupo ? "tx-grupo-error" : undefined
+                }
+              >
+                <SelectValue placeholder="Elegí un grupo" />
+              </SelectTrigger>
+              <SelectContent>
+                {activeGroups.length === 0 ? (
+                  <p className="px-1.5 py-1 text-sm text-muted-foreground">
+                    No tenés grupos activos
+                  </p>
+                ) : (
+                  activeGroups.map((grupo) => (
+                    <SelectItem key={grupo.id} value={String(grupo.id)}>
+                      {grupo.nombre}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
             <FieldError id="tx-grupo-error" message={fieldErrors.grupo} />
             {gruposError && (
               <p className="mt-1.5 text-xs text-muted-foreground">
@@ -634,20 +668,32 @@ export default function AddTransactionModal({
             <div className="mt-1.5 flex items-start gap-2">
               <div className="min-w-0 flex-1">
                 <Select
-                  inputId="tx-categoria"
-                  options={categoryOptions}
-                  onChange={handleCategorySelect}
-                  value={selectedCategory}
-                  placeholder="Elegí una categoría"
-                  styles={selectStyles}
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  aria-invalid={Boolean(fieldErrors.categoria)}
-                  aria-describedby={
-                    fieldErrors.categoria ? "tx-categoria-error" : undefined
-                  }
-                />
+                  value={selectedCategory?.value ?? ""}
+                  onValueChange={(value) => {
+                    const opcion = categoryOptions.find(
+                      (o) => o.value === value,
+                    );
+                    if (opcion) handleCategorySelect(opcion);
+                  }}
+                >
+                  <SelectTrigger
+                    id="tx-categoria"
+                    className={selectTriggerClass(fieldErrors.categoria)}
+                    aria-invalid={Boolean(fieldErrors.categoria)}
+                    aria-describedby={
+                      fieldErrors.categoria ? "tx-categoria-error" : undefined
+                    }
+                  >
+                    <SelectValue placeholder="Elegí una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((opcion) => (
+                      <SelectItem key={opcion.value} value={opcion.value}>
+                        {opcion.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <button
                 type="button"
