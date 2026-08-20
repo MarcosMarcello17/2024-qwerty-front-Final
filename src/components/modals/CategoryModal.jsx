@@ -10,23 +10,37 @@ import {
 } from "@/components/ui/dialog";
 import { FieldError, fieldClass, labelClass } from "./modal-fields";
 import IconSelector from "./CategoryModal/IconSelector";
-import { createCatAPI } from "@/functions/createCatAPI";
+import postNuevaCategoria from "@/functions/postNuevaCategoria";
+import { useMutation } from "@tanstack/react-query";
+import PropTypes from "prop-types";
 
 const NOMBRE_MAX = 30;
+
+CategoryModal.propTypes = {
+  isOpen: PropTypes.bool,
+  onRequestClose: PropTypes.func,
+  handleEditCat: PropTypes.func,
+  onCreatedCategory: PropTypes.func,
+  edit: PropTypes.bool,
+  editCat: PropTypes.object,
+  isLoadingAdd: PropTypes.bool,
+  isLoadingEdit: PropTypes.bool,
+};
 
 export default function CategoryModal({
   isOpen = false,
   onRequestClose = () => {},
   handleEditCat = async () => {},
-  onCreatedCategory = (newCat) => {},
+  onCreatedCategory = () => {},
   edit = false,
   editCat = {},
   isLoadingAdd = false,
   isLoadingEdit = false,
 }) {
+  const postCategoria = useMutation(postNuevaCategoria());
+
   const [nombre, setNombre] = useState("");
   const [iconKey, setIconKey] = useState("");
-
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState("");
   const [confirmingClose, setConfirmingClose] = useState(false);
@@ -36,6 +50,10 @@ export default function CategoryModal({
   const isLoading = edit ? isLoadingEdit : isLoadingAdd;
   const nombreOriginal = editCat?.label ?? "";
   const iconoOriginal = editCat?.iconPath ?? "";
+  const nombreIcono = categoryIconLabel(iconKey);
+  const isDirty = edit
+    ? nombre !== nombreOriginal || iconKey !== iconoOriginal
+    : nombre.trim() !== "" || iconKey !== "";
 
   /*
     Se siembra al abrir, no en cada cambio de props: el efecto viejo se
@@ -50,12 +68,6 @@ export default function CategoryModal({
     setFormError("");
     setConfirmingClose(false);
   }, [isOpen, edit, nombreOriginal, iconoOriginal]);
-
-  const nombreIcono = categoryIconLabel(iconKey);
-
-  const isDirty = edit
-    ? nombre !== nombreOriginal || iconKey !== iconoOriginal
-    : nombre.trim() !== "" || iconKey !== "";
 
   const validar = () => {
     const errores = {};
@@ -89,7 +101,7 @@ export default function CategoryModal({
       que el usuario ya cargó.
     */
   const handleCreateCat = async (nombre, icono) => {
-    const ret = await createCatAPI(nombre, icono);
+    const ret = postCategoria.mutate({ nombre, icono });
     if (ret.newCat != null) {
       onCreatedCategory(ret.newCat);
       return null;

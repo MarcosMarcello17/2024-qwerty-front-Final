@@ -1,6 +1,7 @@
 import { BACK_URL } from "@/lib/backendUrl";
+import { mutationOptions } from "@tanstack/react-query";
 
-export const createCatAPI = async (nombre, icono) => {
+const createCatAPI = async (nombre, icono) => {
   const token = localStorage.getItem("token");
   if (!nombre || !icono) {
     console.error("Nombre y icono son obligatorios");
@@ -46,3 +47,12 @@ export const createCatAPI = async (nombre, icono) => {
     };
   }
 };
+
+export default function postNuevaCategoria({ nombre, icono }) {
+  return mutationOptions({
+    mutationKey: ["postNewCategoria", { nombre, icono }],
+    mutationFn: async ({ nombre, icono }) => {
+      return createCatAPI(nombre, icono);
+    },
+  });
+}
