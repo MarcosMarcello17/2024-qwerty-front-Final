@@ -1,14 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import MonthlyGraphic from "./components/MonthlyGraphic";
-import AchievementNotification from "./components/AchievementNotification";
 import RecentTransactions from "./components/RecentTransactions";
 import DetectedSubscriptions from "@/features/IndexPage/DetectedSubscriptions";
 import { getApiTransacciones } from "../functions/getApiTransacciones";
-import { createCatAPI } from "../functions/createCatAPI";
-import { createPaymentMethodAPI } from "../functions/createPaymentMethodAPI";
-import { deletePendingTransaction } from "../functions/deletePendingTransaction";
-import { processRecurringTransactions } from "../functions/processRecurringTransactions";
 import { formatARS } from "@/lib/format";
 import {
   AlertTriangle,
@@ -30,7 +25,6 @@ import {
 import { Button } from "@/components/ui/button";
 import PaymentMethodGraphic from "./components/PaymentMethodGraphic";
 import AppLayout from "./AppLayout";
-import AlertPending from "./components/AlertPending";
 import {
   Popover,
   PopoverContent,
@@ -42,6 +36,8 @@ import IndexSummary from "@/features/IndexPage/IndexSummary";
 import AddTransactionModal from "@/components/modals/AddTransactionModal";
 import { useQuery } from "@tanstack/react-query";
 import { getPersonalCategorias } from "@/functions/getPersonalCategorias";
+import { useTransaccionesFilters } from "@/store/useTransaccionesFilters";
+import getPersonalTipoGastos from "@/functions/getPersonalTipoGastos";
 
 const months = [
   { value: "00", label: "Todos" },
@@ -82,36 +78,45 @@ const MEDIOS_PAGO_DEFAULT = [
 const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 
 function IndexPage() {
-  const [transacciones, setTransacciones] = useState([]);
-  const [showNotification, setShowNotification] = useState(false);
   const [edit, setEdit] = useState(false);
-  const [transaccionesCargadas, setTransaccionesCargadas] = useState(false);
-  const [achievementData, setAchievementData] = useState(0);
-  const [payOptions, setPayOptions] = useState(MEDIOS_PAGO_DEFAULT);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [transaccionId, setTransaccionId] = useState(null);
   const navigate = useNavigate();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todas");
   const [categoriasConTodas, setCategoriasConTodas] = useState([]);
-  const [isLoadingFilter, setIsLoadingFilter] = useState(true);
   const [filtroMes, setFiltroMes] = useState("00");
   const [filtroAno, setFiltroAno] = useState("00");
   const [posibleSub, setPosibleSub] = useState([]);
-  const [transaccionesSinFiltroCat, setTransaccionesSinFiltroCat] = useState(
-    [],
-  );
   const [showSubscriptions, setShowSubscriptions] = useState(false);
 
   // Tres canales distintos: un fallo de carga no es lo mismo que un fallo de
   // escritura, y ninguno de los dos es lo mismo que "no hay datos".
   const [actionError, setActionError] = useState(null);
-  const [loadError, setLoadError] = useState(null);
   const [statusMessage, setStatusMessage] = useState(null);
+  const { filters, setFilters } = useTransaccionesFilters();
 
   const { data: payCategories = [], error: personalCategoriasError } = useQuery(
     getPersonalCategorias(),
   );
+
+  if (personalCategoriasError) {
+    console.log("Fallo la obtencion de categorias: ", personalCategoriasError);
+  }
+
+  const {
+    data: transaccionesApi = {
+      transacciones: [],
+      transaccionesSinFiltroCat: [],
+    },
+    error: transaccionesApiError,
+    isLoading: isLoadingFilter,
+  } = useQuery(getApiTransacciones(filters));
+
+  if (transaccionesApiError) {
+    console.error("Error al obtener transacciones: ", transaccionesApiError);
+  }
+
+  const { data: payOptions = [] } = useQuery(getPersonalTipoGastos());
 
   useEffect(() => {
     if (!statusMessage) return;
@@ -120,9 +125,12 @@ function IndexPage() {
   }, [statusMessage]);
 
   useEffect(() => {
-    setIsLoadingFilter(true);
-    getTransacciones(categoriaSeleccionada);
-  }, [categoriaSeleccionada, filtroMes, filtroAno]);
+    setFilters({
+      categoria: categoriaSeleccionada,
+      mes: filtroMes,
+      ano: filtroAno,
+    });
+  }, [categoriaSeleccionada, filtroMes, filtroAno, setFilters]);
 
   useEffect(() => {
     if (payCategories.length > 0) {
@@ -134,141 +142,38 @@ function IndexPage() {
   }, [payCategories]);
 
   useEffect(() => {
-    fetchPersonalTipoGastos();
-    processRecurringOnLoad();
-  }, []);
+    if (transaccionesApi.transacciones.length > 0) {
+      setPosibleSub(
+        detectRecurringTransactions(transaccionesApi.transacciones),
+      );
+    }
+  }, [transaccionesApi.transacciones]);
 
   useEffect(() => {
-    if (transacciones.length > 0) {
-      setPosibleSub(detectRecurringTransactions(transacciones));
-    }
-  }, [transacciones]);
-
-  const processRecurringOnLoad = async () => {
-    try {
-      const createdTransactions = await processRecurringTransactions();
-      if (createdTransactions.length > 0) {
-        const apiTransacciones = await getApiTransacciones();
-        if (apiTransacciones && apiTransacciones.transacciones) {
-          setTransacciones(apiTransacciones.transacciones);
-          setTransaccionesSinFiltroCat(
-            apiTransacciones.transacciones.filter(
-              (transaccion) => transaccion.categoria !== "Ingreso de Dinero",
-            ),
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error al procesar transacciones recurrentes:", error);
-    }
-  };
-
-  const showTransactionsPendientes = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(
-        `${BACK_URL}/api/transaccionesPendientes/user`,
-        {
-          method: "GET",
+    const checkIfValidToken = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const response = await fetch(`${BACK_URL}/api/transacciones/userTest`, {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      let data = await response.json();
-      data = data.filter(
-        (tran) => tran.id_reserva !== "Pago" && tran.id_reserva !== "Cobro",
-      );
-      if (data[0] !== null && data[0] !== undefined) {
-        setTranPendiente(data[0]);
-        setPendTran(true);
-      }
-    } catch (err) {
-      console.error("Error fetching transactions:", err);
-    }
-  };
-
-  const fetchPersonalTipoGastos = async () => {
-    const token = localStorage.getItem("token");
-    try {
-      const response = await fetch(`${BACK_URL}/api/personal-tipo-gasto`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const customOptions = data.map((tipo) => ({
-          label: tipo.nombre,
-          value: tipo.nombre,
-        }));
-        setPayOptions([...MEDIOS_PAGO_DEFAULT, ...customOptions]);
-      }
-    } catch (error) {
-      console.error(
-        "Error al obtener los tipos de gasto personalizados:",
-        error,
-      );
-    }
-  };
-
-  const checkIfValidToken = async (token) => {
-    try {
-      const response = await fetch(`${BACK_URL}/api/transacciones/userTest`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      if (response.ok) {
-        return true;
-      } else {
+        });
+        if (response.ok) {
+          return true;
+        } else {
+          localStorage.removeItem("token");
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error al leer el token: ", error);
         localStorage.removeItem("token");
         return false;
       }
-    } catch (error) {
-      localStorage.removeItem("token");
-      return false;
-    }
-  };
+    };
 
-  const getTransacciones = async (filtrado = "Todas") => {
-    const token = localStorage.getItem("token");
-    setTransaccionesCargadas(false);
-    if (await checkIfValidToken(token)) {
-      try {
-        const apiTransacciones = await getApiTransacciones(
-          filtrado,
-          filtroMes,
-          filtroAno,
-        );
-        setTransacciones(apiTransacciones.transacciones);
-        setTransaccionesSinFiltroCat(
-          apiTransacciones.transaccionesSinFiltroCat,
-        );
-        setLoadError(null);
-      } catch (err) {
-        console.error("Error fetching transactions:", err);
-        // Sin esto la pantalla diria "no hay transacciones" cuando en realidad
-        // no las pudo traer, que es exactamente el mensaje opuesto.
-        setLoadError(
-          "No pudimos cargar tus transacciones. Esto no significa que no existan.",
-        );
-      } finally {
-        setIsLoadingFilter(false);
-        setTransaccionesCargadas(true);
-      }
-      showTransactionsPendientes();
-    } else {
-      navigate("/");
-    }
-  };
+    checkIfValidToken();
+  }, [navigate]);
 
   const closeModal = () => {
     setIsModalOpen(false);
@@ -279,41 +184,7 @@ function IndexPage() {
     setCategoriaSeleccionada("Todas");
     setFiltroAno("00");
     setFiltroMes("00");
-  };
-
-  const agregarTransaccionRecurrente = async (bodyTrans) => {
-    try {
-      const token = localStorage.getItem("token");
-      const body = {
-        motivo: bodyTrans.motivo,
-        categoria: bodyTrans.categoria,
-        tipoGasto: bodyTrans.tipoGasto,
-        valor: bodyTrans.valor,
-        frecuencia: "mensual",
-      };
-      const response = await fetch(`${BACK_URL}/api/recurrents`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        setActionError(
-          "La transacción se guardó, pero no pudimos marcarla como recurrente.",
-        );
-      }
-    } catch (err) {
-      setActionError(
-        "La transacción se guardó, pero no pudimos marcarla como recurrente.",
-      );
-    }
-  };
-
-
-  const handleMotivoChange = (e) => {
-    setMotivo(e.target.value);
+    setFilters(undefined);
   };
 
   const detectRecurringTransactions = (transacciones) => {
@@ -368,180 +239,9 @@ function IndexPage() {
       .filter((result) => result !== null);
   };
 
-  const aceptarTransaccion = async (transaccion, categoria, tipoGasto) => {
-    const token = localStorage.getItem("token");
-    setActionError(null);
-    setTransaccionesCargadas(false);
-    let url = `${BACK_URL}/api/transacciones`;
-    if (transaccion.id_reserva === "Cobro") {
-      url += "/crearPago/" + transaccion.sentByEmail;
-      const motivo = transaccion.motivo;
-      const valor = transaccion.valor;
-      const fecha = transaccion.fecha;
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ motivo, valor, fecha, categoria, tipoGasto }),
-        });
-        if (response.ok) {
-          const data = await response.json();
-          const updatedTransacciones = [...transacciones, data];
-          updatedTransacciones.sort(
-            (a, b) => new Date(b.fecha) - new Date(a.fecha),
-          );
-          setTransacciones(updatedTransacciones);
-          setStatusMessage("Cobro registrado.");
-        } else {
-          console.error(
-            "Error al crear pago:",
-            response.status,
-            response.statusText,
-          );
-          setActionError("No pudimos registrar el cobro. Volvé a intentar.");
-        }
-      } catch (err) {
-        console.error("Error en la solicitud de cobro:", err);
-        setActionError(
-          "No hay conexión con el servidor. El cobro no se registró.",
-        );
-      } finally {
-        setTransaccionesCargadas(true);
-      }
-    } else if (transaccion.id_reserva === "Pago") {
-      setStatusMessage("Pago aprobado.");
-      setTransaccionesCargadas(true);
-    } else if (transaccion.id_reserva === "Grupo") {
-      url = `${BACK_URL}/api/grupos/agregar-usuario`;
-      const grupoId = transaccion.grupoId;
-      try {
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ grupo_id: grupoId }),
-        });
-        if (response.ok) {
-          setStatusMessage("Te sumaste al grupo.");
-        } else {
-          console.error(
-            "Error al agregar usuario al grupo:",
-            response.status,
-            response.statusText,
-          );
-          setActionError("No pudimos sumarte al grupo. Volvé a intentar.");
-        }
-      } catch (err) {
-        console.error(
-          "Error en la solicitud de agregar usuario al grupo:",
-          err,
-        );
-        setActionError(
-          "No hay conexión con el servidor. No te sumamos al grupo.",
-        );
-      } finally {
-        setTransaccionesCargadas(true);
-      }
-    } else {
-      const method = "POST";
-      let motivo = transaccion.motivo;
-      let valor = transaccion.valor;
-      let fecha = transaccion.fecha;
-      let categoriaTransaccion = categoria || "Clase";
-      try {
-        const response = await fetch(url, {
-          method: method,
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            motivo,
-            valor,
-            fecha,
-            categoria: categoriaTransaccion,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const updatedTransacciones = [...transacciones, data];
-          updatedTransacciones.sort(
-            (a, b) => new Date(b.fecha) - new Date(a.fecha),
-          );
-          setTransacciones(updatedTransacciones);
-          setStatusMessage("Transacción aceptada.");
-        } else {
-          console.error(
-            "Error al crear transaccion:",
-            response.status,
-            response.statusText,
-          );
-          setActionError(
-            "No pudimos aceptar la transacción. Volvé a intentar.",
-          );
-        }
-      } catch (err) {
-        console.error("Error en la solicitud de transaccion:", err);
-        setActionError(
-          "No hay conexión con el servidor. La transacción no se aceptó.",
-        );
-      } finally {
-        setTransaccionesCargadas(true);
-      }
-    }
-  };
-
-  const enviarRespuesta = async (resp, id_reserva) => {
-    const token = localStorage.getItem("token");
-    setTransaccionesCargadas(false);
-    const url = `${BACK_URL}/api/transaccionesPendientes/${resp}?id_reserva=${id_reserva}`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        console.error(
-          "Error al enviar respuesta:",
-          response.status,
-          response.statusText,
-        );
-        setActionError(
-          "Registramos tu decisión localmente, pero no pudimos avisarle a la otra persona.",
-        );
-      }
-    } catch (err) {
-      console.error("Error en la solicitud de respuesta:", err);
-      setActionError(
-        "Registramos tu decisión localmente, pero no pudimos avisarle a la otra persona.",
-      );
-    } finally {
-      setTransaccionesCargadas(true);
-    }
-  };
-
-  const eliminarTransaccionPendiente = async (id) => {
-    const tranEliminada = await deletePendingTransaction(id);
-    if (tranEliminada) {
-      showTransactionsPendientes();
-    } else {
-      setActionError("No pudimos cerrar la solicitud pendiente.");
-    }
-  };
-
   // Metricas del conjunto de transacciones actualmente filtrado.
   const summary = useMemo(() => {
-    const expenses = transacciones.filter(
+    const expenses = transaccionesApi.transacciones.filter(
       (t) => t.categoria !== "Ingreso de Dinero",
     );
     const totalSpent = expenses.reduce((sum, t) => sum + (t.valor || 0), 0);
@@ -559,7 +259,7 @@ function IndexPage() {
       topCategory: sorted[0]?.[0] || null,
       topCategoryTotal: sorted[0]?.[1] || 0,
     };
-  }, [transacciones]);
+  }, [transaccionesApi.transacciones]);
 
   const periodLabel = useMemo(() => {
     const mesLabel =
@@ -608,14 +308,11 @@ function IndexPage() {
   );
 
   const handleNewTransaction = (newTransaction) => {
-    const updatedTransacciones = [...transacciones, newTransaction];
-    updatedTransacciones.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-    setTransacciones(updatedTransacciones);
-    setTransaccionesCargadas(true);
-    if (!edit) {
-      checkTransaccionAchievment();
-    }
-    console.log(newTransaction);
+    setFilters({
+      categoria: categoriaSeleccionada,
+      mes: filtroMes,
+      ano: filtroAno,
+    });
     setStatusMessage(
       `Transacción registrada: ${newTransaction.motivo} · ${formatARS(newTransaction.valor)}`,
     );
@@ -757,9 +454,11 @@ function IndexPage() {
         />
 
         {/* Summary strip */}
-        {transaccionesCargadas && !loadError && transacciones.length > 0 && (
-          <IndexSummary periodLabel={periodLabel} summary={summary} />
-        )}
+        {!isLoadingFilter &&
+          !transaccionesApiError &&
+          transaccionesApi.transacciones.length > 0 && (
+            <IndexSummary periodLabel={periodLabel} summary={summary} />
+          )}
 
         {/* Subscriptions - collapsible */}
         <div>
@@ -796,48 +495,55 @@ function IndexPage() {
             </div>
             {chartSkeleton}
           </div>
-        ) : loadError ? (
+        ) : transaccionesApiError ? (
           <div
             role="alert"
             className="flex flex-col items-center justify-center rounded-xl border border-border bg-card px-6 py-16 text-center"
           >
             <AlertTriangle className="mb-3 h-6 w-6 text-destructive" />
-            <p className="mb-1 font-medium">{loadError}</p>
+            <p className="mb-1 font-medium">{transaccionesApiError}</p>
             <p className="mb-6 text-sm text-muted-foreground">
               Hubo un error en la carga de transacciones. Intente nuevamente
             </p>
             <Button
               variant="outline"
               onClick={() => {
-                setIsLoadingFilter(true);
-                getTransacciones(categoriaSeleccionada);
+                setFilters({
+                  categoria: categoriaSeleccionada,
+                  mes: filtroMes,
+                  ano: filtroAno,
+                });
               }}
             >
               <RotateCw className="mr-1.5 h-4 w-4" /> Reintentar
             </Button>
           </div>
-        ) : transacciones.length > 0 ? (
+        ) : transaccionesApi.transacciones.length > 0 ? (
           <div className="space-y-6">
             <div className="grid w-full gap-6 md:grid-cols-2">
               <MonthlyGraphic
                 type="categorias"
-                transacciones={transacciones}
+                transacciones={transaccionesApi.transacciones}
                 payCategories={payCategories}
                 filtroMes={filtroMes}
                 filtroAno={filtroAno}
                 filtroCategoria={categoriaSeleccionada}
-                transaccionesSinFiltroCat={transaccionesSinFiltroCat}
+                transaccionesSinFiltroCat={
+                  transaccionesApi.transaccionesSinFiltroCat
+                }
               />
               <PaymentMethodGraphic
                 type="tipoGasto"
-                transacciones={transacciones}
+                transacciones={transaccionesApi.transacciones}
                 payCategories={payOptions}
                 filtroMes={filtroMes}
                 filtroAno={filtroAno}
                 filtroCategoria={categoriaSeleccionada}
               />
             </div>
-            <RecentTransactions transacciones={transacciones} />
+            <RecentTransactions
+              transacciones={transaccionesApi.transacciones}
+            />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -857,6 +563,7 @@ function IndexPage() {
       </div>
 
       <AddTransactionModal
+        edit={edit}
         isModalOpen={isModalOpen}
         closeModal={closeModal}
         payOptions={payOptions}

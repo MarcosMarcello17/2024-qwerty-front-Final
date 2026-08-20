@@ -2,10 +2,10 @@ import { BACK_URL } from "@/lib/backendUrl";
 import { queryOptions } from "@tanstack/react-query";
 
 export function getPersonalCategorias(){ 
-    return queryOptions({
-    queryKey: ['personalCategorias'],
+  return queryOptions({
+    queryKey: ["personalCategorias"],
     queryFn: getCategoriasFromAPI,
-});
+  });
 }
 const getCategoriasFromAPI = async () => {
     const token = localStorage.getItem("token");

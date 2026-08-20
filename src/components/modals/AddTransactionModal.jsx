@@ -274,6 +274,37 @@ export default function AddTransactionModal({
     return errores;
   };
 
+  const agregarTransaccionRecurrente = async (bodyTrans) => {
+    try {
+      const token = localStorage.getItem("token");
+      const body = {
+        motivo: bodyTrans.motivo,
+        categoria: bodyTrans.categoria,
+        tipoGasto: bodyTrans.tipoGasto,
+        valor: bodyTrans.valor,
+        frecuencia: "mensual",
+      };
+      const response = await fetch(`${BACK_URL}/api/recurrents`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        setActionError(
+          "La transacción se guardó, pero no pudimos marcarla como recurrente.",
+        );
+      }
+    } catch (err) {
+      setActionError(
+        "La transacción se guardó, pero ocurrio un error al marcarla como recurrente: ",
+        err,
+      );
+    }
+  };
+
   // Devuelve true solo si el backend confirmo. ModalForm usa ese valor para
   // decidir si cierra: cerrar siempre hacia desaparecer el error con el form.
   const agregarTransaccion = async (e, categoria, isRecurrent = false) => {
@@ -496,7 +527,7 @@ export default function AddTransactionModal({
     setExtraCategories((prev) => [...prev, newCat]);
     onNewCategory();
     handleCategorySelect(newCat);
-  }
+  };
 
   const resumenOpciones = [
     fecha === HOY() ? "Hoy" : fecha.split("-").reverse().join("/"),
@@ -622,9 +653,7 @@ export default function AddTransactionModal({
                   Radix solo maneja strings; el id del grupo vuelve a su tipo
                   original acá para que el POST siga mandando lo mismo que antes.
                 */
-                const grupo = activeGroups.find(
-                  (g) => String(g.id) === value,
-                );
+                const grupo = activeGroups.find((g) => String(g.id) === value);
                 if (grupo)
                   handleGroupSelect({ value: grupo.id, label: grupo.nombre });
               }}
