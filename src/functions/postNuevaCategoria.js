@@ -27,24 +27,15 @@ const createCatAPI = async (nombre, icono) => {
         value: newCategoria.nombre,
         iconPath: newCategoria.iconPath,
       };
-      return {
-        newCat: newOption,
-        error: null,
-      };
+      return newOption;
     } else {
       const errorMessage = await response.text();
       console.error("Error al agregar categoria:", errorMessage);
-      return {
-        newCat: null,
-        error: errorMessage,
-      };
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error("Error al agregar categoria personalizada:", error);
-    return {
-      newCat: null,
-      error: null,
-    };
+    throw new Error(error);
   }
 };
 

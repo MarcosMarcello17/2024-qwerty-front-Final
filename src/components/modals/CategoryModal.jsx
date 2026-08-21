@@ -37,7 +37,9 @@ export default function CategoryModal({
   isLoadingAdd = false,
   isLoadingEdit = false,
 }) {
-  const postCategoria = useMutation(postNuevaCategoria());
+  const postCategoria = useMutation(
+    postNuevaCategoria({ nombre: "", icono: "" }),
+  );
 
   const [nombre, setNombre] = useState("");
   const [iconKey, setIconKey] = useState("");
@@ -101,12 +103,20 @@ export default function CategoryModal({
       que el usuario ya cargó.
     */
   const handleCreateCat = async (nombre, icono) => {
-    const ret = postCategoria.mutate({ nombre, icono });
-    if (ret.newCat != null) {
-      onCreatedCategory(ret.newCat);
-      return null;
-    }
-    return ret.error;
+    postCategoria.mutate(
+      { nombre, icono },
+      {
+        onSuccess: (newCat) => {
+          if (newCat) {
+            onCreatedCategory(newCat);
+            return null;
+          }
+        },
+        onError: (error) => {
+          return error;
+        },
+      },
+    );
   };
 
   const onSubmit = async (event) => {
