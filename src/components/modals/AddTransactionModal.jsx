@@ -30,69 +30,15 @@ import {
 import AutomaticDistribution from "../AutomaticDistribution";
 import { checkCanDistributeAutomatically } from "../../functions/automaticDistributionAPI";
 import { distributeIncomeAutomatically } from "../../functions/distributeIncomeAPI";
-import { createCatAPI } from "../../functions/createCatAPI";
-import { createPaymentMethodAPI } from "../../functions/createPaymentMethodAPI";
+import postNuevoMedioDePago from "../../functions/postNuevoMedioDePago";
 import { BACK_URL } from "@/lib/backendUrl";
+import { useMutation } from "@tanstack/react-query";
+import postTransaccionRecurrente from "@/functions/postTransaccionRecurrente";
+import NewTransactionOptions from "./TransactionModal/NewTransactionOptions";
 
 const HOY = () => new Date().toISOString().split("T")[0];
 
-const METODO_POR_DEFECTO = { value: "Efectivo", label: "Efectivo" };
-
 const CATEGORIA_GRUPAL = { value: "Gasto Grupal", label: "Gasto Grupal" };
-
-/*
-  react-select no toma clases de Tailwind: pinta con emotion. Antes esto vivía
-  en ModalForm.css apuntando a hashes (`.css-1s2u09g-control`) que react-select
-  v5 ya no emite, así que los selects quedaban sin estilo. Los tokens del tema
-  se aplican acá, que es el único lugar donde react-select los respeta.
-
-  Solo queda el medio de pago: categoría y grupo ya usan el Select de shadcn.
-  react-select sigue acá porque el medio de pago permite crear opciones nuevas
-  (CreatableSelect), algo que el Select de Radix no hace.
-*/
-const selectStyles = {
-  control: (base, state) => ({
-    ...base,
-    minHeight: "44px",
-    backgroundColor: "var(--background)",
-    borderColor: state.isFocused ? "var(--ring)" : "var(--border)",
-    borderRadius: "var(--radius)",
-    boxShadow: state.isFocused
-      ? "0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%)"
-      : "none",
-    transition: "border-color 200ms, box-shadow 200ms",
-    "&:hover": { borderColor: "var(--ring)" },
-  }),
-  valueContainer: (base) => ({ ...base, padding: "2px 10px" }),
-  singleValue: (base) => ({ ...base, color: "var(--foreground)" }),
-  input: (base) => ({ ...base, color: "var(--foreground)" }),
-  placeholder: (base) => ({ ...base, color: "var(--muted-foreground)" }),
-  indicatorSeparator: () => ({ display: "none" }),
-  dropdownIndicator: (base) => ({ ...base, color: "var(--muted-foreground)" }),
-  menu: (base) => ({
-    ...base,
-    backgroundColor: "var(--popover)",
-    border: "1px solid var(--border)",
-    borderRadius: "var(--radius)",
-    overflow: "hidden",
-  }),
-  /*
-    El contenido del modal scrollea, así que un menú inline se recorta contra el
-    borde. Portal al body para que siempre se vea entero.
-  */
-  menuPortal: (base) => ({ ...base, zIndex: 60 }),
-  option: (base, state) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? "var(--secondary)"
-      : state.isFocused
-        ? "color-mix(in oklch, var(--secondary), transparent 50%)"
-        : "transparent",
-    color: state.isSelected ? "var(--accent)" : "var(--popover-foreground)",
-    cursor: "pointer",
-  }),
-  noOptionsMessage: (base) => ({ ...base, color: "var(--muted-foreground)" }),
-};
 
 export default function AddTransactionModal({
   isModalOpen = false,
@@ -102,7 +48,6 @@ export default function AddTransactionModal({
   payCategories = [],
   onNewTransaction = () => {},
   onNewCategory = () => {},
-  onNewPayMethod = () => {},
 }) {
   const [isRecurrent, setIsRecurrent] = useState(false);
   const [showDistributionModal, setShowDistributionModal] = useState(false);
@@ -129,15 +74,11 @@ export default function AddTransactionModal({
     se avisa hacia arriba con onNewCategory / onNewPayMethod.
   */
   const [extraCategories, setExtraCategories] = useState([]);
-  const [extraPayOptions, setExtraPayOptions] = useState([]);
-  const [showMore, setShowMore] = useState(false);
   const [confirmingClose, setConfirmingClose] = useState(false);
   const [fecha, setFecha] = useState(HOY);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [motivo, setMotivo] = useState("");
   const [valor, setValor] = useState("");
-  const [selectedPayMethod, setSelectedPayMethod] =
-    useState(METODO_POR_DEFECTO);
 
   const valorRef = useRef(null);
   const motivoRef = useRef(null);
@@ -157,14 +98,13 @@ export default function AddTransactionModal({
     [payCategories, extraCategories],
   );
 
-  const payMethodOptions = useMemo(
-    () => [...payOptions, ...extraPayOptions],
-    [payOptions, extraPayOptions],
-  );
-
   const nombresDeCategorias = useMemo(
     () => categoryOptions.map((opcion) => opcion?.label).filter(Boolean),
     [categoryOptions],
+  );
+
+  const postTransaccionRec = useMutation(
+    postTransaccionRecurrente({ bodyTrans: {} }),
   );
 
   const fetchGrupos = async () => {
@@ -206,6 +146,7 @@ export default function AddTransactionModal({
     }
 
     let cancelado = false;
+    // TODO: Check if automatic distribution works with our budgets
     (async () => {
       try {
         const canDistribute = await checkCanDistributeAutomatically(fecha);
@@ -219,25 +160,6 @@ export default function AddTransactionModal({
       cancelado = true;
     };
   }, [selectedCategory, fecha]);
-
-  const handlePayChange = (value) => {
-    setTipoGasto(value ? value.value : "");
-    setSelectedPayMethod(value);
-  };
-
-  const handleCreateTP = async (inputValue) => {
-    const newOption = await createPaymentMethodAPI({ nombre: inputValue });
-    if (!newOption) {
-      setModalError(
-        `No pudimos crear el medio de pago "${inputValue}". Volvé a intentar.`,
-      );
-      return;
-    }
-    setExtraPayOptions((prev) => [...prev, newOption]);
-    setSelectedPayMethod(newOption);
-    setTipoGasto(newOption.value);
-    onNewPayMethod(newOption);
-  };
 
   /*
     Cambiar de alcance solo toca estado local: los handlers que vienen de
@@ -275,34 +197,21 @@ export default function AddTransactionModal({
   };
 
   const agregarTransaccionRecurrente = async (bodyTrans) => {
-    try {
-      const token = localStorage.getItem("token");
-      const body = {
-        motivo: bodyTrans.motivo,
-        categoria: bodyTrans.categoria,
-        tipoGasto: bodyTrans.tipoGasto,
-        valor: bodyTrans.valor,
-        frecuencia: "mensual",
-      };
-      const response = await fetch(`${BACK_URL}/api/recurrents`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+    postTransaccionRec.mutate(
+      { bodyTrans },
+      {
+        onSuccess: () => {
+          return;
         },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        setActionError(
-          "La transacción se guardó, pero no pudimos marcarla como recurrente.",
-        );
-      }
-    } catch (err) {
-      setActionError(
-        "La transacción se guardó, pero ocurrio un error al marcarla como recurrente: ",
-        err,
-      );
-    }
+        onError: (error) => {
+          setActionError(
+            "La transacción se guardó, pero no pudimos marcarla como recurrente: ",
+            error,
+          );
+          console.error(error);
+        },
+      },
+    );
   };
 
   // Devuelve true solo si el backend confirmo. ModalForm usa ese valor para
@@ -385,10 +294,6 @@ export default function AddTransactionModal({
     setFecha(new Date().toISOString().split("T")[0]);
     setSelectedCategory(null);
     setTipoGasto("Efectivo");
-    setSelectedPayMethod({
-      value: "Efectivo",
-      label: "Efectivo",
-    });
   };
 
   const sendTransaccion = async (e) => {
@@ -528,14 +433,6 @@ export default function AddTransactionModal({
     onNewCategory();
     handleCategorySelect(newCat);
   };
-
-  const resumenOpciones = [
-    fecha === HOY() ? "Hoy" : fecha.split("-").reverse().join("/"),
-    selectedPayMethod?.label ?? "Sin medio de pago",
-    isRecurrent ? "Se repite cada mes" : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
 
   return (
     <Modal
@@ -743,90 +640,14 @@ export default function AddTransactionModal({
           </div>
         )}
 
-        <div className="rounded-lg border border-border">
-          <button
-            type="button"
-            onClick={() => setShowMore((v) => !v)}
-            aria-expanded={showMore}
-            aria-controls="tx-mas-opciones"
-            className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-3 text-left transition-colors duration-200 hover:bg-secondary/40 focus:outline-none focus:ring-3 focus:ring-ring/50"
-          >
-            <span className="min-w-0">
-              <span className="block text-sm font-medium text-foreground">
-                Más opciones
-              </span>
-              <span className="block truncate text-xs text-muted-foreground">
-                {resumenOpciones}
-              </span>
-            </span>
-            <ChevronDown
-              aria-hidden="true"
-              className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none ${
-                showMore ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-
-          {showMore && (
-            <div
-              id="tx-mas-opciones"
-              className="flex flex-col gap-4 border-t border-border px-3 pb-4 pt-4"
-            >
-              <div>
-                <label htmlFor="tx-fecha" className={labelClass}>
-                  Fecha
-                </label>
-                <input
-                  id="tx-fecha"
-                  type="date"
-                  value={fecha}
-                  max={HOY()}
-                  onChange={(e) => setFecha(e.target.value)}
-                  className={fieldClass(false)}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="tx-medio" className={labelClass}>
-                  Medio de pago
-                </label>
-                <CreatableSelect
-                  inputId="tx-medio"
-                  options={payMethodOptions}
-                  onChange={handlePayChange}
-                  onCreateOption={handleCreateTP}
-                  value={selectedPayMethod}
-                  formatCreateLabel={(input) => `Crear "${input}"`}
-                  styles={selectStyles}
-                  menuPortalTarget={
-                    typeof document !== "undefined" ? document.body : null
-                  }
-                  className="mt-1.5"
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-3">
-                <label htmlFor="tx-recurrente" className="min-w-0">
-                  <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-                    <Repeat
-                      className="size-4 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    Repetir cada mes
-                  </span>
-                  <span className="mt-0.5 block text-xs text-muted-foreground">
-                    Se registra sola el mismo día de cada mes
-                  </span>
-                </label>
-                <Switch
-                  id="tx-recurrente"
-                  checked={isRecurrent}
-                  onCheckedChange={setIsRecurrent}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        <NewTransactionOptions
+          fecha={fecha}
+          switchRecurrent={setIsRecurrent}
+          isRecurrent={isRecurrent}
+          setFecha={setFecha}
+          setTipoGasto={setTipoGasto}
+          tipoGasto={tipoGasto}
+        />
 
         {/* Distribución automática: solo para ingresos NUEVOS (no en edición) */}
         {isIngresoCategory && canDistributeAutomatically && !edit && (

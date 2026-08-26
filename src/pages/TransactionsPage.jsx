@@ -40,7 +40,6 @@ import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import ModalForm from "../components/modals/AddTransactionModal";
 import AutomaticDistribution from "../components/AutomaticDistribution";
-import { createCatAPI } from "@/functions/createCatAPI";
 import {
   distributeIncomeAutomatically,
   distributeExistingIncome,
@@ -58,6 +57,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMutation } from "@tanstack/react-query";
+import postNuevaCategoria from "@/functions/postNuevaCategoria";
 
 const months = [
   { value: "00", label: "Todos" },
@@ -87,6 +88,7 @@ const years = [
 
 export default function TransactionsPage() {
   library.add(fas);
+  const postCategoria = useMutation(postNuevaCategoria());
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transacciones, setTransacciones] = useState([]);
@@ -169,7 +171,7 @@ export default function TransactionsPage() {
     setTipoGasto(newOption.label);
   };
   const handleCreateCat = async (nombre, icono) => {
-    const ret = await createCatAPI(nombre, icono);
+    const ret = postCategoria.mutate({ nombre, icono });
     if (ret.newCat != null) {
       setPayCategories((prevOptions) => [...prevOptions, ret.newCat]);
       setSelectedCategory(ret.newCat);

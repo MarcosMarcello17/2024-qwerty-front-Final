@@ -69,12 +69,6 @@ const years = [
   ),
 ];
 
-const MEDIOS_PAGO_DEFAULT = [
-  { value: "Tarjeta de credito", label: "Tarjeta de credito" },
-  { value: "Tarjeta de Debito", label: "Tarjeta de debito" },
-  { value: "Efectivo", label: "Efectivo" },
-];
-
 const BACK_URL = import.meta.env.VITE_BACK_SERVER_URL;
 
 function IndexPage() {

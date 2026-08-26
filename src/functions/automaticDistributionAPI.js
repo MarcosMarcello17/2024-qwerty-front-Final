@@ -1,3 +1,5 @@
+import { BACK_URL } from "@/lib/backendUrl";
+
 // Función para verificar si se puede distribuir automáticamente
 export const checkCanDistributeAutomatically = async (fecha) => {
   const token = localStorage.getItem("token");

@@ -7,7 +7,7 @@ import "./styles/ProfilePage.css";
 import logo from "../assets/logo-removebg-preview.png";
 import { useNavigate } from "react-router-dom";
 import ConfirmDeleteMedioDePago from "./components/ConfirmDeleteMedioDePago";
-import ModalMedioDePago from "./components/ModalMedioDePago";
+import ModalMedioDePago from "../components/modals/ModalMedioDePago";
 import MonthlyGraphic from "./components/MonthlyGraphic";
 import LoadingSpinner from "./components/LoadingSpinner";
 import AppLayout from "./AppLayout";
